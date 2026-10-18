@@ -37,6 +37,9 @@ class FakeAPI:
 
     def request(self, api, body, cursor):
         self.calls.append((api, body, cursor))
+        if body.get('mrkt_tp') in ('001','101'):
+            rows=[dict(row(),for_netprps_stk_cd=f'{n:06d}',orgn_netprps_stk_cd=f'{n+100:06d}') for n in range(1,21)]
+            return {'frgnr_orgn_trde_upper':rows,'return_code':0},{}
         rows, headers = next(self.pages)
         return {"frgnr_orgn_trde_upper": rows, "return_code": 0}, headers
 
@@ -130,6 +133,7 @@ class FlowTests(unittest.TestCase):
 
     def test_csv_signed_numbers_null_and_formula_name(self):
         doc=self.save(FakeAPI([([row(amount='', quantity='-5')],{})]))
+        doc.pop('markets')
         doc['rankings']['foreign'][0]['name']='=HYPERLINK("bad")'
         result=flows.csv_bytes(doc).decode('utf-8-sig')
         self.assertIn("'=HYPERLINK",result)
@@ -138,6 +142,7 @@ class FlowTests(unittest.TestCase):
 
     def test_daily_top20_reverse_and_period_top30(self):
         doc=self.save()
+        doc.pop('markets')
         rows=[dict(doc['rankings']['foreign'][0],rank=n,code=f'{n:06d}') for n in range(1,36)]
         doc['rankings']={'foreign':rows,'institution':rows}
         self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(20,0,-1)))
@@ -204,6 +209,25 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(flows.period_document(negative,start,end,coverage,'test')['rankings']['foreign'][0]['code'],'000002')
         negative[0]['raw']['frgnr_invsr']='+-500'
         with self.assertRaises(DataError):flows.period_document(negative,start,end,coverage,'test')
+
+    def test_market_requests_and_market_period_rankings(self):
+        api=FakeAPI()
+        doc=self.save(api)
+        self.assertEqual([call[1]['mrkt_tp'] for call in api.calls],['000','001','101'])
+        self.assertEqual(set(doc['markets']),{'001','101'})
+        self.assertEqual(len(flows.display_rows(doc,'foreign','001')),20)
+        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),81)
+        records=[]
+        for n in range(1,71):
+            records.append({'stock':{'code':f'{n:06d}','name':str(n),'market_code':'001' if n<=35 else '101'},
+                'million_krw':{'foreign':1000-n,'institution':n},'raw':{'frgnr_invsr':str(1000-n),'orgn':str(n)},
+                'request':{'stk_cd':f'{n:06d}_AL','strt_dt':'20260101','end_dt':'20260817','amt_qty_tp':'1','trde_tp':'0','unit_tp':'1'}})
+        doc=flows.period_document(records,'2026-01-01','2026-08-17',{'target_count':70,'saved_count':70,'failed_count':0},'test')
+        self.assertEqual(doc['markets']['001']['rankings']['foreign'][0]['code'],'000001')
+        self.assertEqual(doc['markets']['101']['rankings']['foreign'][0]['code'],'000036')
+        self.assertEqual(doc['markets']['001']['rankings']['institution'][0]['code'],'000035')
+        self.assertEqual(doc['markets']['101']['rankings']['institution'][0]['code'],'000070')
+        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),121)
 
     def test_scheduler_default_pause_weekend_and_interval(self):
         self.assertTrue(flows.enabled(self.data))

@@ -89,9 +89,10 @@ def periods(data):
     return result
 
 
-def display_rows(doc, key):
+def display_rows(doc, key, market=None):
     period = doc.get("kind") == "period"
-    return sorted((row for row in doc["rankings"][key] if row["rank"] <= (30 if period else 20)),
+    rankings = doc.get("markets", {}).get(market, {}).get("rankings", {}) if market else doc["rankings"]
+    return sorted((row for row in rankings.get(key, []) if row["rank"] <= (30 if period else 20)),
                   key=lambda row: row["rank"], reverse=not period)
 
 
@@ -134,12 +135,26 @@ def period_document(records, start, end, coverage, fetched_at):
         rankings[key] = [{"rank": rank, "code": row["stock"]["code"], "name": row["stock"]["name"],
                           "net_amount_10m_krw": row["million_krw"][key] / 10,
                           "net_quantity_1000_shares": None} for rank, row in enumerate(ordered, 1)]
-    return {"schema": 1, "kind": "period", "period_start": start, "period_end": end,
+    doc = {"schema": 1, "kind": "period", "period_start": start, "period_end": end,
             "api_id": "ka10061", "market": "KRX+NXT", "basis": "net_buy_amount",
             "source_date": "UNKNOWN", "source_date_note": "기간은 요청값이며 API 원본 기준일은 미제공입니다.",
             "fetched_at": fetched_at, "units": {"amount": "천만원", "quantity": "천주"},
             "coverage": coverage, "rankings": rankings,
             "raw": {"source_amount_unit": "백만원", "source_quantity_collected": False, "records": records}}
+    if any(row["stock"].get("market_code") in ("001", "101") for row in records):
+        doc["markets"] = {}
+        for market, label in (("001", "코스피"), ("101", "코스닥")):
+            subset = [row for row in records if row["stock"].get("market_code") == market]
+            market_rankings = {}
+            for key in PREFIXES:
+                ordered = sorted(subset, key=lambda r: (-r["million_krw"][key], r["stock"]["code"]))[:30]
+                if len(ordered) != 30 or ordered[-1]["million_krw"][key] <= 0:
+                    raise DataError("시장별 기간 TOP 30 자료 부족")
+                market_rankings[key] = [{"rank": rank, "code": row["stock"]["code"], "name": row["stock"]["name"],
+                    "net_amount_10m_krw": row["million_krw"][key] / 10, "net_quantity_1000_shares": None}
+                    for rank, row in enumerate(ordered, 1)]
+            doc["markets"][market] = {"name": label, "rankings": market_rankings, "target_count": len(subset)}
+    return doc
 
 
 def enabled(data):
@@ -163,10 +178,12 @@ def signed_int(value):
     return int(text)
 
 
-def fetch(api, day):
+def fetch(api, day, market="000"):
     """Spec ka90009, verified official example; no kwcli dependency added."""
     valid_day(day)
-    body = {"mrkt_tp": "000", "amt_qty_tp": "1", "qry_dt_tp": "1",
+    if market not in ("000", "001", "101"):
+        raise ValueError("시장 구분 오류")
+    body = {"mrkt_tp": market, "amt_qty_tp": "1", "qry_dt_tp": "1",
             "date": day.replace("-", ""), "stex_tp": "3"}
     cursor, seen, pages = "", set(), []
     result = {key: {} for key in PREFIXES}
@@ -230,6 +247,13 @@ def refresh(data, day, api=None, clock=None):
     if not any(bar.get("ts") == day and bar.get("volume", 0) > 0 for bar in bars):
         raise DataError("당일 거래일 증거 없음: 휴장·미제공 가능, 이전 자료 유지")
     rankings, raw = fetch(api, day)
+    markets = {}
+    for market, label in (("001", "코스피"), ("101", "코스닥")):
+        market_rankings, market_raw = fetch(api, day, market)
+        if any(len(rows) < 20 for rows in market_rankings.values()):
+            raise DataError("시장별 일별 TOP 20 자료 부족")
+        markets[market] = {"name": label, "rankings": market_rankings}
+        raw.setdefault("markets", {})[market] = market_raw
     finished = clock()
     if finished.date().isoformat() != day:
         raise DataError("외국인·기관 조회 도중 날짜 변경: 이전 자료 유지")
@@ -241,7 +265,7 @@ def refresh(data, day, api=None, clock=None):
            "fetched_at": finished.isoformat(timespec="seconds"),
            "after_close_refresh": current.strftime("%H:%M") >= FINAL_TIME,
            "units": {"amount": "천만원", "quantity": "천주"},
-           "rankings": rankings, "raw": raw}
+           "rankings": rankings, "markets": markets, "raw": raw}
     doc["sha256"] = digest(doc)
     with LOCK:
         write(root(data) / (day + ".json"), doc)
@@ -250,12 +274,13 @@ def refresh(data, day, api=None, clock=None):
 
 def csv_bytes(doc):
     out = io.StringIO(newline="")
-    fields = ["day", "period_start", "period_end", "fetched_at", "investor", "rank", "code", "name",
+    fields = ["day", "period_start", "period_end", "fetched_at", "market", "investor", "rank", "code", "name",
               "net_amount_10m_krw", "net_quantity_1000_shares", "source_date"]
     writer = csv.DictWriter(out, fieldnames=fields)
     writer.writeheader()
-    for key in doc["rankings"]:
-        for row in display_rows(doc, key):
+    for market in doc.get("markets", {}) or [None]:
+      for key in doc["rankings"]:
+        for row in display_rows(doc, key, market):
             # Spreadsheet formula injection from market names is not executable.
             safe = dict(row)
             for field in ("code", "name"):
@@ -263,7 +288,7 @@ def csv_bytes(doc):
                     safe[field] = "'" + safe[field]
             writer.writerow({"day": doc.get("day", ""), "period_start": doc.get("period_start", ""),
                              "period_end": doc.get("period_end", ""), "fetched_at": doc["fetched_at"],
-                             "investor": key, "source_date": doc["source_date"], **safe})
+                             "market": market or "UNKNOWN", "investor": key, "source_date": doc["source_date"], **safe})
     return out.getvalue().encode("utf-8-sig")
 
 

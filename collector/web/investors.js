@@ -13,9 +13,9 @@ function render() {
   for (const key of ['foreign','institution']) {
     const body = $(key); body.replaceChildren();
     const period = record?.kind === 'period';
-    const rows = (record?.rankings[key] || []).filter(r => r.rank <= (period ? 30 : 20))
+    const rows = (record?.markets?.[$('market').value]?.rankings[key] || []).filter(r => r.rank <= (period ? 30 : 20))
       .sort((a,b) => period ? a.rank-b.rank : b.rank-a.rank);
-    $(key+'-count').textContent = rows.length ? `${rows.length}종목` : '';
+    $(key+'-count').textContent = rows.length ? `${$('market').selectedOptions[0].textContent} · ${rows.length}종목` : '';
     for (const row of rows.filter(r => (r.code+' '+r.name).toLowerCase().includes(query))) {
       const tr = document.createElement('tr');
       for (const value of [row.rank, row.name, row.net_amount_10m_krw, row.net_quantity_1000_shares]) {
@@ -85,6 +85,7 @@ async function action(path, body) {
 }
 $('day').addEventListener('change', () => loadDay().catch(e => {$('progress').textContent=e.message;}));
 $('search').addEventListener('input', render);
+$('market').addEventListener('change', render);
 $('collect').addEventListener('click', () => action('/api/investors/collect', {}));
 $('monitor').addEventListener('click', () => action('/api/investors/monitor', {enabled:!enabled}));
 poll(); setInterval(poll, 10000);
