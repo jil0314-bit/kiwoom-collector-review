@@ -12,7 +12,9 @@ function render() {
   const query = $('search').value.trim().toLowerCase();
   for (const key of ['foreign','institution']) {
     const body = $(key); body.replaceChildren();
-    const rows = record?.rankings[key] || [];
+    const period = record?.kind === 'period';
+    const rows = (record?.rankings[key] || []).filter(r => r.rank <= (period ? 30 : 20))
+      .sort((a,b) => period ? a.rank-b.rank : b.rank-a.rank);
     $(key+'-count').textContent = rows.length ? `${rows.length}종목` : '';
     for (const row of rows.filter(r => (r.code+' '+r.name).toLowerCase().includes(query))) {
       const tr = document.createElement('tr');
@@ -36,13 +38,18 @@ function render() {
 }
 async function loadDay() {
   const day = $('day').value;
-  const received = day ? await api('/api/investors/day?day='+encodeURIComponent(day)) : null;
+  const period = day.startsWith('period:');
+  const [start,end] = period ? day.slice(7).split('_') : [];
+  const params = period ? 'start='+encodeURIComponent(start)+'&end='+encodeURIComponent(end) : 'day='+encodeURIComponent(day);
+  const received = day ? await api('/api/investors/'+(period ? 'period' : 'day')+'?'+params) : null;
   if (day !== $('day').value) return;
   record = received;
   $('download').hidden = !record;
   if (record) {
-    $('download').href = '/api/investors/csv?day='+encodeURIComponent(day);
-    $('basis').textContent = `조회일 ${record.day} · 수신 ${record.fetched_at.replace('T',' ')} · ${record.after_close_refresh ? '20:05 이후 재조회' : '장중 자료'} · 원본 기준일 UNKNOWN (API 미제공)`;
+    $('download').href = '/api/investors/'+(period ? 'period-csv' : 'csv')+'?'+params;
+    $('basis').textContent = period
+      ? `기간 합산 ${start}~${end} · 각 TOP 30 · 순매수금액 기준 · ${record.coverage?.note || '조회 범위 UNKNOWN'} · 기간 수량 UNKNOWN`
+      : `조회일 ${record.day} · 20위 → 1위 · 수신 ${record.fetched_at.replace('T',' ')} · ${record.collection_mode === 'historical_backfill' ? '과거일 조회' : record.after_close_refresh ? '20:05 이후 재조회' : '장중 자료'} · 원본 기준일 UNKNOWN (API 미제공)`;
   }
   render();
 }
@@ -57,9 +64,13 @@ async function poll() {
     $('progress').textContent = shared ? '동기화 저장 자료 조회 · 새 수집은 원본 PC에서 합니다.' : `${enabled ? '자동 수집 켜짐' : '자동 수집 꺼짐'} · ${status.state.message}` + (status.last_error ? '\n최근 실패: '+status.last_error.message : '');
     const old = $('day').value;
     const opts = status.days.map(day => {const o = document.createElement('option');o.value = day;o.textContent = day;return o;});
+    for (const period of status.periods || []) {
+      const o = document.createElement('option'); o.value='period:'+period.start+'_'+period.end;
+      o.textContent=`기간 합산 ${period.start}~${period.end} · TOP 30`; opts.push(o);
+    }
     if (!opts.length) {const o=document.createElement('option');o.value='';o.textContent='저장 자료 없음';opts.push(o);}
     $('day').replaceChildren(...opts);
-    if (status.days.includes(old)) $('day').value = old;
+    if (opts.some(o => o.value === old)) $('day').value = old;
     await loadDay();
   } catch (error) { $('progress').textContent = error.message; }
   finally {loading = false;}

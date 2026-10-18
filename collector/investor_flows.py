@@ -66,6 +66,82 @@ def days(data):
                    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", p.stem)), reverse=True)
 
 
+def read_period(data, start, end):
+    valid_day(start)
+    valid_day(end)
+    if start > end:
+        raise ValueError("기간 순서 오류")
+    with LOCK:
+        doc = load(root(data) / "periods" / (start + "_" + end + ".json"))
+    if doc and (doc.get("period_start") != start or doc.get("period_end") != end
+                or doc.get("kind") != "period" or doc.get("sha256") != digest(doc)):
+        raise DataError("외국인·기관 기간 자료 해시 또는 기간 불일치")
+    return doc
+
+
+def periods(data):
+    result = []
+    for path in sorted((root(data) / "periods").glob("????-??-??_????-??-??.json")):
+        start, end = path.stem.split("_")
+        doc = read_period(data, start, end)
+        if doc:
+            result.append({"start": start, "end": end})
+    return result
+
+
+def display_rows(doc, key):
+    period = doc.get("kind") == "period"
+    return sorted((row for row in doc["rankings"][key] if row["rank"] <= (30 if period else 20)),
+                  key=lambda row: row["rank"], reverse=not period)
+
+
+def period_document(records, start, end, coverage, fetched_at):
+    """Rank complete per-symbol period totals, never a sum of daily top lists.
+
+    Input amounts are signed ka10061 million-KRW integers. Quantity was not
+    requested in this backfill and must remain UNKNOWN, not an estimated value.
+    """
+    valid_day(start)
+    valid_day(end)
+    if start > end or coverage.get("failed_count") != 0:
+        raise DataError("기간 또는 수집 실패 범위 오류")
+    if coverage.get("target_count") != len(records) or coverage.get("saved_count") != len(records):
+        raise DataError("기간 수집 대상과 성공 자료 수 불일치")
+    codes = set()
+    for record in records:
+        code = code_of(record["stock"]["code"])
+        if code != record["stock"]["code"] or code in codes:
+            raise DataError("기간 종목코드 중복 또는 형식 오류")
+        codes.add(code)
+        if any(type(record["million_krw"].get(key)) is not int for key in PREFIXES):
+            raise DataError("기간 순매수 금액 누락 또는 단위 형식 오류")
+        for key, field in (("foreign", "frgnr_invsr"), ("institution", "orgn")):
+            text = str(record["raw"].get(field, "")).replace(",", "").strip()
+            if not re.fullmatch(r"(?:\+|-{1,2})?\d+", text):
+                raise DataError("기간 원본 금액 형식 오류")
+            amount = -int(text.lstrip("-")) if text.startswith("-") else int(text)
+            if amount != record["million_krw"][key]:
+                raise DataError("기간 원본과 정규화 금액 불일치")
+        request = record["request"]
+        if request != {"stk_cd": code + "_AL", "strt_dt": start.replace("-", ""),
+                       "end_dt": end.replace("-", ""), "amt_qty_tp": "1", "trde_tp": "0", "unit_tp": "1"}:
+            raise DataError("기간 자료 요청 조건 불일치")
+    rankings = {}
+    for key in PREFIXES:
+        ordered = sorted(records, key=lambda row: (-row["million_krw"][key], row["stock"]["code"]))[:30]
+        if len(ordered) != 30 or ordered[-1]["million_krw"][key] <= 0:
+            raise DataError("기간 양수 순매수 TOP 30 자료 부족")
+        rankings[key] = [{"rank": rank, "code": row["stock"]["code"], "name": row["stock"]["name"],
+                          "net_amount_10m_krw": row["million_krw"][key] / 10,
+                          "net_quantity_1000_shares": None} for rank, row in enumerate(ordered, 1)]
+    return {"schema": 1, "kind": "period", "period_start": start, "period_end": end,
+            "api_id": "ka10061", "market": "KRX+NXT", "basis": "net_buy_amount",
+            "source_date": "UNKNOWN", "source_date_note": "기간은 요청값이며 API 원본 기준일은 미제공입니다.",
+            "fetched_at": fetched_at, "units": {"amount": "천만원", "quantity": "천주"},
+            "coverage": coverage, "rankings": rankings,
+            "raw": {"source_amount_unit": "백만원", "source_quantity_collected": False, "records": records}}
+
+
 def enabled(data):
     return bool(load(root(data) / "control.json", {}).get("enabled", True))
 
@@ -174,18 +250,19 @@ def refresh(data, day, api=None, clock=None):
 
 def csv_bytes(doc):
     out = io.StringIO(newline="")
-    fields = ["day", "fetched_at", "investor", "rank", "code", "name",
+    fields = ["day", "period_start", "period_end", "fetched_at", "investor", "rank", "code", "name",
               "net_amount_10m_krw", "net_quantity_1000_shares", "source_date"]
     writer = csv.DictWriter(out, fieldnames=fields)
     writer.writeheader()
-    for key, rows in doc["rankings"].items():
-        for row in rows:
+    for key in doc["rankings"]:
+        for row in display_rows(doc, key):
             # Spreadsheet formula injection from market names is not executable.
             safe = dict(row)
             for field in ("code", "name"):
                 if safe[field].startswith(("=", "+", "-", "@", "\t", "\r")):
                     safe[field] = "'" + safe[field]
-            writer.writerow({"day": doc["day"], "fetched_at": doc["fetched_at"],
+            writer.writerow({"day": doc.get("day", ""), "period_start": doc.get("period_start", ""),
+                             "period_end": doc.get("period_end", ""), "fetched_at": doc["fetched_at"],
                              "investor": key, "source_date": doc["source_date"], **safe})
     return out.getvalue().encode("utf-8-sig")
 

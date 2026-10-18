@@ -456,15 +456,18 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond({"now": stamp(), "token": TOKEN,
                                      "state": dict(investor_flows.STATE),
                                      "days": investor_flows.days(DATA),
+                                     "periods": investor_flows.periods(DATA),
                                      "enabled": investor_flows.enabled(DATA),
                                      "last_error": read(DATA / "investor_flows" / "last_error.json")})
-            if parsed.path in ("/api/investors/day", "/api/investors/csv"):
-                doc = investor_flows.read_day(DATA, q["day"][0])
+            if parsed.path in ("/api/investors/day", "/api/investors/csv", "/api/investors/period", "/api/investors/period-csv"):
+                period = parsed.path in ("/api/investors/period", "/api/investors/period-csv")
+                doc = (investor_flows.read_period(DATA, q["start"][0], q["end"][0]) if period
+                       else investor_flows.read_day(DATA, q["day"][0]))
                 if not doc:
                     return self.respond({"error": "저장된 외국인·기관 자료 없음"}, 404)
                 if parsed.path.endswith("csv"):
                     return self.respond(investor_flows.csv_bytes(doc), mime="text/csv; charset=utf-8",
-                                        filename=doc["day"] + "_investors.csv")
+                                        filename=(doc["period_start"] + "_" + doc["period_end"] if period else doc["day"]) + "_investors.csv")
                 # Raw response stays in the archive, not in the dashboard payload.
                 return self.respond({k: v for k, v in doc.items() if k != "raw"})
             if parsed.path == "/api/volume/status":

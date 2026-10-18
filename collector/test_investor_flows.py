@@ -136,6 +136,75 @@ class FlowTests(unittest.TestCase):
         self.assertIn(',-5,UNKNOWN',result)
         self.assertIn('net_amount_10m_krw',result)
 
+    def test_daily_top20_reverse_and_period_top30(self):
+        doc=self.save()
+        rows=[dict(doc['rankings']['foreign'][0],rank=n,code=f'{n:06d}') for n in range(1,36)]
+        doc['rankings']={'foreign':rows,'institution':rows}
+        self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(20,0,-1)))
+        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),41)
+        doc.update(kind='period',period_start='2026-01-01',period_end='2026-08-17')
+        self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(1,31)))
+        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),61)
+
+    def test_period_archive_validation_and_http(self):
+        doc=self.save()
+        doc.update(kind='period',period_start='2026-01-01',period_end='2026-08-17')
+        doc.pop('day')
+        doc['sha256']=flows.digest(doc)
+        path=flows.root(self.data)/'periods/2026-01-01_2026-08-17.json'
+        flows.write(path,doc)
+        self.assertEqual(flows.periods(self.data),[{'start':'2026-01-01','end':'2026-08-17'}])
+        self.assertEqual(flows.read_period(self.data,'2026-01-01','2026-08-17'),doc)
+        with self.assertRaises(ValueError):flows.read_period(self.data,'../x','2026-08-17')
+        with self.assertRaises(ValueError):flows.read_period(self.data,'2026-08-18','2026-08-17')
+        server=ThreadingHTTPServer(('127.0.0.1',0),app.Handler)
+        port=server.server_address[1]
+        with patch.object(app,'PORT',port),patch.object(app,'DATA',self.data):
+            t=threading.Thread(target=server.serve_forever,daemon=True);t.start()
+            try:
+                base=f'http://127.0.0.1:{port}/api/investors/'
+                for route in ('period','period-csv'):
+                    with urllib.request.urlopen(base+route+'?start=2026-01-01&end=2026-08-17') as r:
+                        payload=r.read()
+                        if route=='period':self.assertNotIn('raw',json.loads(payload))
+                        else:self.assertIn(b'2026-01-01',payload)
+            finally:server.shutdown();server.server_close();t.join(3)
+        doc['period_end']='2026-08-18'
+        flows.write(path,doc)
+        with self.assertRaises(DataError):flows.read_period(self.data,'2026-01-01','2026-08-17')
+
+    def test_period_totals_rank_integer_money_before_unit_conversion(self):
+        start,end='2026-01-01','2026-08-17'
+        records=[{'stock':{'code':f'{n:06d}','name':str(n)},
+                  'million_krw':{'foreign':1001-n,'institution':n*10},
+                  'raw':{'frgnr_invsr':str(1001-n),'orgn':str(n*10)},
+                  'request':{'stk_cd':f'{n:06d}_AL','strt_dt':'20260101','end_dt':'20260817',
+                             'amt_qty_tp':'1','trde_tp':'0','unit_tp':'1'}} for n in range(1,36)]
+        coverage={'target_count':35,'saved_count':35,'failed_count':0}
+        doc=flows.period_document(records,start,end,coverage,'test')
+        self.assertEqual(doc['rankings']['foreign'][0]['code'],'000001')
+        self.assertEqual(doc['rankings']['foreign'][0]['net_amount_10m_krw'],100)
+        self.assertEqual(doc['rankings']['institution'][0]['code'],'000035')
+        self.assertIsNone(doc['rankings']['institution'][0]['net_quantity_1000_shares'])
+        for bad in [records+[records[0]],records[:29]]:
+            with self.assertRaises(DataError):flows.period_document(bad,start,end,coverage,'test')
+        for change in ({'failed_count':1},{'target_count':36}):
+            with self.assertRaises(DataError):flows.period_document(records,start,end,dict(coverage,**change),'test')
+        damaged=copy.deepcopy(records);damaged[0]['request']['end_dt']='20260818'
+        with self.assertRaises(DataError):flows.period_document(damaged,start,end,coverage,'test')
+        damaged=copy.deepcopy(records);damaged[0]['million_krw']['foreign']=None
+        with self.assertRaises(DataError):flows.period_document(damaged,start,end,coverage,'test')
+        tied=copy.deepcopy(records);tied[1]['million_krw']['foreign']=1000
+        tied[1]['raw']['frgnr_invsr']='1000'
+        tied.reverse()
+        self.assertEqual(flows.period_document(tied,start,end,coverage,'test')['rankings']['foreign'][0]['code'],'000001')
+        negative=copy.deepcopy(records)
+        negative[0]['million_krw']['foreign']=-500
+        negative[0]['raw']['frgnr_invsr']='--500'
+        self.assertEqual(flows.period_document(negative,start,end,coverage,'test')['rankings']['foreign'][0]['code'],'000002')
+        negative[0]['raw']['frgnr_invsr']='+-500'
+        with self.assertRaises(DataError):flows.period_document(negative,start,end,coverage,'test')
+
     def test_scheduler_default_pause_weekend_and_interval(self):
         self.assertTrue(flows.enabled(self.data))
         self.assertTrue(flows.due(self.data,NOW))

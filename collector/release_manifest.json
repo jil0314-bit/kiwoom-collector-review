@@ -1,7 +1,7 @@
 {
-  "version": "2.5.0-investor-flows",
+  "version": "2.5.1-investor-history",
   "sha256": {
-    "app.py": "1cd87d020711efb062c55574ac684a0ae09c61339ed1957d96e0bb7319ee54cc",
+    "app.py": "3ef277d2d859b01c5a26dcdf291a1e331cee2ba3a26a7f114edc7ad8b70b10e9",
     "kiwoom.py": "07e6f8cea05417e3afc219fbe75d1554ec80aa44c7414a4e110d2e502ecfa06f",
     "chart.py": "ecbf9fc3e7226cb99246467f0b18b21c79de88764bff2eba8e45a313de1ba50b",
     "start.vbs": "ae8b4fb3e5da92aaaa293888f30557dd2cdc99e22a31e2fadf7b66c9e6b9d9bc",
@@ -31,13 +31,13 @@
     "watchlists.py": "95d572785b880634c8f5a82c13611ad71503d75c379d6b99904996c83ac370ef",
     "reason_memos.py": "3ec15381cf7177f16aca1dd9f7112cba6578ba7702d742f714f07d974bf7e43f",
     "backfill_reason_news.py": "cd3619445631e9a006a117f1beaddf401b3443d306a77c2f93ccfcf3fd8d0faa",
-    "investor_flows.py": "27f564021a1484495e921209bea6f11b8ba93016cf993595ea0845186fd55579",
-    "test_investor_flows.py": "2827553e53ed954496dd805d02a3bd16eb3aa4e031c77e3c1a743c7286b03bd9",
-    "INVESTOR_FLOWS_SPEC.md": "15602f6587e2448145108761e6b547f8fe2025cedd64aa3e4a30d8e6877f0dc3",
+    "investor_flows.py": "bde61a6c2f3d124af45a8fbfc9c0a6933b6100e8e41ef108e0197e73425f5e34",
+    "test_investor_flows.py": "40f720c48cf975c14c03a7d6df04d9b0aac2cbec222d8eb21ee524ee76598321",
+    "INVESTOR_FLOWS_SPEC.md": "e3dbce3e8c0018e8a626c777b80b27c08482bbbf2a3e10055f8c4483d6565cdd",
     "shared_archive.py": "18ef5183beeae40d6c71af90af220319cbd3d1edb39284d3a945ecf8d84b32fa",
     "shared_viewer.py": "3badaec30e77ff19a4f86252028fe4bea5bf939800403a16c7312d0f5bfb57ca",
-    "web/investors.html": "b499694c6d8e33086170eaa05948bdb6a8f87e12e4344b1702b584e919aa005c",
-    "web/investors.js": "80347181953d06f671f33d6a07d08b95b4836922b5b8bfddd2495cab42b12535",
+    "web/investors.html": "f5d1c272eff14bc2b8fc231713578db32696f639a857c276d21ac1fb65b76dce",
+    "web/investors.js": "678e298b66cf738b791e619ddec76158ae1f91e87a31f037f63026fa5e31c44e",
     "web/investors.css": "eaee674f534f97cc0c8134383ccbeb5d0221b5d3961263c17433cdea121d6d0a"
   },
   "updated_at": "2026-10-18"
