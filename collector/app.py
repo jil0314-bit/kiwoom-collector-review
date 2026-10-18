@@ -552,6 +552,25 @@ class Handler(BaseHTTPRequestHandler):
                     if not group or not any(item.get("code") == code for item in group["entries"]):
                         return self.respond({"error": "선택한 관심종목 그룹에 없는 종목입니다."}, 404)
                     name = watchlists.names().get(code, code)
+                elif source == "investor":
+                    if q.get("start") or q.get("end"):
+                        saved = investor_flows.read_period(DATA, q["start"][0], q["end"][0]) or {}
+                        if day != saved.get("period_end"):
+                            return self.respond({"error": "기간 차트 기준일 불일치"}, 400)
+                    else:
+                        saved = investor_flows.read_day(DATA, day) or {}
+                    market = q.get("market", [""])[0]
+                    lists = saved.get("markets", {}).get(market, {}).get("rankings", {})
+                    stock = next((row for rows in lists.values() for row in rows if row["code"] == code), None)
+                    if not stock:
+                        return self.respond({"error": "선택한 시장·날짜의 수급 종목이 아닙니다."}, 404)
+                    name, source = stock["name"], "watchlist"
+                elif source == "ranking-current":
+                    saved = archive.metadata(archive.active(DATA, day))
+                    stock = next((row for row in saved.get("stocks", []) if row["code"] == code), None)
+                    if not stock:
+                        return self.respond({"error": "선택한 날짜의 상승률 종목이 아닙니다."}, 404)
+                    name, source = stock["name"], "watchlist"
                 elif source == "theme":
                     import themes
                     saved = themes.read_day(DATA, day) or {}

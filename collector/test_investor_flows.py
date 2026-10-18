@@ -229,6 +229,35 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(doc['markets']['101']['rankings']['institution'][0]['code'],'000070')
         self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),121)
 
+    def test_investor_chart_membership_and_period_end(self):
+        import chart_data
+        doc=self.save()
+        period=copy.deepcopy(doc)
+        period.update(kind='period',period_start='2026-01-01',period_end='2026-08-17')
+        period.pop('day');period['sha256']=flows.digest(period)
+        flows.write(flows.root(self.data)/'periods/2026-01-01_2026-08-17.json',period)
+        server=ThreadingHTTPServer(('127.0.0.1',0),app.Handler);port=server.server_address[1]
+        with patch.object(app,'PORT',port),patch.object(app,'DATA',self.data),patch.object(chart_data,'load',return_value={'bars':[]}) as load:
+            t=threading.Thread(target=server.serve_forever,daemon=True);t.start()
+            try:
+                base=f'http://127.0.0.1:{port}/api/chart?source=investor&code=000001&frame=day&market=001&day='
+                with urllib.request.urlopen(base+DAY) as r:self.assertEqual(json.load(r),{'bars':[]})
+                self.assertEqual(load.call_args.kwargs['source'],'watchlist')
+                self.assertEqual(load.call_args.args[2],'000001')
+                with urllib.request.urlopen(base+'2026-08-17&start=2026-01-01&end=2026-08-17') as r:self.assertEqual(r.status,200)
+                load.reset_mock()
+                for bad in [base+DAY+'&start=2026-01-01&end=2026-08-17',base.replace('code=000001','code=999999')+DAY,base.replace('market=001','market=unknown')+DAY]:
+                    with self.assertRaises(urllib.error.HTTPError):urllib.request.urlopen(bad)
+                load.assert_not_called()
+                with patch.object(app.archive,'metadata',return_value={'stocks':[{'code':'005930','name':'대기 종목','status':'pending'}]}):
+                    url=f'http://127.0.0.1:{port}/api/chart?source=ranking-current&code=005930&frame=day&day={DAY}&live=1'
+                    with urllib.request.urlopen(url) as r:self.assertEqual(r.status,200)
+                    self.assertEqual(load.call_args.kwargs,{'source':'watchlist','name':'대기 종목','live':True})
+                    load.reset_mock()
+                    with self.assertRaises(urllib.error.HTTPError):urllib.request.urlopen(url.replace('005930','999999'))
+                    load.assert_not_called()
+            finally:server.shutdown();server.server_close();t.join(3)
+
     def test_scheduler_default_pause_weekend_and_interval(self):
         self.assertTrue(flows.enabled(self.data))
         self.assertTrue(flows.due(self.data,NOW))

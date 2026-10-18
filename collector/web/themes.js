@@ -397,7 +397,7 @@ async function load(day){
   finally{themeLoading=false}
 }
 document.addEventListener('keydown',e=>{
-  if(!state||e.target.closest('input,select,textarea,dialog'))return;
+  if(!state||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.isComposing||e.target.closest('input,select,textarea,dialog,[contenteditable="true"]'))return;
   if(e.key==='ArrowLeft'||e.key==='ArrowRight'){const i=state.days.indexOf(chosen);if(e.key==='ArrowLeft'&&i<state.days.length-1)load(state.days[i+1]);if(e.key==='ArrowRight'&&i>0)load(state.days[i-1]);return}
   if(e.key==='ArrowUp'||e.key==='ArrowDown'){
     const list=leaders();if(!list.length)return;e.preventDefault();
@@ -407,3 +407,7 @@ document.addEventListener('keydown',e=>{
   }
 });
 window.addEventListener('DOMContentLoaded',()=>{new ResizeObserver(draw).observe($('chart').parentElement);load();setInterval(()=>{if(state&&(!state.days.length||chosen===state.days[0]))load()},30000)});
+
+async function loadHeroTargets(){try{const r=await api("/api/hero-targets"),previous=$("hero-target").value||localStorage.getItem("collector-hero-chart")||r.preferred||"";$("hero-target").replaceChildren(new Option("영웅문 0600 · 자동 선택",""),new Option("영웅문 연동 끄기","off"),...r.targets.map(t=>new Option(t.label,t.handle)));$("hero-target").value=previous==="off"||r.targets.some(t=>t.handle===previous)?previous:r.targets.some(t=>t.handle===r.preferred)?r.preferred:"";localStorage.setItem("collector-hero-chart",$("hero-target").value)}catch(e){}}
+$("hero-target").onchange=()=>localStorage.setItem("collector-hero-chart",$("hero-target").value);
+window.addEventListener("DOMContentLoaded",()=>{loadHeroTargets();setInterval(loadHeroTargets,30000)});

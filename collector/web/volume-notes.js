@@ -135,8 +135,8 @@ $('memo-preview').onpointerenter=()=>clearTimeout(memoHideTimer);$('memo-preview
 $('stocks').addEventListener('scroll',hideMemoPreview);window.addEventListener('resize',hideMemoPreview);window.addEventListener('scroll',hideMemoPreview);
 document.addEventListener('keydown',event=>{
   if(!['ArrowDown','ArrowUp'].includes(event.key)||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||event.isComposing||$('memo-dialog').open)return;
-  if(event.target.closest('input,textarea,select,[contenteditable="true"]'))return;
-  const rows=displayedStocks().filter(s=>liveChart||listMode==='watchlist'||s.status==='saved');if(!rows.length)return;
+  if(event.target.closest('input,textarea,select,dialog,[contenteditable="true"]'))return;
+  const rows=displayedStocks();if(!rows.length)return;
   event.preventDefault();hideMemoPreview();
   const current=rows.findIndex(s=>s.code===code),direction=event.key==='ArrowDown'?1:-1;
   const i=current<0?(direction>0?0:rows.length-1):Math.max(0,Math.min(rows.length-1,current+direction));
