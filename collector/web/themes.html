@@ -1,0 +1,57 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>상승테마 TOP 10</title><link rel="icon" type="image/png" href="/mascot.png"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/themes.css"><script src="/themes.js" defer></script></head>
+<body><header><div class="brand"><span class="brand-mark">M</span><span class="brand-copy"><span class="brand-eyebrow">MARKET FLOW ARCHIVE</span><strong>시장 흐름 기록실</strong></span></div><nav class="collector-nav" aria-label="수집기 선택"><a href="/">상승률 수집기</a><a href="/volume">거래량 급증</a><a href="/themes" class="active" aria-current="page">상승테마</a><a href="/investors">외국인·기관</a></nav><div class="tag">KIWOOM · 조회 전용</div><span id="clock"></span></header>
+<main class="th-main">
+<section class="th-hero">
+<div class="th-hero-copy"><div class="eyebrow">RISING THEMES / DAILY 10</div><h1>오늘 시장을 끌어올린 테마</h1><p>순위는 키움 테마 평균 등락률(구성 3종목 이상 · 상승 테마만), 종목은 내 0130 관심종목 테마 그룹의 등락률 상위 10종목. 장중 3분마다 새로 받아 10거래일 보관합니다.</p></div>
+<div class="th-stats"><div><span>마지막 갱신</span><strong id="updated">—</strong></div><div><span>장중 갱신</span><strong id="auto">—</strong></div><div><span>보관</span><strong id="kept">—</strong></div></div>
+</section>
+<nav class="th-days" id="days" aria-label="보관 날짜"></nav>
+<div class="th-status" id="status" role="status"></div>
+<section class="workspace th-workspace">
+<aside class="th-list"><div class="aside-head"><div class="aside-heading"><label>테마 · 주도주</label><span>TOP 10</span></div></div><div class="list-guide">종목 클릭 → 오른쪽 차트 · ↑ ↓ 종목 이동 · ← → 날짜 이동</div><div class="th-grid" id="grid"><div class="th-empty">테마 자료를 불러오는 중입니다…</div></div></aside>
+<article><div class="chart-head"><div><div id="selected-code" class="eyebrow">THEME CHART</div><h2 id="selected-name">테마 주도주를 선택하세요</h2></div><div class="exports"><button id="png" class="secondary" disabled>차트 PNG</button><a id="csv" class="button secondary disabled">분봉 CSV</a></div></div>
+<div class="chart-mode"><div class="frame-tabs" role="group" aria-label="차트 주기"><button id="frame-minute" class="active" aria-pressed="true">1분봉</button><button id="frame-minute3" aria-pressed="false">3분봉</button><button id="frame-minute5" aria-pressed="false">5분봉</button><button id="frame-day" aria-pressed="false">일봉</button><button id="frame-week" aria-pressed="false">주봉</button></div><span id="theme-context">짧은 흐름부터 긴 추세까지</span></div>
+<div class="chart-tools"><div class="legend" id="legend"></div><div class="chart-navigation"><button id="zoom-back" class="secondary" disabled>이전 확대</button><button id="zoom-reset" class="secondary" disabled>전체 보기</button><label>표시 <select id="range"><option value="all">전체</option><option value="240">최근 240봉</option><option value="120">최근 120봉</option><option value="60">최근 60봉</option><option value="custom" disabled>선택 구간</option></select></label></div></div>
+<div class="chart-wrap"><canvas id="chart" height="400" aria-label="1분봉 캔들 차트" aria-describedby="chart-help"></canvas><div id="chart-hover" class="chart-tooltip" hidden></div><div id="chart-empty">왼쪽 테마 카드의 종목을 누르면<br>수집기와 같은 차트로 표시합니다.</div></div>
+<div class="chart-help" id="chart-help">마우스 이동: 십자선·봉 정보 · 클릭: 봉 선택 · 가로 드래그: 구간 확대 · 더블클릭: 전체 보기<span id="zoom-status"></span></div>
+<div id="coverage" class="coverage">테마 주도주는 선택할 때 키움 조회 전용 API로 별도 조회합니다. 분봉이 없는 시간은 임의로 채우지 않습니다.</div>
+<div class="detail-head"><h3 id="detail-title">선택한 1분</h3><select id="minute" aria-label="분 선택"><option>자료 없음</option></select></div>
+<div class="values" id="values"></div><div class="bar-changes" id="bar-changes"></div><div class="change-help" id="change-help">봉 등락률은 시가→종가, 직전봉 대비는 직전 저장봉 종가→현재 종가입니다.</div><div id="ma-values" class="ma-values">이동평균선은 확보된 과거 종가로 계산합니다.</div>
+<div class="table-scroll"><table><thead><tr><th id="time-heading">시각 (KST)</th><th>시가</th><th>고가 (최고)</th><th>저가 (최저)</th><th id="close-heading">종가 (해당 분 마지막)</th><th>봉 등락률</th><th>직전봉 대비</th><th>거래량</th></tr></thead><tbody id="bars"></tbody></table></div>
+</article>
+</section>
+<section class="th-bottom">
+<div class="th-panel"><h2>시간대별 1위 테마</h2><p class="th-panel-help">장중 갱신 때마다 1위가 바뀐 시점만 표시합니다.</p><ol class="th-timeline" id="timeline"></ol></div>
+<div class="th-panel"><h2>보는 법</h2><ul class="th-guide">
+<li><b class="up">+3.45%</b> 테마 구성종목 평균 등락률 (키움 기준)</li>
+<li><span class="th-move up">▲2</span> 직전 갱신 대비 순위 변화 · <span class="th-move new">NEW</span> 새로 진입</li>
+<li><span class="th-bar-demo"><i class="r"></i><i class="f"></i><i class="z"></i></span> 상승 · 하락 · 보합 종목 비율</li>
+<li><span class="th-top100">TOP100 12위</span> 오늘 상승률 상위 100 수집 종목</li>
+<li><b>내 테마</b> 키움 테마와 짝지은 내 관심종목 그룹(직접 지정 → 이름 일치 → 종목 겹침 2종목·40% 이상) · 없으면 <b>키움 종목</b> 표시</li>
+<li><b>편집</b> 카드의 편집 버튼으로 짝지을 그룹 변경 · 종목 추가/빼기 · <span class="th-tag pin">고정</span> 먼저 표시 · 아래 <b>새 테마 만들기</b>로 내 테마 추가</li>
+<li>차트는 수집기 기본 차트와 같은 방식(비수정 종가 단순평균, 20·60선 3배 굵기)</li>
+</ul></div>
+</section>
+<footer><span>조회 전용 API(ka90001·ka90002 · 차트 ka10080·ka10081) · 주문 기능 없음</span><span>100종목 분봉 수집이 성공한 거래일에만 저장 · 11번째 거래일부터 가장 오래된 날짜를 덮어씁니다.</span></footer>
+<div id="toast" role="status"></div>
+</main>
+<dialog id="editor" class="th-editor" aria-labelledby="ed-title">
+<div class="ed-head"><div><div class="eyebrow" id="ed-kind">THEME EDIT</div><h2 id="ed-title">테마 편집</h2><p id="ed-sub"></p></div><button type="button" id="ed-close" class="ed-x" aria-label="닫기">×</button></div>
+<div class="ed-body">
+<section id="ed-name-box" class="ed-field"><label for="ed-name">테마 이름</label><input id="ed-name" autocomplete="off" placeholder="예: 내가 보는 원전 대장주"></section>
+<section id="ed-group-box" class="ed-field"><label for="ed-group">짝지을 내 관심그룹</label><select id="ed-group"></select><small>자동은 이름 일치 → 종목 겹침 순으로 고릅니다. 직접 고르면 늘 그 그룹을 씁니다.</small></section>
+<section class="ed-field"><div class="ed-row-head"><label for="ed-search">종목</label><small id="ed-count"></small></div>
+<div class="ed-search"><input id="ed-search" autocomplete="off" placeholder="관심종목 이름·코드 검색 (Enter로 첫 결과 추가)"><ul id="ed-results" class="ed-results"></ul></div>
+<ul id="ed-stocks" class="ed-stocks"></ul><div id="ed-note" class="ed-note"></div></section>
+</div>
+<div class="ed-foot"><button type="button" id="ed-delete" class="secondary ed-danger">이 테마 삭제</button><button type="button" id="ed-reset" class="secondary">자동으로 되돌리기</button><span class="ed-hint">저장하면 오늘 테마에 반영 · 지난 날짜 기록은 그대로</span><button type="button" id="ed-cancel" class="secondary">취소</button><button type="button" id="ed-save">저장</button></div>
+</dialog>
+<div id="memo-preview" class="memo-preview" role="tooltip" hidden></div>
+<dialog id="memo-dialog" aria-labelledby="memo-title">
+<div class="memo-heading"><div><h2 id="memo-title">종목 메모</h2><p id="memo-date"></p></div><button id="memo-close" class="secondary" type="button">닫기</button></div>
+<div id="memo-hero4"></div>
+<label for="memo-text" class="memo-label">내 메모 · 수집기 (메인 화면 메모와 같은 곳에 날짜별 보관)</label>
+<textarea id="memo-text" maxlength="20000" placeholder="[상승 이유 / 확인된 사실]&#10;&#10;[관련 뉴스 · 공시 출처 / 시각]&#10;&#10;[추정 / 개인 메모]"></textarea>
+<div class="memo-footer"><span id="memo-status" role="status"></span><div><button id="memo-save" type="button">메모 저장</button></div></div>
+</dialog>
+</body></html>
