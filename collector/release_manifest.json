@@ -1,5 +1,5 @@
 {
-  "version": "2.5.3-investor-chart-link",
+  "version": "2.5.4-investor-rank-first",
   "sha256": {
     "app.py": "9567a5328ce491b51f0d2518b8a4a4d7c98fc9bf2b667a0b451b348b7f493bdd",
     "kiwoom.py": "07e6f8cea05417e3afc219fbe75d1554ec80aa44c7414a4e110d2e502ecfa06f",
@@ -31,13 +31,13 @@
     "watchlists.py": "95d572785b880634c8f5a82c13611ad71503d75c379d6b99904996c83ac370ef",
     "reason_memos.py": "3ec15381cf7177f16aca1dd9f7112cba6578ba7702d742f714f07d974bf7e43f",
     "backfill_reason_news.py": "cd3619445631e9a006a117f1beaddf401b3443d306a77c2f93ccfcf3fd8d0faa",
-    "investor_flows.py": "cbf5c3fdd4d38af4a3c0e05d856c1e92959ccad5bf8419a5fba1129ebd4ef803",
-    "test_investor_flows.py": "f455dda6a782f3b18a61838bdaf008b65577b659f263b27bee6eeae5796f3fdb",
-    "INVESTOR_FLOWS_SPEC.md": "cea86ced0c5cd6545bbe7a8718e38832ec6478d51360537993dce7bcde2a06f1",
+    "investor_flows.py": "0640bbd08157265367c3c23a076248a60863a2ea744819c7396f233a109228e7",
+    "test_investor_flows.py": "353814a8bd66fc854a1800f7944416d2bd7cbabd25febb3a3aac02085d606856",
+    "INVESTOR_FLOWS_SPEC.md": "5da59066e10f7781682099974549eb6e1c770b0a3537b5d603f1a56b936b038a",
     "shared_archive.py": "18ef5183beeae40d6c71af90af220319cbd3d1edb39284d3a945ecf8d84b32fa",
     "shared_viewer.py": "3badaec30e77ff19a4f86252028fe4bea5bf939800403a16c7312d0f5bfb57ca",
     "web/investors.html": "e8fb6d0ca8ba6e823c03b0385eea5e2b43c8a253a28c0a72cef14d8979a8cb3c",
-    "web/investors.js": "461b05aa3e6e19fe68fbca7c7e7c7dad4359dd80c6f496e867343fdd1c68db2f",
+    "web/investors.js": "d1ac00dfe50c86ae244907f04337a63b09fb732b656bb9b1496eeee2a254021a",
     "web/investors.css": "0a0601027a5b8a6e691a14c128c435fe0069ba71afda63c592f6f05f56a34144"
   },
   "updated_at": "2026-10-18"

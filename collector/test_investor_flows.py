@@ -145,7 +145,7 @@ class FlowTests(unittest.TestCase):
         doc.pop('markets')
         rows=[dict(doc['rankings']['foreign'][0],rank=n,code=f'{n:06d}') for n in range(1,36)]
         doc['rankings']={'foreign':rows,'institution':rows}
-        self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(20,0,-1)))
+        self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(1,21)))
         self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),41)
         doc.update(kind='period',period_start='2026-01-01',period_end='2026-08-17')
         self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(1,31)))

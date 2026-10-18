@@ -8,7 +8,7 @@ function flowRows(key) {
   const query = $('search').value.trim().toLowerCase(), period = record?.kind === 'period';
   return (record?.markets?.[$('market').value]?.rankings[key] || [])
     .filter(r => r.rank <= (period ? 30 : 20) && (r.code+' '+r.name).toLowerCase().includes(query))
-    .sort((a,b) => period ? a.rank-b.rank : b.rank-a.rank);
+    .sort((a,b) => a.rank-b.rank);
 }
 function flowItems() {return ['foreign','institution'].flatMap(key => flowRows(key).map(row => ({key,...row})));}
 function resetFlow() {
@@ -32,7 +32,7 @@ function render() {
     const body = $(key); body.replaceChildren();
     const period = record?.kind === 'period';
     const rows = (record?.markets?.[$('market').value]?.rankings[key] || []).filter(r => r.rank <= (period ? 30 : 20))
-      .sort((a,b) => period ? a.rank-b.rank : b.rank-a.rank);
+      .sort((a,b) => a.rank-b.rank);
     $(key+'-count').textContent = rows.length ? `${$('market').selectedOptions[0].textContent} · ${rows.length}종목` : '';
     for (const row of rows.filter(r => (r.code+' '+r.name).toLowerCase().includes(query))) {
       const tr = document.createElement('tr');
@@ -78,7 +78,7 @@ async function loadDay() {
     $('download').href = '/api/investors/'+(period ? 'period-csv' : 'csv')+'?'+params;
     $('basis').textContent = period
       ? `기간 합산 ${start}~${end} · 각 TOP 30 · 순매수금액 기준 · ${record.coverage?.note || '조회 범위 UNKNOWN'} · 기간 수량 UNKNOWN`
-      : `조회일 ${record.day} · 20위 → 1위 · 수신 ${record.fetched_at.replace('T',' ')} · ${record.collection_mode === 'historical_backfill' ? '과거일 조회' : record.after_close_refresh ? '20:05 이후 재조회' : '장중 자료'} · 원본 기준일 UNKNOWN (API 미제공)`;
+      : `조회일 ${record.day} · 1위 → 20위 · 수신 ${record.fetched_at.replace('T',' ')} · ${record.collection_mode === 'historical_backfill' ? '과거일 조회' : record.after_close_refresh ? '20:05 이후 재조회' : '장중 자료'} · 원본 기준일 UNKNOWN (API 미제공)`;
   }
   render();
 }

@@ -93,7 +93,7 @@ def display_rows(doc, key, market=None):
     period = doc.get("kind") == "period"
     rankings = doc.get("markets", {}).get(market, {}).get("rankings", {}) if market else doc["rankings"]
     return sorted((row for row in rankings.get(key, []) if row["rank"] <= (30 if period else 20)),
-                  key=lambda row: row["rank"], reverse=not period)
+                  key=lambda row: row["rank"])
 
 
 def period_document(records, start, end, coverage, fetched_at):
