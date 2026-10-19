@@ -327,9 +327,16 @@ def memo_tick():
 def collect_summary(day, slot):
     import reasons
     try:
+        stored = reasons.read_day(DATA, day).get('infostock', {})
+        if stored.get('source') in ('hero4', 'paste') and stored.get('items'):
+            save(DATA / "reasons" / "summary_status.json", {"day": day, "at": stamp(),
+                 "state": "saved", "count": len(stored['items']), "source": stored['source']})
+            return
         items = reasons.fetch_summary(DATA, day, day_names(day))
+        stored = reasons.read_day(DATA, day).get('infostock', {})
         save(DATA / "reasons" / "summary_status.json", {"day": day, "at": stamp(),
-             "state": "saved" if items else "waiting_for_article", "count": len(items)})
+             "state": "saved" if stored.get('items') else "waiting_for_article", "count": len(stored.get('items', {})),
+             "source": stored.get('source', '')})
     except Exception as exc:
         save(DATA / "reasons" / "summary_status.json", {"day": day, "at": stamp(),
              "state": "error", "message": str(exc)[:300]})
@@ -517,6 +524,7 @@ class Handler(BaseHTTPRequestHandler):
                 import reasons
                 return self.respond({"day": q["day"][0], "notes": notes.read_day(DATA, q["day"][0]),
                                      "reasons": {**reasons.read_day(DATA, q["day"][0]),
+                                                 "source_status": reasons.source_status(DATA, q["day"][0]),
                                                  "history": reasons.recent_history(DATA, q["day"][0])}, "hero4": hero4memo.load()})
             if parsed.path == "/api/quotes":
                 import chart_data

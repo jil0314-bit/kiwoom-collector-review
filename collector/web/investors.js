@@ -1,6 +1,6 @@
 'use strict';
 const $ = id => document.getElementById(id);
-let token = '', enabled = true, shared = false, record = null, loading = false;
+let token = '', enabled = true, shared = false, record = null, loading = false, flowBasis = '';
 let flowPick = null, flowChart = null, flowVersion = 0, flowAbort = null, flowContext = '', flowHover = -1;
 let flowHeroVersion = 0, flowHeroQueue = Promise.resolve(), flowHeroTimer;
 const flowColors = {5:'#d28a16',10:'#9a54d8',20:'#109e9b',30:'#ef6487',60:'#3778e6',120:'#e57927',240:'#546380'};
@@ -63,6 +63,10 @@ function render() {
   const items = flowItems();
   if (flowPick && !items.some(s => s.code === flowPick.code && s.key === flowPick.key)) resetFlow();
   if (!flowPick && items.length) chooseFlow(items[0], false);
+  const coverage=record?.display_coverage?.counts?.[$('market').value];
+  $('basis').textContent=flowBasis;
+  if (coverage && record.kind !== 'period' && (coverage.foreign<20 || coverage.institution<20))
+    $('basis').textContent += ` · API 제공 외국인 ${coverage.foreign}개 / 기관 ${coverage.institution}개 (각 최대 20개 표시)`;
 }
 async function loadDay() {
   const day = $('day').value;
@@ -80,6 +84,7 @@ async function loadDay() {
       ? `기간 합산 ${start}~${end} · 각 TOP 30 · 순매수금액 기준 · ${record.coverage?.note || '조회 범위 UNKNOWN'} · 기간 수량 UNKNOWN`
       : `조회일 ${record.day} · 1위 → 20위 · 수신 ${record.fetched_at.replace('T',' ')} · ${record.collection_mode === 'historical_backfill' ? '과거일 조회' : record.after_close_refresh ? '20:05 이후 재조회' : '장중 자료'} · 원본 기준일 UNKNOWN (API 미제공)`;
   }
+  flowBasis=record ? $('basis').textContent : '';
   render();
 }
 async function poll() {

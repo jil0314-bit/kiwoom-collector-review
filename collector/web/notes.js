@@ -25,6 +25,12 @@ function reasonBox(symbol,reasons=dayReasons,compact=false){
   const reviewed=reasons.reviewed?.items?.[symbol],info=reasons.infostock?.items?.[symbol],news=reasons.news?.items?.[symbol]||[],checked=!!reasons.news?.fetched_at;
   const box=element('div',null,'reason-box'+(compact?' compact':'')),head=element('div',null,'reason-head');
   head.append(element('b','자동 상승 사유 · '+notesDay));box.append(head);
+  const sourceStatus=reasons.source_status;
+  if(!info&&sourceStatus&&sourceStatus.article_count===0){
+    const last=sourceStatus.local_article_day;
+    box.append(element('p','선택 날짜의 영웅문·인포스탁 원문 미수집'+(last?' · 마지막 영웅문 기사 '+last:'')+' · 해당 날짜의 증시요약(6) 기사를 열면 자동 반영합니다.','reason-text muted'));
+  }
+
   if(info){
     head.append(element('span','인포스탁'+(info.limit_days?' · 상한가 '+info.limit_days+'일':''),'reason-tag'));
     box.append(element('p',info.reason,'reason-text'));

@@ -250,8 +250,6 @@ def refresh(data, day, api=None, clock=None):
     markets = {}
     for market, label in (("001", "코스피"), ("101", "코스닥")):
         market_rankings, market_raw = fetch(api, day, market)
-        if any(len(rows) < 20 for rows in market_rankings.values()):
-            raise DataError("시장별 일별 TOP 20 자료 부족")
         markets[market] = {"name": label, "rankings": market_rankings}
         raw.setdefault("markets", {})[market] = market_raw
     finished = clock()
@@ -265,7 +263,13 @@ def refresh(data, day, api=None, clock=None):
            "fetched_at": finished.isoformat(timespec="seconds"),
            "after_close_refresh": current.strftime("%H:%M") >= FINAL_TIME,
            "units": {"amount": "천만원", "quantity": "천주"},
-           "rankings": rankings, "markets": markets, "raw": raw}
+           "rankings": rankings, "markets": markets, "raw": raw,
+           "display_coverage": {"limit_per_list": 20,
+               "counts": {market: {key: len(rows) for key, rows in entry["rankings"].items()}
+                          for market, entry in markets.items()},
+               "below_limit": [{"market": market, "investor": key, "count": len(rows)}
+                               for market, entry in markets.items() for key, rows in entry["rankings"].items()
+                               if len(rows) < 20]}}
     doc["sha256"] = digest(doc)
     with LOCK:
         write(root(data) / (day + ".json"), doc)
@@ -344,7 +348,9 @@ def start(data, coordinator, manual=False, current=None):
     def worker():
         try:
             refresh(data, day)
-            STATE["message"] = "외국인·기관 순매수 저장 완료"
+            doc = read_day(data, day)
+            short = doc.get("display_coverage", {}).get("below_limit", []) if doc else []
+            STATE["message"] = "외국인·기관 순매수 저장 완료" + (" · 일부 목록은 API 제공 종목이 20개 미만" if short else "")
             write(root(data) / "last_error.json", None)
         except Exception as exc:
             message = str(exc) if isinstance(exc, DataError) else "외국인·기관 처리·저장 실패: 이전 자료 유지"

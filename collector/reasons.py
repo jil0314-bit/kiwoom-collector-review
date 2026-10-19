@@ -7,6 +7,7 @@ import os
 import re
 import threading
 import time
+import uuid
 import urllib.request
 from datetime import datetime
 from html.parser import HTMLParser
@@ -83,6 +84,10 @@ def parse(text, names):
 def save_infostock(data, day, text, names, source="paste", published=""):
     if not isinstance(text, str) or not text.strip() or len(text) > MAX_TEXT:
         raise ValueError("붙여넣은 내용이 비어 있거나 너무 깁니다.")
+    path(data, day)
+    dated, _ = article_day(text)
+    if dated and dated != day:
+        raise ValueError(f"기사 날짜 {dated}와 저장 날짜 {day}가 다릅니다. 기사 날짜를 선택하세요.")
     items = parse(text, names)
     if not items:
         raise ValueError("종목과 사유를 찾지 못했습니다. 영웅문 기사 본문 전체를 복사(Ctrl+A → Ctrl+C)해서 붙여넣어 주세요.")
@@ -154,22 +159,56 @@ def read_hero4(path=None):
 SEEN = {"stamp": None}
 
 
+def write_hero_status(data, **record):
+    target = Path(data) / 'reasons' / 'hero4_source_status.json'
+    with LOCK:
+        old = json.loads(target.read_text(encoding='utf-8')) if target.is_file() else {}
+        if {k:v for k,v in old.items() if k != 'at'} == record:
+            return
+        target.parent.mkdir(parents=True, exist_ok=True)
+        temp = target.with_name(target.name + '.tmp-' + uuid.uuid4().hex)
+        try:
+            temp.write_text(json.dumps({**record,'at':datetime.now(KST).isoformat(timespec='seconds')},ensure_ascii=False),encoding='utf-8')
+            os.replace(temp,target)
+        finally:
+            temp.unlink(missing_ok=True)
+
+
+def source_status(data, day):
+    """Explain missing original articles separately from a checked news feed."""
+    record = read_day(data, day)
+    target = Path(data) / 'reasons' / 'hero4_source_status.json'
+    local = json.loads(target.read_text(encoding='utf-8')) if target.is_file() else {}
+    summary = Path(data) / 'reasons' / 'summary_status.json'
+    public = json.loads(summary.read_text(encoding='utf-8')) if summary.is_file() else {}
+    return {'day': day, 'article_count': len(record.get('infostock',{}).get('items',{})),
+            'local_article_day': local.get('article_day'), 'local_state': local.get('state','UNKNOWN'),
+            'public_state': public.get('state','UNKNOWN') if public.get('day') == day else 'UNKNOWN'}
+
+
 def watch_hero4(data, names_for, path=None):
     """Cheap stat each tick; only a changed file that holds the summary article is parsed and saved."""
     path = path or HERO4_NEWS
     try:
         info = path.stat()
     except OSError:
+        write_hero_status(data,state='source_unavailable',article_day=None,count=0,codes=[])
         return None
     stamp = (str(path), str(data), info.st_mtime_ns, info.st_size)
     if SEEN["stamp"] == stamp:
-        return None
+        status_path = Path(data) / 'reasons' / 'hero4_source_status.json'
+        status = json.loads(status_path.read_text(encoding='utf-8')) if status_path.is_file() else {}
+        saved_day = status.get('article_day')
+        if not saved_day or set(status.get('codes',[])) <= set(read_day(data,saved_day).get('infostock',{}).get('items',{})):
+            return None
     found = read_hero4(path)
     if not found:
+        write_hero_status(data,state='not_summary_article',article_day=None,count=0,codes=[])
         SEEN["stamp"] = stamp
         return None
     day, published, text = found
     items = save_infostock(data, day, text, names_for(day), source="hero4", published=published)
+    write_hero_status(data,state='saved',article_day=day,published=published,count=len(items),codes=list(items))
     SEEN["stamp"] = stamp
     return day, items
 

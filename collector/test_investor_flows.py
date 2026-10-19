@@ -229,6 +229,22 @@ class FlowTests(unittest.TestCase):
         self.assertEqual(doc['markets']['101']['rankings']['institution'][0]['code'],'000070')
         self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),121)
 
+    def test_short_market_lists_saved_without_discarding_institution(self):
+        class ShortAPI(FakeAPI):
+            def request(self, api, body, cursor):
+                data,headers=super().request(api,body,cursor)
+                market=body.get('mrkt_tp')
+                if market in ('001','101'):
+                    count=16 if market=='001' else 11
+                    for item in data['frgnr_orgn_trde_upper'][count:]:item['for_netprps_stk_cd']=''
+                return data,headers
+        doc=self.save(ShortAPI())
+        self.assertEqual(flows.read_day(self.data,DAY),doc)
+        self.assertEqual(doc['display_coverage']['counts']['001'],{'foreign':16,'institution':20})
+        self.assertEqual(doc['display_coverage']['counts']['101'],{'foreign':11,'institution':20})
+        self.assertEqual(len(doc['display_coverage']['below_limit']),2)
+        self.assertEqual(len(flows.display_rows(doc,'institution','001')),20)
+
     def test_investor_chart_membership_and_period_end(self):
         import chart_data
         doc=self.save()

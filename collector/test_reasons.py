@@ -15,6 +15,25 @@ ARTICLE = """<html><head><style>td{font-size:9pt}</style></head><body>
 
 
 class ParseTest(unittest.TestCase):
+    def test_saved_hero_article_is_not_reported_waiting_or_overwritten(self):
+        from unittest.mock import patch
+        import app
+        with tempfile.TemporaryDirectory() as tmp:
+            data=Path(tmp)
+            reasons.save_infostock(data,'2026-09-23',reasons.html_text(ARTICLE),{},source='hero4')
+            with patch.object(app,'DATA',data),patch.object(reasons,'fetch_summary') as fetch:
+                app.collect_summary('2026-09-23','test')
+                fetch.assert_not_called()
+            import json
+            status=json.loads((data/'reasons/summary_status.json').read_text(encoding='utf-8'))
+            self.assertEqual((status['state'],status['count'],status['source']),('saved',3,'hero4'))
+            self.assertEqual(len(reasons.read_day(data,'2026-09-23')['infostock']['items']),3)
+    def test_wrong_article_day_never_written(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data=Path(tmp)
+            with self.assertRaisesRegex(ValueError,'기사 날짜'):
+                reasons.save_infostock(data,'2026-09-24',reasons.html_text(ARTICLE),{})
+            self.assertFalse(reasons.path(data,'2026-09-24').exists())
     def test_public_summary_checks_date_and_preserves_prior_rows(self):
         with tempfile.TemporaryDirectory() as tmp:
             data = Path(tmp)
@@ -86,6 +105,30 @@ class NewsTest(unittest.TestCase):
 
 
 class WatchTest(unittest.TestCase):
+    def test_same_source_restores_missing_archive_and_reports_source_date(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data,news=Path(tmp)/'data',Path(tmp)/'News.html'
+            reasons.SEEN['stamp']=None
+            news.write_bytes(ARTICLE.encode('cp949'))
+            reasons.watch_hero4(data,lambda day:{},news)
+            status=reasons.source_status(data,'2026-09-24')
+            self.assertEqual(status['local_article_day'],'2026-09-23')
+            self.assertEqual(status['article_count'],0)
+            saved=reasons.read_day(data,'2026-09-23')
+            saved['infostock']['items']={}
+            saved['personal_test']='preserve'
+            reasons.write_day(data,'2026-09-23',saved)
+            self.assertEqual(len(reasons.watch_hero4(data,lambda day:{},news)[1]),3)
+            self.assertEqual(reasons.read_day(data,'2026-09-23')['personal_test'],'preserve')
+            self.assertIsNone(reasons.watch_hero4(data,lambda day:{},news))
+
+    def test_missing_source_is_reported_without_guessing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data=Path(tmp)/'data'
+            self.assertIsNone(reasons.watch_hero4(data,lambda day:{},Path(tmp)/'missing'))
+            status=reasons.source_status(data,'2026-09-24')
+            self.assertEqual(status['local_state'],'source_unavailable')
+            self.assertFalse(reasons.path(data,'2026-09-24').exists())
     def test_watch_saves_article_day_once_and_ignores_other_articles(self):
         with tempfile.TemporaryDirectory() as tmp:
             data, news = Path(tmp) / "data", Path(tmp) / "News.html"
