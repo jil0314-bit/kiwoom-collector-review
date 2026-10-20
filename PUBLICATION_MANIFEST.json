@@ -1,5 +1,5 @@
 {
-  "date_kst": "2026-10-18",
+  "date_kst": "2026-10-20",
   "scope": "Read-only collector AI review; no private data",
   "files": {
     ".gitignore": "53f9849c07fa29b21bd4491dd2c3ef80bdd6fdbb871929cbea95369301b688dd",
@@ -21,9 +21,9 @@
     "collector/kiwoom.py": "07e6f8cea05417e3afc219fbe75d1554ec80aa44c7414a4e110d2e502ecfa06f",
     "collector/notes.py": "27cb60697d19a2e7c0e5ed90955e6cef3028fa100829fb9810c04c274a8ffba6",
     "collector/README.md": "69df8802edd79bece97a3e85a46f3ab5bacb15fd5d9815fd70da65554037d583",
-    "collector/reason_memos.py": "3ec15381cf7177f16aca1dd9f7112cba6578ba7702d742f714f07d974bf7e43f",
+    "collector/reason_memos.py": "ccdfd6f30245274d49b5b5c32692d11318caf7b27cd4959b92a16bec749744c5",
     "collector/reasons.py": "1ca30a17a5b4052dfc0b6f039d0f7e033cac55e3e9800804a96c4b2102596792",
-    "collector/release_manifest.json": "7e749642bf77ae8ce93bee1704349ce2d7527be5c8d93d3844d6f1b4bb308628",
+    "collector/release_manifest.json": "360d2013f8a64092e5362a73bf871e45f45061b2670552123fe1f120ec3d3de4",
     "collector/shared_archive.py": "18ef5183beeae40d6c71af90af220319cbd3d1edb39284d3a945ecf8d84b32fa",
     "collector/shared_start.ps1": "1ec6147375893beef95e390d376db9f5bfcf5d322ae95df49dc7cec7dcce0202",
     "collector/shared_viewer.py": "3badaec30e77ff19a4f86252028fe4bea5bf939800403a16c7312d0f5bfb57ca",
@@ -60,8 +60,9 @@
     "collector/window.py": "4c0ed8f5848115804fbed6f624e9a015adb6bea1f976025357ec79d2952de2b1",
     "collector/공유사용방법.txt": "7146c53325a91095df514445e5040b6a5eaf91a27b3f317f457c4b8b57f73a90",
     "collector/공유수집기시작.cmd": "3f0c4c2d6c3914397fbf989af7fe39f5273fed0a3024ad10a8bc792d7795ae25",
-    "hero4_daily_memo.py": "d865c34ab14ed41cc7022e3b849a33bfb1d57ddcbe30c046db56b115b4015e32",
+    "hero4_daily_memo.py": "a93273b2bc71c53ea71956c21c325802d0e06b699b8b705440a094e317cc545e",
     "hero4_memo_import.py": "dd7f9941626657ffc1b55c09193a54760b88ad72a9737094a5c7ef355f47551c",
-    "README.md": "1d0b5582d3c3569b5648e332fe6a4e04b6ec753e918528f24f8a1278632551fa"
+    "README.md": "1c64cd22ca21ef1ee08c0c678b1ce30554f1fbc074179143e5b6be82fccb7043",
+    "collector/test_reason_memos.py": "6d4e5c4c33770b6be9197760883e160ff468cd6697839503b794acfb24df483e"
   }
 }

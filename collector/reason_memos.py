@@ -53,6 +53,18 @@ def hero_line(day, item):
     return text.replace('\u2126', ' ').encode('cp949', errors='replace').decode('cp949')
 
 
+def merge_queue(previous, incoming):
+    result = list(previous)
+    for line in incoming:
+        # Replace only our queued UNKNOWN for this date, never personal memos.
+        if ' 출처: ' in line and '구체적 상승 사유 미확인.' not in line:
+            result = [old for old in result if not (
+                old.startswith(line[:10] + ' 조회한 당일 기사·종목 뉴스에서 구체적 상승 사유 미확인. 추측하여 기재하지 않음. 미확인 출처: '))]
+        if line not in result:
+            result.append(line)
+    return result
+
+
 def sync_all(data, through, *, apply=True, mark_unknown=False):
     """Never overwrite existing text; never write an open HTS's memo file."""
     with LOCK:
@@ -73,7 +85,7 @@ def sync_all(data, through, *, apply=True, mark_unknown=False):
                 text = note.get('text', '').strip()
                 item = evidence(record, stock, day)
                 researched = from_note(text) if text else None
-                owned = re.match(r'\[자동 상승 사유 \| ' + re.escape(day) + r'\].*?\[/자동 상승 사유\]', text, re.S)
+                owned = re.search(r'\[자동 상승 사유 \| ' + re.escape(day) + r'\].*?\[/자동 상승 사유\]', text, re.S)
                 if item or researched:
                     supported += 1
                 else:
@@ -81,8 +93,9 @@ def sync_all(data, through, *, apply=True, mark_unknown=False):
                 if not item and (mark_unknown or owned):
                     item = ('조회한 당일 기사·종목 뉴스에서 구체적 상승 사유 미확인. 추측하여 기재하지 않음.',
                             '인포스탁 저장 기사·네이버 종목 뉴스 조회 범위', '', '미확인')
-                if item and (not text or owned):
-                    replacement = block(day, item) + (text[owned.end():] if owned else '')
+                if item and (not text or owned or item[3] != '미확인'):
+                    replacement = (text[:owned.start()] + block(day, item) + text[owned.end():]
+                                   if owned else text + ('\n\n' if text else '') + block(day, item))
                     if replacement != text:
                         try:
                             notes.write(data, day, code, replacement, note.get('revision', ''), stock['name'])
@@ -94,7 +107,7 @@ def sync_all(data, through, *, apply=True, mark_unknown=False):
                             report['notes_updated'] += 1
                 if text:
                     # Prefer the previously written research when preserving an existing note.
-                    item = researched or item
+                    item = item or researched
                 if item:
                     incoming.setdefault(code, []).append(hero_line(day, item))
             report['notes_added'] += added
@@ -118,13 +131,14 @@ def sync_all(data, through, *, apply=True, mark_unknown=False):
                     for code, lines in incoming.items():
                         chunks = writer.hero4memo.BREAK.split(current_memos.get(code, ''))
                         lines = [next((old for old in chunks if old == line.split(' | ', 1)[0]), line) for line in lines]
-                        queue[code] = list(dict.fromkeys(queue.get(code, []) + lines))
+                        queue[code] = merge_queue(queue.get(code, []), lines)
                     writer.save(file, queue)
                     report['hero_pending_symbols'] = len(queue)
                     if apply and queue:
                         try:
                             report['hero_added_lines'] = writer.apply_pending(queue, writer.hero4memo.HERO4_MEMO)
                             writer.save(file, {})
+                            report['hero_pending_symbols'] = 0
                             report['hero_state'] = 'saved'
                         except RuntimeError as exc:
                             if '실행 중' not in str(exc):

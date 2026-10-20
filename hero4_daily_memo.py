@@ -108,6 +108,23 @@ def tick(day, prepare_only=False):
     return report
 
 
+def locked_tick(day, prepare_only=False):
+    # Share the queue lock only while reading/updating it, never during sleep.
+    with (STATE / 'worker.lock').open('a+b') as lock:
+        if lock.tell() == 0:
+            lock.write(b'0'); lock.flush()
+        lock.seek(0)
+        try:
+            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+        except OSError:
+            return {'day': day, 'state': 'existing_worker_busy'}
+        try:
+            return tick(day, prepare_only)
+        finally:
+            lock.seek(0)
+            msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--day', default=datetime.now(KST).date().isoformat())
@@ -115,7 +132,7 @@ def main():
     parser.add_argument('--watch', action='store_true', help='Retry for up to 14 hours')
     args = parser.parse_args()
     STATE.mkdir(parents=True, exist_ok=True)
-    with (STATE / 'worker.lock').open('a+b') as lock:
+    with (STATE / 'watcher.lock').open('a+b') as lock:
         if lock.tell() == 0:
             lock.write(b'0')
             lock.flush()
@@ -128,7 +145,7 @@ def main():
         deadline = time.monotonic() + 14 * 3600
         while True:
             try:
-                result = tick(args.day, args.prepare)
+                result = locked_tick(args.day, args.prepare)
             except Exception as exc:
                 result = {'day': args.day, 'state': 'error', 'message': str(exc),
                           'at': datetime.now(KST).isoformat(timespec='seconds')}

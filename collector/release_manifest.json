@@ -1,5 +1,5 @@
 {
-  "version": "2.5.5-investor-reason-recovery",
+  "version": "2.5.6-reason-memo-queue",
   "sha256": {
     "app.py": "301af2677c6e67019fe84f21f834dde49e986556f266dbee50cedbdbb9862693",
     "kiwoom.py": "07e6f8cea05417e3afc219fbe75d1554ec80aa44c7414a4e110d2e502ecfa06f",
@@ -29,7 +29,7 @@
     "web/themes.html": "7af661e6e7bf0cbe11d7c3078dc52fb536f454057ef972faa4b6fb21a7f35ab3",
     "reasons.py": "1ca30a17a5b4052dfc0b6f039d0f7e033cac55e3e9800804a96c4b2102596792",
     "watchlists.py": "95d572785b880634c8f5a82c13611ad71503d75c379d6b99904996c83ac370ef",
-    "reason_memos.py": "3ec15381cf7177f16aca1dd9f7112cba6578ba7702d742f714f07d974bf7e43f",
+    "reason_memos.py": "ccdfd6f30245274d49b5b5c32692d11318caf7b27cd4959b92a16bec749744c5",
     "backfill_reason_news.py": "cd3619445631e9a006a117f1beaddf401b3443d306a77c2f93ccfcf3fd8d0faa",
     "investor_flows.py": "f52d62a8c9b3b1810282148b508214a0998e2e0377c8ccead36e75d9e79e480e",
     "test_investor_flows.py": "0a1c60e5bb98dcb0e8dfef3299f3994b813d13d064c45e00140e9488d486cf81",
@@ -39,7 +39,9 @@
     "web/investors.html": "e8fb6d0ca8ba6e823c03b0385eea5e2b43c8a253a28c0a72cef14d8979a8cb3c",
     "web/investors.js": "2f2f1d8829014efea4e3e1d6666c3fe9fc10638b87a046b0e39025858bbb9e7e",
     "web/investors.css": "0a0601027a5b8a6e691a14c128c435fe0069ba71afda63c592f6f05f56a34144",
-    "test_reasons.py": "6a7857d182f0ffe7d52026daeb6cbf30adcdabd7f6bd58e6afdffb41b39aba69"
+    "test_reasons.py": "6a7857d182f0ffe7d52026daeb6cbf30adcdabd7f6bd58e6afdffb41b39aba69",
+    "test_reason_memos.py": "6d4e5c4c33770b6be9197760883e160ff468cd6697839503b794acfb24df483e",
+    "../hero4_daily_memo.py": "a93273b2bc71c53ea71956c21c325802d0e06b699b8b705440a094e317cc545e"
   },
-  "updated_at": "2026-10-19"
+  "updated_at": "2026-10-20"
 }
