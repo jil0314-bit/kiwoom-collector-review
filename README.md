@@ -1,3 +1,7 @@
+## Latest requested YouTube channel registration (2026-11-08)
+
+Source checkpoint a964073 -> c1c4cd2. Six requested channels already existed; verified 기적의투자 was added (32 ->33 enabled sources). All seven identities were checked against live official channel metadata and feeds. Configuration is hot-loaded; the running worker checked the added source successfully. Its latest feed video is dated11/4, outside the current3-day discovery window. Recommendations28 tests passed. See [verification and precise background-collection conditions](review/REQUESTED_YOUTUBE_CHANNELS_20261108.md). The volume-top and amount-top pages remain page-triggered exceptions; this registration does not change their behavior. Earlier sections describe earlier snapshots.
+
 ## Latest investor amount TOP50 fix (2026-11-08)
 
 Source checkpoint 01d2095 -> fix 2049c1b. KOSPI/KOSDAQ and foreign/institutional lists now collect up to50 positive net-buy amounts without volume/quantity filters. Intraday KRX provisional ka10065 and dated integrated ka10058 have explicit provenance. All four 2026-11-06 lists were re-collected, top amounts cross-checked with ka10059, 200 displayed rows matched saved data and CSV. All201 Python tests passed. See [scope, observed unit correction, verification and limitations](review/INVESTOR_AMOUNT_TOP50_20261108.md). Older historical files retain their original coverage; next trading-day live updating is unverified. Sections below describe earlier snapshots.

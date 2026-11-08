@@ -1,5 +1,5 @@
 {
-  "checked_date": "2026-11-01",
+  "checked_date": "2026-11-08",
   "programs": [
     {
       "name": "여의도 투자본부 1부",
@@ -321,6 +321,14 @@
       "kind": "youtube",
       "enabled": true,
       "verified_date": "2026-11-01"
+    },
+    {
+      "name": "기적의투자",
+      "url": "https://www.youtube.com/channel/UC7ge2FF_Q38iRlmbT4iEaZw",
+      "channel_id": "UC7ge2FF_Q38iRlmbT4iEaZw",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-08"
     }
   ],
   "broadcast_programs": [

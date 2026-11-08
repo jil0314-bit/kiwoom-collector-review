@@ -1,8 +1,8 @@
 {
   "snapshot_date": "2026-11-08",
   "timezone": "Asia/Seoul",
-  "local_before_commit": "01d20956d5505df196b159b0e786ab5c24cbb69d",
-  "local_after_commit": "2049c1ba1132ba78a3373d14dca7dff3f9fb2e92",
+  "local_before_commit": "a964073ef1d21265a763a758becbc94a6d4bec6e",
+  "local_after_commit": "c1c4cd21e8f9844440c30598e15ccad66f246e3b",
   "policy": "Tracked collector source/assets/tests copied byte-for-byte. Private runtime data excluded.",
   "files": [
     {
@@ -108,6 +108,12 @@
       "git_blob_sha": "6635971b4825bea1d6270ae755343938a9eb0b5f"
     },
     {
+      "path": "collector/docs/requested_youtube_channels_20261108.md",
+      "bytes": 3456,
+      "sha256": "1f2e0edaade6df0cd4c1cf1322c04439a442f3a4fec54a0f5c415ec0cad58d79",
+      "git_blob_sha": "a2b2a8bb5633cd4b798a6bc70d76c0cb0529a16e"
+    },
+    {
       "path": "collector/hero4memo.py",
       "bytes": 2697,
       "sha256": "a3d369d9acb381fd815ea565ab33ab8cbb65ee8d7ab3f09a974a0bc97e9ccd26",
@@ -157,9 +163,9 @@
     },
     {
       "path": "collector/recommendation_sources.json",
-      "bytes": 15936,
-      "sha256": "d71aa2b724f3849b2042af62d1881cd14937d3b2c379ddd49318e05b81ad26b8",
-      "git_blob_sha": "95ba32d24ce24622c6febae4400826195373f215"
+      "bytes": 16195,
+      "sha256": "9b6c224ffa58e49373ea1a9bf09babd322e7a40352daa28d95e3f90fa8e1d43a",
+      "git_blob_sha": "d809c6cd85d639525b6cf37930aa39784094763a"
     },
     {
       "path": "collector/recommendations.py",
@@ -170,8 +176,8 @@
     {
       "path": "collector/release_manifest.json",
       "bytes": 6451,
-      "sha256": "bd2a635eaac9d35c31f9ce7c7cc551ec4c2b46ffed07562a082f7fdf7eeaecea",
-      "git_blob_sha": "0456c2e5b7d54662655bd3a872ecb037ccb7aa26"
+      "sha256": "58f85b79cd154f555c729ac7a64bc75487be13359d2bf5f81bb437c672788ddf",
+      "git_blob_sha": "c3e96ee54d54781b034b5d3242f23834aa6fe5d6"
     },
     {
       "path": "collector/shared_archive.py",
