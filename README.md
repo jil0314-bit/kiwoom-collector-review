@@ -1,3 +1,7 @@
+## Latest recommendation-screen fix (2026-11-08)
+
+Local source checkpoint d4753e4 -> fix 4b7001f. Recommendation extraction, trading, orders and 0600 routes are unchanged. Default all-record display now distinguishes mentions from recommendations; latest confirmed recommendations are one click away. Optional profiles no longer block saved records. See [scope, live UI evidence, limitations and tests](review/RECOMMENDATION_VISIBILITY_20261108.md). YouTube caption acquisition failures remain unresolved and are explicitly visible. Earlier sections below describe earlier snapshots.
+
 # 최신 0311 신뢰·시작·누락 복구 수정 (2026-11-08)
 
 최신 전체 소스 86개는 원본과 바이트가 일치합니다. [변경 파일 22개·검증·한계](review/RELIABILITY_FIX_20261108.md), [파일 해시](PUBLICATION_MANIFEST.json)를 먼저 읽으세요.
