@@ -3,10 +3,11 @@ import re
 import threading
 from datetime import datetime
 from pathlib import Path
+from local_config import profile_file
 
 from kiwoom import KST
 
-HERO4_MEMO = Path(r"C:\KiwoomHero4\user\#Q2gsNx0%Eg$$\jongMemoEnc.dat")
+HERO4_MEMO = profile_file('jongMemoEnc.dat', Path(r"C:\KiwoomHero4\user\#Q2gsNx0%Eg$$\jongMemoEnc.dat"))
 KEY = (1, 1, 0, 0, 0, 0, 0, 0, 0, 0)
 ENTRY = re.compile(r"^([0-9A-Z]{6})=(.*)$", re.S)
 BREAK = re.compile("\u2126+")

@@ -1,15 +1,33 @@
 {
   "snapshot_date": "2026-11-08",
   "timezone": "Asia/Seoul",
-  "local_before_commit": "a964073ef1d21265a763a758becbc94a6d4bec6e",
-  "local_after_commit": "c1c4cd21e8f9844440c30598e15ccad66f246e3b",
+  "local_before_commit": "ed763e31ce66a93d20d229e81619fd364e4d566e",
+  "local_after_commit": "d5cb4ae1cf4c42c092977b2f9521e3e98a617dbb",
   "policy": "Tracked collector source/assets/tests copied byte-for-byte. Private runtime data excluded.",
   "files": [
     {
+      "path": "INSTALL_LG.cmd",
+      "bytes": 148,
+      "sha256": "818d2956c811dc0d3f4ce1da18d767e4d2a84d00a96d56d61b5c071eaf20a906",
+      "git_blob_sha": "9f82e86b2500060766cc03d11b6511219949d145"
+    },
+    {
+      "path": "LG_INSTALL.md",
+      "bytes": 4806,
+      "sha256": "85b67c554996a379fd434a24c82c39e4752adbbfe4eed2071213ee89088747e7",
+      "git_blob_sha": "ac7bdec5672640f07e82cf1ee7cfb695eff96bff"
+    },
+    {
+      "path": "OPEN_COLLECTOR.cmd",
+      "bytes": 63,
+      "sha256": "1f4db1cd09474b3b6cebc5f24f7d2868b35524a5102340671af6c13acf93ebc6",
+      "git_blob_sha": "155ca9aeead97d1e0bab68832018b17b65b1ad2b"
+    },
+    {
       "path": "collector/.gitignore",
-      "bytes": 42,
-      "sha256": "043126e74878c2200a8934014936979080a935ebb84e0385693bd063b5be9282",
-      "git_blob_sha": "5cb0bdaed95bc2f869e1ba0997bd7c98bbc57899"
+      "bytes": 56,
+      "sha256": "5f75d7cc0c2aed9226d566eb0a11434a53c846813daa09e2a8339339d2e7be3d",
+      "git_blob_sha": "9c59f73d741598ef669835162f42479e16da8a15"
     },
     {
       "path": "collector/AGENTS.md",
@@ -31,9 +49,9 @@
     },
     {
       "path": "collector/admin_restart.ps1",
-      "bytes": 5101,
-      "sha256": "6ebfa3e61bd2758c8636de19739e619e049e8e0e27632689cd00d9f7e58d9a5e",
-      "git_blob_sha": "b543dbbaba2f1cf046f3e5cd9df386ef18d767b0"
+      "bytes": 6529,
+      "sha256": "aadc39c875568b8e720c19e862f7ba6c8325071b9f05ffc217d97daa76d1785e",
+      "git_blob_sha": "1cfbd6dfdde7a01e6736cfc22c2661ba7fd4dd01"
     },
     {
       "path": "collector/amount_top.py",
@@ -43,9 +61,9 @@
     },
     {
       "path": "collector/app.py",
-      "bytes": 47427,
-      "sha256": "708fc7e1505081c24737d8b95b1366129e82cfe7eed4d1511a86ee881b2df9ff",
-      "git_blob_sha": "3d9056bc0bc4541af5ad88eba2fe20ce8483a137"
+      "bytes": 47591,
+      "sha256": "6fdc595ef5564a7b89e4ea434f0bf58c52091ad06743e14ec907659edae802cb",
+      "git_blob_sha": "134be91f42a226b812e4b834438b7a7e0cc58e52"
     },
     {
       "path": "collector/archive.py",
@@ -84,6 +102,12 @@
       "git_blob_sha": "bb59e06a9a543b5632abbcaeb81934d1825919f0"
     },
     {
+      "path": "collector/configure_lg.py",
+      "bytes": 3514,
+      "sha256": "2c5052f21c743ee86fcc9dbfe2b914b405dfd55abda64a5e9544adb7c0b1a5d5",
+      "git_blob_sha": "cfdb48f0c4ee158ae763145c450fb969d4fdf53c"
+    },
+    {
       "path": "collector/docs/investor_amount_top50_20261108.md",
       "bytes": 4225,
       "sha256": "44a15010b6965b1454378e56a821b9a6c1795cecd3468f43d7c504fb6b91a6e2",
@@ -94,6 +118,12 @@
       "bytes": 3412,
       "sha256": "dceb644341d8537dcd6103171e3cf704c0ef0c6412acfdb9d122e658ade7d4a6",
       "git_blob_sha": "b8e3ad7328f3e213d2643794128a7464178f79eb"
+    },
+    {
+      "path": "collector/docs/lg_install_validation_20261108.md",
+      "bytes": 4110,
+      "sha256": "e5e889ed747c6cc2eb9dda2d7b61bb285c1f8ee13b8d8d8056bfe7060d2c19e0",
+      "git_blob_sha": "fddf15e93c24a27036a371d937fd13c74d9baccf"
     },
     {
       "path": "collector/docs/recommendation_visibility_20261108.md",
@@ -115,9 +145,9 @@
     },
     {
       "path": "collector/hero4memo.py",
-      "bytes": 2697,
-      "sha256": "a3d369d9acb381fd815ea565ab33ab8cbb65ee8d7ab3f09a974a0bc97e9ccd26",
-      "git_blob_sha": "f286a7cf3503010d8b72cf7f89e0b288c3d68a81"
+      "bytes": 2856,
+      "sha256": "a299b41bc71580987902d445e316036b835f4fed3044a9d7b4dd12145f6a99b5",
+      "git_blob_sha": "5a088c224ae5cb38d48bcd878f4df7f6a22321e4"
     },
     {
       "path": "collector/hero_link.py",
@@ -127,9 +157,9 @@
     },
     {
       "path": "collector/install_schedule.ps1",
-      "bytes": 1595,
-      "sha256": "0b81b8c3da57558d4daadeaf08accef8b7368fa03c48e5a0a561b68d1c8442c2",
-      "git_blob_sha": "f6622542edeb60000432769f0a92783aa1919ab8"
+      "bytes": 1756,
+      "sha256": "869475032a68615297512017e0cc1a9a0b27f5bf498e426f399ce751c5219dba",
+      "git_blob_sha": "6acd2c87dbec3f32ea0e8402ea2d3c0b7c4440b4"
     },
     {
       "path": "collector/investor_flows.py",
@@ -139,9 +169,15 @@
     },
     {
       "path": "collector/kiwoom.py",
-      "bytes": 18030,
-      "sha256": "1b955e242a8f410e04a84fc1c7388420159f3d36e572b611d9254bab61178adf",
-      "git_blob_sha": "a8adfc3df3281331341839bc89fd713b5cd5be28"
+      "bytes": 18734,
+      "sha256": "f259602beec2f9bc8103e6e70b18abc0290749bd5b591344d864540fb5c9afea",
+      "git_blob_sha": "fc54236dee0483ad4a028873cff88bfca032cee4"
+    },
+    {
+      "path": "collector/local_config.py",
+      "bytes": 2988,
+      "sha256": "51e29a743fbb47bc90846e59d9dfcfa704f6d54d83c028a2d61960276e6c3a63",
+      "git_blob_sha": "cec59e95f6fe505bf6fd9dc349d2230736d00f18"
     },
     {
       "path": "collector/notes.py",
@@ -175,9 +211,15 @@
     },
     {
       "path": "collector/release_manifest.json",
-      "bytes": 6451,
-      "sha256": "58f85b79cd154f555c729ac7a64bc75487be13359d2bf5f81bb437c672788ddf",
-      "git_blob_sha": "c3e96ee54d54781b034b5d3242f23834aa6fe5d6"
+      "bytes": 6930,
+      "sha256": "e077e6622289b4ab0c531494d55f6559db947926fcd45b3ef49dfd1fcb1d01fc",
+      "git_blob_sha": "7a677d2f4dc0f5136fb545875d87fe484bfcb122"
+    },
+    {
+      "path": "collector/setup_lg.ps1",
+      "bytes": 5286,
+      "sha256": "6c96623b3138fc202780f7b8ce65a2466d8eb6965d119168485fe9bdda59b38d",
+      "git_blob_sha": "9248ccacdb0e81a5b74bfa55e17f77d9b47fa8fa"
     },
     {
       "path": "collector/shared_archive.py",
@@ -199,9 +241,9 @@
     },
     {
       "path": "collector/start.vbs",
-      "bytes": 1533,
-      "sha256": "9096cad95b58a0a0a9fcc88819e7dd545d0b2f3bf19505c4ad1f7d64320bb744",
-      "git_blob_sha": "8b03d162a6534cb6bab4710bb4b40ec5ea261369"
+      "bytes": 1649,
+      "sha256": "ecbc94faeda29ada35fc32dccac6b826873331d2f1159ac23b5608f6604a5203",
+      "git_blob_sha": "cbec5861ea10f00e616cf6d344923d693c6ade04"
     },
     {
       "path": "collector/stock_profiles.py",
@@ -268,6 +310,12 @@
       "bytes": 3504,
       "sha256": "f44848509735509b9126acc99197fa0c9eda94c756ce045f6bb2416f7a3e000b",
       "git_blob_sha": "8b69045a71e9a7d17a0ab89cfcf72f9c9e6fa93c"
+    },
+    {
+      "path": "collector/test_lg_install.py",
+      "bytes": 2746,
+      "sha256": "b0ab90fa287dd84bf8eddae87c474b883e0a9565dbbe9133e498ae1f8e78648f",
+      "git_blob_sha": "fa16b1cf9bb0b0cfb0e8e182ababf15dda01951c"
     },
     {
       "path": "collector/test_notes.py",
@@ -361,9 +409,9 @@
     },
     {
       "path": "collector/watchlists.py",
-      "bytes": 2974,
-      "sha256": "95d572785b880634c8f5a82c13611ad71503d75c379d6b99904996c83ac370ef",
-      "git_blob_sha": "d61eb76456827e6c7e37a7cbafb25dc949f0bdc3"
+      "bytes": 3116,
+      "sha256": "f9cab02a75c54749c13fa5a161ec4fb27049a3fb0824038005a04467ad682c4b",
+      "git_blob_sha": "64a5be9f8ce31e4b13e29b7cf6b6b3174b597ccd"
     },
     {
       "path": "collector/web/amount-top.html",

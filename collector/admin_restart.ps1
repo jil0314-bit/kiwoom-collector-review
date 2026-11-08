@@ -1,9 +1,10 @@
-param([Parameter(Mandatory=$true)][int]$CollectorProcessId,
+﻿param([Parameter(Mandatory=$true)][int]$CollectorProcessId,
       [ValidateRange(1,180)][int]$MaxWaitMinutes = 6)
 $ErrorActionPreference = 'Stop'
 $collectorRoot = $PSScriptRoot
 $collectorResult = Join-Path $collectorRoot 'data\admin_restart_result.json'
 $collectorPython = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\pythonw.exe'
+if (Test-Path -LiteralPath (Join-Path $PSScriptRoot '.venv\Scripts\pythonw.exe')) { $collectorPython = Join-Path $PSScriptRoot '.venv\Scripts\pythonw.exe' }
 Add-Type -TypeDefinition @'
 using System;
 using System.Text;
@@ -27,6 +28,15 @@ try {
     if (-not $collectorPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
         throw '관리자 권한이 없어 재시작하지 않았습니다. 기존 수집기는 유지합니다.'
     }
+    $collectorExpectedImages = @($collectorPython)
+    if ($collectorPython -eq (Join-Path $PSScriptRoot '.venv\Scripts\pythonw.exe')) {
+        # Windows venv launchers run the base Python image in a child process.
+        $collectorBaseLine = Get-Content -LiteralPath (Join-Path $PSScriptRoot '.venv\pyvenv.cfg') | Where-Object { $_ -match '^home\s*=' } | Select-Object -First 1
+        $collectorBaseHome = ($collectorBaseLine -replace '^home\s*=\s*','').Trim()
+        if (-not $collectorBaseHome -or -not [IO.Path]::IsPathRooted($collectorBaseHome)) { throw '가상환경 기본 Python 경로를 확인하지 못했습니다.' }
+        $collectorExpectedImages += Join-Path $collectorBaseHome 'pythonw.exe'
+    }
+    $collectorAppArgument = '"' + (Join-Path $collectorRoot 'app.py') + '"'
     $collectorTask = Get-ScheduledTask -TaskName 'KiwoomTop100Archive_2005'
     if ($collectorTask.Principal.RunLevel -ne 'Highest' -or $collectorTask.Actions[0].Execute -ne $collectorPython -or
         $collectorTask.Actions[0].WorkingDirectory -ne $collectorRoot) {
@@ -54,7 +64,8 @@ try {
     $collectorListener = Get-NetTCPConnection -LocalPort 8766 -State Listen |
         Where-Object { $_.OwningProcess -eq $CollectorProcessId -and $_.LocalAddress -eq '127.0.0.1' }
     $collectorActualPath = [CollectorProcessPath]::Get($CollectorProcessId)
-    if (-not $collectorListener -or $collectorActualPath -ne $collectorPython) {
+    $collectorCommand = (Get-CimInstance Win32_Process -Filter ("ProcessId=" + $CollectorProcessId)).CommandLine
+    if (-not $collectorListener -or $collectorActualPath -notin $collectorExpectedImages -or -not $collectorCommand -or -not $collectorCommand.Contains($collectorAppArgument)) {
         throw '수집기 프로세스 식별 실패. 중단하지 않았습니다.'
     }
     Stop-Process -Id $CollectorProcessId
@@ -67,7 +78,10 @@ try {
             Where-Object { $_.LocalAddress -eq '127.0.0.1' -and $_.OwningProcess -ne $CollectorProcessId }
         if ($collectorPort) {
             $collectorNewPid = $collectorPort[0].OwningProcess
-            if ([CollectorProcessPath]::Get($collectorNewPid) -eq $collectorPython) { break }
+            if ([CollectorProcessPath]::Get($collectorNewPid) -in $collectorExpectedImages) {
+                $collectorNewCommand = (Get-CimInstance Win32_Process -Filter ("ProcessId=" + $collectorNewPid)).CommandLine
+                if ($collectorNewCommand -and $collectorNewCommand.Contains($collectorAppArgument)) { break }
+            }
             $collectorNewPid = $null
         }
         Start-Sleep -Milliseconds 500

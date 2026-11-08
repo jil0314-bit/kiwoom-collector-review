@@ -1,11 +1,11 @@
 {
-  "version": "2.6.0-public-recommendations",
+  "version": "2.7.0-notebook-installer",
   "sha256": {
-    "app.py": "708fc7e1505081c24737d8b95b1366129e82cfe7eed4d1511a86ee881b2df9ff",
-    "kiwoom.py": "1b955e242a8f410e04a84fc1c7388420159f3d36e572b611d9254bab61178adf",
+    "app.py": "6fdc595ef5564a7b89e4ea434f0bf58c52091ad06743e14ec907659edae802cb",
+    "kiwoom.py": "f259602beec2f9bc8103e6e70b18abc0290749bd5b591344d864540fb5c9afea",
     "chart.py": "ecbf9fc3e7226cb99246467f0b18b21c79de88764bff2eba8e45a313de1ba50b",
-    "start.vbs": "9096cad95b58a0a0a9fcc88819e7dd545d0b2f3bf19505c4ad1f7d64320bb744",
-    "install_schedule.ps1": "0b81b8c3da57558d4daadeaf08accef8b7368fa03c48e5a0a561b68d1c8442c2",
+    "start.vbs": "ecbc94faeda29ada35fc32dccac6b826873331d2f1159ac23b5608f6604a5203",
+    "install_schedule.ps1": "869475032a68615297512017e0cc1a9a0b27f5bf498e426f399ce751c5219dba",
     "README.md": "1967e7d838000b9cebb771d20d6e1c005c194f8ea455e00c064623d026913878",
     "web/index.html": "01d7700fcdcfda8ebc911cca3e6bef03146f84ce43c066000a167555aada3a97",
     "web/style.css": "2efc21a3d9aa6285e9dc549c7b24e009527b20548908541d4b1ab0c265fad515",
@@ -18,7 +18,7 @@
     "notes.py": "27cb60697d19a2e7c0e5ed90955e6cef3028fa100829fb9810c04c274a8ffba6",
     "web/notes.js": "7c787c1d2b158985284a351313e116dd3a1d845986a23eed42b1580a8adeed4b",
     "hero_link.py": "92e78c6984f024ff57399ea62135fe05519027d6fa81ba38f3c380104fbf4ff9",
-    "admin_restart.ps1": "6ebfa3e61bd2758c8636de19739e619e049e8e0e27632689cd00d9f7e58d9a5e",
+    "admin_restart.ps1": "aadc39c875568b8e720c19e862f7ba6c8325071b9f05ffc217d97daa76d1785e",
     "web/themes.js": "63199c66733d5a8a2fcaadc4c83323155b65be0f7785fc05236e581db811af15",
     "volume_surge.py": "6eb474eee92081efaf3c5fb0bf73931b75f913a4991f88b61032ad65d33ce467",
     "web/volume.html": "c517312256c19e008e064cd86cf3ff2d9cbad6377b54319c58fd28351f38b03c",
@@ -28,7 +28,7 @@
     "chart_service.py": "5f871edc2ce2667e4bb9d4a4e0529a335ae06525ff1c9e749f7cdb35d198d827",
     "web/themes.html": "199135a1ec01cfe796aa32a67d3057ad95a89acb2ae6f4886d75c216bbacce4e",
     "reasons.py": "25bb0597ea222d7b0ff62de09b1fde5c8f7811804de7d1ae4930b5cbfdc6eb75",
-    "watchlists.py": "95d572785b880634c8f5a82c13611ad71503d75c379d6b99904996c83ac370ef",
+    "watchlists.py": "f9cab02a75c54749c13fa5a161ec4fb27049a3fb0824038005a04467ad682c4b",
     "reason_memos.py": "1a5448c4f6ec1344777e3e70d4a540f48552b916a122b585210e9b75c13c4f21",
     "backfill_reason_news.py": "cd3619445631e9a006a117f1beaddf401b3443d306a77c2f93ccfcf3fd8d0faa",
     "investor_flows.py": "f1d3f2eee05b1bb6b9c0364ceda1db284583790ab52fb9e471cade5fb5406596",
@@ -68,7 +68,12 @@
     "test_kiwoom_coordination.py": "f44848509735509b9126acc99197fa0c9eda94c756ce045f6bb2416f7a3e000b",
     "test_recommendations.py": "e13efc950f3eaaae2aea4c4b35423906efc04794ae3fc9e0917cee32914e87ec",
     "test_hero_retry.cjs": "db664784d780ac8757c5a2233d818f04dec46ff7b16f8e09913691c6c735b6c2",
-    "docs/reliability_fix_20261108.md": "cc6be01e0a124d132521cf1bddf6d37625518040816bef878f6c3c68e5c7b7a1"
+    "docs/reliability_fix_20261108.md": "cc6be01e0a124d132521cf1bddf6d37625518040816bef878f6c3c68e5c7b7a1",
+    "local_config.py": "51e29a743fbb47bc90846e59d9dfcfa704f6d54d83c028a2d61960276e6c3a63",
+    "configure_lg.py": "2c5052f21c743ee86fcc9dbfe2b914b405dfd55abda64a5e9544adb7c0b1a5d5",
+    "setup_lg.ps1": "6c96623b3138fc202780f7b8ce65a2466d8eb6965d119168485fe9bdda59b38d",
+    "test_lg_install.py": "b0ab90fa287dd84bf8eddae87c474b883e0a9565dbbe9133e498ae1f8e78648f",
+    "docs/lg_install_validation_20261108.md": "e5e889ed747c6cc2eb9dda2d7b61bb285c1f8ee13b8d8d8056bfe7060d2c19e0"
   },
-  "updated_at": "2026-11-03"
+  "updated_at": "2026-11-08"
 }

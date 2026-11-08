@@ -7,6 +7,9 @@ python = shell.ExpandEnvironmentStrings("%USERPROFILE%") & "\.cache\codex-runtim
 If Not fs.FileExists(python) Then
   python = shell.ExpandEnvironmentStrings("%LOCALAPPDATA%") & "\Programs\Python\Python313\pythonw.exe"
 End If
+If fs.FileExists(root & "\.venv\Scripts\pythonw.exe") Then
+  python = root & "\.venv\Scripts\pythonw.exe"
+End If
 If Not fs.FileExists(python) Then
   MsgBox "Python runtime not found. See README.md."
   WScript.Quit 1

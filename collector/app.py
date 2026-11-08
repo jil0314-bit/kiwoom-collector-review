@@ -330,6 +330,10 @@ def sync_reason_memos(day):
 
 
 def memo_tick():
+    import local_config
+    local = local_config.settings()
+    if local.get('notebook_install') and not local.get('memo_write_enabled', False):
+        return
     # This PC's existing safe memo importer; do not redirect portable installations.
     import watchlists
     import hero4memo

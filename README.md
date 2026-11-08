@@ -1,3 +1,9 @@
+## LG Gram independent installer (2026-11-08)
+
+[Download installation ZIP](https://github.com/jil0314-bit/kiwoom-collector-review/raw/refs/heads/main/downloads/LG_Collector_20261108.zip) · [Easy Korean steps](downloads/LG_INSTALL.txt) · [Verification and limitations](review/LG_INSTALL_VALIDATION_20261108.md).
+
+Source checkpoint ed763e3 -> d5cb4ae. Clean per-folder Python environment, target-user DPAPI credentials, explicit optional Hero4 profile, and an installer that refuses to overwrite another installation. New notebook Hero4 file-memo writeback stays disabled until account0311/profile verification. Existing office fallback paths remain. Python208 tests passed in existing and separate Pillow13 environments; ZIP60 runtime/install essentials passed hashes and isolated HTTP/import checks. No tests, runtime data, credentials or old versions in ZIP. Target LG laptop installation, Kiwoom authentication and physical0600 transitions remain unverified. Earlier sections below describe older snapshots.
+
 ## Latest requested YouTube channel registration (2026-11-08)
 
 Source checkpoint a964073 -> c1c4cd2. Six requested channels already existed; verified 기적의투자 was added (32 ->33 enabled sources). All seven identities were checked against live official channel metadata and feeds. Configuration is hot-loaded; the running worker checked the added source successfully. Its latest feed video is dated11/4, outside the current3-day discovery window. Recommendations28 tests passed. See [verification and precise background-collection conditions](review/REQUESTED_YOUTUBE_CHANNELS_20261108.md). The volume-top and amount-top pages remain page-triggered exceptions; this registration does not change their behavior. Earlier sections describe earlier snapshots.

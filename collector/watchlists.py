@@ -1,12 +1,13 @@
 """Read the selected Hero4 0130 groups without modifying Hero4 files."""
 from pathlib import Path
+from local_config import profile_file
 import re
 
 from kiwoom import DataError, code_of
 
 
 # This is the 0130 profile verified on this PC. Never silently switch accounts.
-SOURCE = Path(r"C:\KiwoomHero4\user\#Q2gsNx0%Eg$$\Portfolio.dat")
+SOURCE = profile_file('Portfolio.dat', Path(r"C:\KiwoomHero4\user\#Q2gsNx0%Eg$$\Portfolio.dat"))
 MASTER = Path(r"C:\KiwoomHero4\screen\bpl\JMaster.Dat")
 SELECTED = tuple(i for i in range(1, 68) if i not in {1, 2, 5, 7, 8}) + (98, 99)
 

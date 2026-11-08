@@ -48,6 +48,15 @@ def _retry_after(headers):
 
 def credentials():
     """Read existing user credentials; do not import/execute the trading program."""
+    import local_config
+    if local_config.settings().get('notebook_install'):
+        try:
+            stored = local_config.read_credentials()
+        except ValueError:
+            raise DataError('노트북 인증정보 해독 실패: 처음 설정을 다시 실행하세요.') from None
+        if stored:
+            return stored
+        raise DataError('노트북 인증정보 없음: 처음 설정을 실행하세요.')
     candidates = []
     explicit = os.environ.get("TOP100_CREDENTIAL_FILE", "")
     if explicit:
@@ -76,6 +85,13 @@ def credentials():
                   or values.get("APP_SECRET") or values.get("SECRET_KEY"))
         if key and secret:
             return key, secret, label
+    import local_config
+    try:
+        stored = local_config.read_credentials()
+    except ValueError:
+        raise DataError('노트북 인증정보 해독 실패: 처음 설정을 다시 실행하세요.') from None
+    if stored:
+        return stored
     raise DataError("키움 REST 인증 없음: 기존 인증 파일 또는 KIWOOM_APP_KEY / KIWOOM_SECRET_KEY가 필요합니다.")
 
 
