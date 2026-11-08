@@ -27,3 +27,22 @@ def open_dashboard(url):
         ctypes.windll.user32.MessageBoxW(None,
             '별도 대시보드 창을 열지 못했습니다. Microsoft Edge 설치 상태를 확인하세요.',
             '챗GPT 상승률·분봉 수집기', 0x10)
+
+
+if __name__ == '__main__':
+    import json
+    import time
+    import urllib.request
+    for attempt in range(30):
+        try:
+            with urllib.request.urlopen('http://127.0.0.1:8766/api/status', timeout=1) as response:
+                ready = json.load(response).get('identity') == 'kiwoom-top100-archive-v1'
+            if ready:
+                open_dashboard('http://127.0.0.1:8766')
+                break
+        except (OSError, ValueError):
+            pass
+        time.sleep(0.5)
+    else:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(None, '수집기 시작을 확인하지 못했습니다. 작업 스케줄러 실행 결과를 확인하세요.', '수집기', 0x10)

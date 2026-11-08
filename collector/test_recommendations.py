@@ -173,6 +173,34 @@ class RecommendationsTest(unittest.TestCase):
             self.assertFalse(r.STATE['busy'])
             self.assertFalse(r.RUN.locked())
 
+    def test_public_video_listing_supplements_rss_ids(self):
+        content='var ytInitialData = '+json.dumps({'contents':[{'videoRenderer':{'videoId':'abcdefghijk','title':{'runs':[{'text':'공개 회차'}]}}}]})+';'
+        rows=r.channel_video_entries(content)
+        self.assertEqual(rows[0]['url'],'https://www.youtube.com/watch?v=abcdefghijk')
+        self.assertIsNone(rows[0]['published_at'])
+
+    def test_mtn_empty_listing_is_warning_not_silent_success(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data=Path(tmp)
+            config={'programs':[{'kind':'mtn','url':'https://www.mtn.co.kr/program/588','name':'표본'}],'channels':[]}
+            with patch.object(r,'sources',return_value=config),patch.object(r,'discover_mtn',return_value=[]),patch.dict(r.STATE,last_run=r.stamp()):
+                self.assertTrue(r.RUN.acquire(blocking=False));r.worker(data)
+            source=next(iter(r.ledger(data)['sources'].values()))
+            self.assertEqual(source['status'],'확인 필요')
+            self.assertIn('0건',source['message'])
+
+    def test_rss_limit_supplements_listing_without_silent_success(self):
+        feed=[{'url':'https://www.youtube.com/watch?v='+str(i).zfill(11),'published_at':r.stamp(),'title':'표본','description':''} for i in range(15)]
+        extra={'url':'https://www.youtube.com/watch?v=abcdefghijk','title':'추가 회차','published_at':None,'description':''}
+        source={'url':'https://www.youtube.com/channel/UC'+'a'*22,'channel_id':'UC'+'a'*22,'name':'표본'}
+        with tempfile.TemporaryDirectory() as tmp:
+            data=Path(tmp)
+            with patch.object(r,'sources',return_value={'programs':[],'channels':[source]}),patch.object(r,'fetch',return_value='public'),patch.object(r,'feed_entries',return_value=feed),patch.object(r,'channel_video_entries',return_value=[extra]),patch.object(r,'document',return_value=([],None)),patch.dict(r.STATE,last_run=r.stamp()):
+                self.assertTrue(r.RUN.acquire(blocking=False));r.worker(data)
+            book=r.ledger(data)
+            self.assertIn(extra['url'],book['documents'])
+            self.assertEqual(book['sources'][source['url']]['status'],'범위 제한')
+
 
 if __name__ == '__main__':
     unittest.main()

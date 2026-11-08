@@ -183,6 +183,44 @@ class LinkTests(unittest.TestCase):
             w.account_values.return_value = ['9999-0311','9999-0311']
             self.assertFalse(w.matches_identity(10,result))
 
+    def test_one_display_and_same_path_update_allowed_but_other_path_blocked(self):
+        w = hero_link.Windows.__new__(hero_link.Windows)
+        w.account_values = Mock(return_value=['1234-0311'])
+        with patch.object(hero_link, 'process_image', return_value='old-image'), patch.object(hero_link, 'process_path', return_value='c:/hero/nkrunlite.exe'):
+            saved = w.capture_identity(10)
+        with patch.object(hero_link, 'process_image', return_value='updated-image'), patch.object(hero_link, 'process_path', return_value='c:/hero/nkrunlite.exe'):
+            self.assertTrue(w.matches_identity(10, saved))
+        with patch.object(hero_link, 'process_path', return_value='c:/other/nkrunlite.exe'):
+            self.assertFalse(w.matches_identity(10, saved))
+        w.account_values.return_value = ['9999-0311']
+        with patch.object(hero_link, 'process_path', return_value='c:/hero/nkrunlite.exe'):
+            self.assertFalse(w.matches_identity(10, saved))
+
+    def test_cached_handles_reread_accounts_without_enumerating(self):
+        w = hero_link.Windows.__new__(hero_link.Windows)
+        w.u = Mock();w.pid = Mock(return_value=10);w.text = Mock(return_value='1234-0311');w.enum = Mock()
+        with patch.object(hero_link, 'process_start', return_value=456), patch.dict(hero_link.ACCOUNT_CONTROLS, {(10,456):{'handles':[20], 'at':0}}, clear=True):
+            self.assertEqual(w.account_values(10), ['1234-0311'])
+            w.text.return_value='9999-0311'
+            self.assertEqual(w.account_values(10), ['9999-0311'])
+            w.enum.assert_not_called()
+        with patch.object(hero_link, 'process_start', return_value=None):
+            self.assertEqual(w.account_values(10), [])
+
+    def test_same_identity_recovers_across_monitors(self):
+        w = self.recovery()
+        w.rect.return_value=(1000,0,2000,800)
+        with patch.object(hero_link,'TARGET_FILE') as f, patch.object(hero_link,'process_start',side_effect=lambda pid:None if pid==99 else 456):
+            f.read_text.return_value='{"account_suffix":"0311","pid":99,"process_start":123,"side":"left"}'
+            self.assertEqual(hero_link.authorized_charts(w), [10])
+
+    def test_connection_state_authorizes_only_once(self):
+        w = self.windows();w.pid.return_value=8240;w.rect.return_value=(0,0,1000,800)
+        with patch.object(hero_link,'Windows',return_value=w), patch.object(hero_link,'authorized_charts',return_value=[10]) as authorize, patch.object(hero_link,'TARGET_FILE') as f, patch.object(hero_link,'process_start',return_value=123):
+            f.read_text.return_value='{"account_suffix":"0311","pid":8240,"process_start":123,"handle":"10"}'
+            self.assertEqual(hero_link.connection_state()['preferred'], '10')
+            authorize.assert_called_once_with(w)
+
 
 if __name__ == '__main__':
     unittest.main()

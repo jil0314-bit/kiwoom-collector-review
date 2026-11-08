@@ -11,7 +11,28 @@ If Not fs.FileExists(python) Then
   MsgBox "Python runtime not found. See README.md."
   WScript.Quit 1
 End If
-args = " --open"
-If WScript.Arguments.Count > 0 Then args = ""
-shell.CurrentDirectory = root
-CreateObject("Shell.Application").ShellExecute python, "-B " & Chr(34) & root & "\app.py" & Chr(34) & args, root, "runas", 0
+' The pre-authorized scheduled task is the only server launch path.
+Dim service, task
+On Error Resume Next
+Set service = CreateObject("Schedule.Service")
+service.Connect
+Set task = service.GetFolder("\").GetTask("KiwoomTop100Archive_2005")
+If Err.Number <> 0 Then
+  MsgBox "Collector scheduled task missing. Run install_schedule.ps1 as administrator once."
+  WScript.Quit 1
+End If
+If task.Definition.Principal.RunLevel <> 1 Then
+  MsgBox "Collector task must use highest privileges. Reinstall the task as administrator once."
+  WScript.Quit 1
+End If
+Err.Clear
+If task.State <> 4 Then task.Run Null
+If Err.Number <> 0 Then
+  MsgBox "Collector scheduled launch failed. Check Task Scheduler."
+  WScript.Quit 1
+End If
+On Error GoTo 0
+If WScript.Arguments.Count = 0 Then
+  shell.CurrentDirectory = root
+  shell.Run Chr(34) & python & Chr(34) & " -B " & Chr(34) & root & "\window.py" & Chr(34), 0, False
+End If

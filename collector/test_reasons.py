@@ -171,6 +171,35 @@ class SummaryRecoveryTest(unittest.TestCase):
                 fetch.assert_called_once_with(data, '2026-09-22', {})
 
 
+class PartialArticleTest(unittest.TestCase):
+    def test_partial_article_saved_and_missing_codes_retry(self):
+        listing = "<a onclick=\"goView('20260923','170713','123','05','13','02');\">증시요약(6) - 특징 상한가 및 급등종목</a>"
+        raw = ARTICLE + '<a href="https://new.infostock.co.kr/stockitem?code=999999">미파싱 종목</a>'
+        def fetch(url):
+            if 'ListPopup.do?' in url:return listing
+            if 'ListPopupView2' in url:return '<p>2026-09-23 인포스탁 증시요약(6) - 특징 상한가 및 급등종목</p>'
+            return raw
+        with tempfile.TemporaryDirectory() as tmp:
+            data=Path(tmp)
+            self.assertEqual(len(reasons.fetch_distributor_summary(data,'2026-09-23',{},fetch)),3)
+            record=reasons.read_day(data,'2026-09-23')
+            self.assertEqual(record['infostock']['missing_codes'],['999999'])
+            self.assertFalse(reasons.summary_complete(record))
+            raw=ARTICLE
+            reasons.fetch_distributor_summary(data,'2026-09-23',{},fetch)
+            self.assertTrue(reasons.summary_complete(reasons.read_day(data,'2026-09-23')))
+
+    def test_newest_login_news_and_alphanumeric_code(self):
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            a=root/'login-a'/'News.html';b=root/'login-b'/'News.html'
+            a.parent.mkdir();b.parent.mkdir();a.write_text('old');b.write_text('new')
+            os.utime(a,ns=(100,100));os.utime(b,ns=(200,200))
+            self.assertEqual(reasons.hero4_news_path(root),b)
+        self.assertEqual(reasons.parse('엘리스 (0158S0) 70,000원 (+10%) | | 신규 계약 소식에 급등',{})['0158S0']['name'],'엘리스')
+
+
 class NewsTest(unittest.TestCase):
     def test_keeps_today_and_named_or_rising_titles_first(self):
         items = [{"datetime": "202609281541", "title": "[특징주] HLB, FDA 허가에 상한가", "officeName": "연합", "officeId": "001", "articleId": "1"},

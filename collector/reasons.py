@@ -154,7 +154,8 @@ def save_infostock(data, day, text, names, source="paste", published="", archive
                     merged[code] = item
         record["infostock"] = {"saved_at": datetime.now(KST).isoformat(timespec="seconds"), "source": source,
                                "published": published, "title": title or "증시요약(6) - 특징 상한가 및 급등종목",
-                               "articles": articles, "items": merged}
+                               "articles": articles, "items": merged,
+                               "missing_codes": [code for code in record.get("infostock", {}).get("missing_codes", []) if code not in items]}
         write_day(data, day, record)
     return items
 
@@ -197,9 +198,19 @@ def html_text(raw):
     return "".join(parser.parts)
 
 
+def hero4_news_path(root=None):
+    candidates = []
+    for p in (root or Path(r'C:\KiwoomHero4\user')).glob('*/News.html'):
+        try:
+            candidates.append((p.stat().st_mtime_ns, p))
+        except OSError:
+            continue
+    return max(candidates, key=lambda x: x[0])[1] if candidates else HERO4_NEWS
+
+
 def read_hero4(path=None):
     """Returns (day, published, text) when the open Hero4 article is the daily limit-up summary."""
-    raw = (path or HERO4_NEWS).read_bytes()
+    raw = (path or hero4_news_path()).read_bytes()
     for enc in ("cp949", "utf-8"):
         try:
             content = raw.decode(enc)
@@ -261,14 +272,14 @@ def source_status(data, day):
     if not summary.is_file():
         summary = Path(data) / 'reasons' / 'summary_status.json'
     public = json.loads(summary.read_text(encoding='utf-8')) if summary.is_file() else {}
-    return {'day': day, 'article_count': len(record.get('infostock',{}).get('items',{})),
+    return {'day': day, 'missing_codes': record.get('infostock', {}).get('missing_codes', []), 'article_count': len(record.get('infostock',{}).get('items',{})),
             'local_article_day': local.get('article_day'), 'local_state': local.get('state','UNKNOWN'),
             'public_state': public.get('state','UNKNOWN') if public.get('day') == day else 'UNKNOWN'}
 
 
 def watch_hero4(data, names_for, path=None):
     """Cheap stat each tick; only a changed file that holds the summary article is parsed and saved."""
-    path = path or HERO4_NEWS
+    path = path or hero4_news_path()
     try:
         info = path.stat()
     except OSError:
@@ -374,7 +385,7 @@ SAMSUNG_BASE = 'https://www.samsungpop.com/ux/kor/trading/marketStock/analysis/c
 def summary_complete(record):
     info = record.get('infostock', {})
     articles = info.get('articles') or [info]
-    return bool(info.get('items')) and any(TITLE in a.get('title', '') for a in articles)
+    return bool(info.get('items')) and not info.get('missing_codes') and any(TITLE in a.get('title', '') for a in articles)
 
 
 def fetch_distributor_summary(data, day, names, fetch=public_html):
@@ -398,8 +409,7 @@ def fetch_distributor_summary(data, day, names, fetch=public_html):
         text = html_text(raw)
         parsed = parse(text, names)
         linked_codes = set(re.findall(r'stockitem\?code=([0-9A-Z]{6})', raw.replace('\x00', '')))
-        if linked_codes - set(parsed):
-            raise ValueError('인포스탁 원문 종목 일부 파싱 누락; 성공 처리하지 않음')
+        missing_codes = sorted(linked_codes - set(parsed))
         if TITLE not in text or not parsed:
             raise ValueError('인포스탁 기사 본문 누락 또는 형식 변경')
         own_day, _ = article_day(text)
@@ -416,8 +426,14 @@ def fetch_distributor_summary(data, day, names, fetch=public_html):
             os.replace(temp, target)
         if hashlib.sha256(target.read_bytes()).hexdigest() != digest:
             raise OSError('인포스탁 공개 원문 보관 검증 실패')
-        return save_infostock(data, day, text, names, source=url, published=at,
+        items = save_infostock(data, day, text, names, source=url, published=at,
                               archive=str(target.relative_to(Path(data) / 'reasons')))
+        with LOCK:
+            record = read_day(data, day)
+            record['infostock']['missing_codes'] = missing_codes
+            record['infostock']['parse_state'] = 'partial' if missing_codes else 'complete'
+            write_day(data, day, record)
+        return items
     return {}
 
 

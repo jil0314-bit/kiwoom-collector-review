@@ -16,8 +16,8 @@ function rankLinkHero(symbol){
     if(version!==rankHeroVersion)return;const chart=chartEl('rank-hero-target').value;
     if(chart==='off'){chartEl('rank-hero-status').textContent='영웅문 연동 꺼짐';return;}
     try{const status=await (await fetch('/api/status')).json();if(version!==rankHeroVersion)return;
-      const response=await fetch('/api/hero-link',{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':status.token},body:JSON.stringify({code:symbol,chart})});const result=await response.json();
-      if(version!==rankHeroVersion)return;chartEl('rank-hero-status').textContent=result.message||result.error||'영웅문 응답 확인 필요';
+      const result=await window.collectorHeroSend(symbol,chart,status.token,()=>version===rankHeroVersion);
+      if(!result)return;chartEl('rank-hero-status').textContent=result.message||result.error||'영웅문 응답 확인 필요';
     }catch(error){if(version===rankHeroVersion)chartEl('rank-hero-status').textContent='영웅문 연동: '+error.message;}
   });},100);
 }

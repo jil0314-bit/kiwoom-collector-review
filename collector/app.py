@@ -357,7 +357,8 @@ def collect_summary(day, slot):
                 info = stored.get('infostock', {})
                 complete = reasons.summary_complete(stored)
                 status = {'day': target, 'at': stamp(), 'slot': slot,
-                          'state': 'saved' if complete else 'waiting_for_article',
+                          'state': 'saved' if complete else 'partial' if info.get('items') else 'waiting_for_article',
+                          'missing_codes': info.get('missing_codes', []),
                           'count': len(info.get('items', {})), 'source': info.get('source', ''),
                           'summary_complete': complete}
             except Exception as exc:
@@ -623,7 +624,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond({"quotes": chart_data.current_quotes(codes)})
             if parsed.path == "/api/hero-targets":
                 import hero_link
-                return self.respond({"targets": hero_link.targets(), "preferred": hero_link.preferred(), "diagnostic": hero_link.diagnostic()})
+                return self.respond(hero_link.connection_state())
             if parsed.path == "/api/watchlists":
                 import watchlists
                 names = watchlists.names()

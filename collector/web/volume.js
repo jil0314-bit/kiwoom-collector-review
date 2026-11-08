@@ -128,18 +128,9 @@ function linkHero(symbol){
       const chart=$('hero-target').value;
       if(chart==='off')return;
       try{
-        for(let attempt=0;attempt<2;attempt++){
-          if(version!==heroLinkVersion)return;
-          const send=async()=>fetch('/api/hero-link',{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':status.token},body:JSON.stringify({code:symbol,chart})});
-          let r=await send();if(r.status===403){status=await api('/api/volume/status');r=await send()}
-          const data=await r.json();if(version!==heroLinkVersion)return;
-          if(!r.ok)throw Error(data.error||'영웅문 연동 실패');
-          if(data.ok){toast(data.message);return}
-          if(attempt===0&&/입력칸|응답 실패|입력 확인|Enter 전달/.test(data.message||'')){
-            await new Promise(resolve=>setTimeout(resolve,180));continue;
-          }
-          throw Error(data.message||'영웅문 연동 실패');
-        }
+        const data=await window.collectorHeroSend(symbol,chart,status.token,()=>version===heroLinkVersion);
+        if(!data)return;if(data.ok){toast(data.message);return}
+        throw Error(data.message||'영웅문 연동 실패');
       }catch(e){if(version===heroLinkVersion)toast('영웅문 연동: '+e.message)}
     });
   },100);

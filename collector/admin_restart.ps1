@@ -22,6 +22,16 @@ public static class CollectorProcessPath {
 }
 '@
 try {
+    $collectorIdentity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $collectorPrincipal = New-Object Security.Principal.WindowsPrincipal($collectorIdentity)
+    if (-not $collectorPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        throw '관리자 권한이 없어 재시작하지 않았습니다. 기존 수집기는 유지합니다.'
+    }
+    $collectorTask = Get-ScheduledTask -TaskName 'KiwoomTop100Archive_2005'
+    if ($collectorTask.Principal.RunLevel -ne 'Highest' -or $collectorTask.Actions[0].Execute -ne $collectorPython -or
+        $collectorTask.Actions[0].WorkingDirectory -ne $collectorRoot) {
+        throw '높은 권한의 이 프로젝트 예약 작업을 먼저 설치하세요. 기존 수집기는 유지합니다.'
+    }
     $collectorReady = $false
     for ($collectorAttempt = 0; $collectorAttempt -lt ($MaxWaitMinutes * 12); $collectorAttempt++) {
         try {
@@ -49,8 +59,21 @@ try {
     }
     Stop-Process -Id $CollectorProcessId
     Wait-Process -Id $CollectorProcessId -Timeout 10 -ErrorAction SilentlyContinue
-    $collectorNew = Start-Process -FilePath $collectorPython -ArgumentList '-B', 'app.py' -WorkingDirectory $collectorRoot -WindowStyle Hidden -PassThru
-    @{ok=$true;process=$collectorNew.Id} | ConvertTo-Json | Set-Content -LiteralPath $collectorResult -Encoding UTF8
+    for ($collectorTaskWait = 0; $collectorTaskWait -lt 20 -and (Get-ScheduledTask -TaskName 'KiwoomTop100Archive_2005').State -eq 'Running'; $collectorTaskWait++) { Start-Sleep -Milliseconds 500 }
+    Start-ScheduledTask -TaskName 'KiwoomTop100Archive_2005'
+    $collectorNewPid = $null
+    for ($collectorWait = 0; $collectorWait -lt 20; $collectorWait++) {
+        $collectorPort = Get-NetTCPConnection -LocalPort 8766 -State Listen -ErrorAction SilentlyContinue |
+            Where-Object { $_.LocalAddress -eq '127.0.0.1' -and $_.OwningProcess -ne $CollectorProcessId }
+        if ($collectorPort) {
+            $collectorNewPid = $collectorPort[0].OwningProcess
+            if ([CollectorProcessPath]::Get($collectorNewPid) -eq $collectorPython) { break }
+            $collectorNewPid = $null
+        }
+        Start-Sleep -Milliseconds 500
+    }
+    if (-not $collectorNewPid) { throw '예약 작업 시작 후 수집기 확인 시간 초과. 작업 스케줄러 결과를 확인하세요.' }
+    @{ok=$true;process=$collectorNewPid;launch='scheduled-highest'} | ConvertTo-Json | Set-Content -LiteralPath $collectorResult -Encoding UTF8
 } catch {
     @{ok=$false;error=$_.Exception.Message} | ConvertTo-Json | Set-Content -LiteralPath $collectorResult -Encoding UTF8
 }

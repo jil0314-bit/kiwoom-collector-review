@@ -1,3 +1,19 @@
+// Two display-only attempts across every tab; never retry an obsolete selection.
+window.collectorHeroSend=async function(symbol,chart,token,current=()=>true){
+ for(let attempt=0;attempt<2;attempt++){
+  if(!current())return null;
+  let response=await fetch('/api/hero-link',{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':token},body:JSON.stringify({code:symbol,chart})});
+  if(response.status===403){
+   token=(await(await fetch('/api/status')).json()).token;
+   if(!current())return null;
+   response=await fetch('/api/hero-link',{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':token},body:JSON.stringify({code:symbol,chart})});
+  }
+  const data=await response.json();if(!current())return null;
+  if(!response.ok)throw Error(data.error||'영웅문 연동 실패');
+  if(data.ok||attempt===1||!/입력칸|응답 실패|입력 확인|Enter 전달/.test(data.message||''))return data;
+  await new Promise(resolve=>setTimeout(resolve,180));
+ }
+};
 // Explicit account confirmation restores trust after a Hero4 restart.
 (()=>{
  const select=document.getElementById('hero-target')||document.getElementById('rank-hero-target');

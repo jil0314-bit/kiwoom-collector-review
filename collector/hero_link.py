@@ -13,15 +13,15 @@ from pathlib import Path
 LOCK = threading.RLock()
 TARGET_FILE = Path(__file__).resolve().parent / 'data' / 'hero_link_target.json'
 IMAGE_CACHE = {}
+ACCOUNT_CONTROLS = {}
+ACCOUNT_DISCOVERY_TTL = 1.0
 
 
-def process_image(pid):
-    """Bind recovery to the exact previously confirmed executable, not its name."""
+def process_path(pid):
     k = ctypes.WinDLL('kernel32', use_last_error=True)
     k.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
     k.OpenProcess.restype = wintypes.HANDLE
-    k.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD,
-                                           wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
+    k.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
     k.CloseHandle.argtypes = [wintypes.HANDLE]
     handle = k.OpenProcess(0x1000, False, pid)
     if not handle:
@@ -31,27 +31,35 @@ def process_image(pid):
         if not k.QueryFullProcessImageNameW(handle, 0, buf, ctypes.byref(size)):
             return None
         path = Path(buf.value)
-        if path.name.lower() != 'nkrunlite.exe':
-            return None
-        stat = path.stat()
-        key = (str(path).lower(), stat.st_mtime_ns, stat.st_size)
-        if key not in IMAGE_CACHE:
-            digest = hashlib.sha256(path.read_bytes()).hexdigest()
-            IMAGE_CACHE.clear()
-            IMAGE_CACHE[key] = hashlib.sha256((key[0] + ':' + digest).encode()).hexdigest()
-        return IMAGE_CACHE[key]
-    except OSError:
-        return None
+        return str(path).lower() if path.name.lower() == 'nkrunlite.exe' else None
     finally:
         k.CloseHandle(handle)
 
 
-def preferred():
+def process_image(pid):
+    """Legacy executable digest retained for migration of existing confirmations."""
+    name = process_path(pid)
+    if not name:
+        return None
+    try:
+        path = Path(name)
+        stat = path.stat()
+        key = (name, stat.st_mtime_ns, stat.st_size)
+        if key not in IMAGE_CACHE:
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            IMAGE_CACHE.clear()
+            IMAGE_CACHE[key] = hashlib.sha256((name + ':' + digest).encode()).hexdigest()
+        return IMAGE_CACHE[key]
+    except OSError:
+        return None
+
+
+def preferred(w=None, charts=None):
     try:
         saved = json.loads(TARGET_FILE.read_text(encoding='utf-8'))
         handle = str(saved['handle'])
-        w = Windows()
-        charts = authorized_charts(w)
+        w = w or Windows()
+        charts = authorized_charts(w) if charts is None else charts
         handle = str(json.loads(TARGET_FILE.read_text(encoding='utf-8'))['handle'])
         if int(handle) in charts:
             return handle
@@ -111,11 +119,11 @@ def authorized_charts(w):
                 pid = matches[0]
                 charts = [h for h in candidates if w.pid(h) == pid
                           and w.rect(h)[3] - w.rect(h)[1] > 110
-                          and ('left' if w.rect(h)[0] < 0 else 'right') == saved.get('side')]
+]
                 if len(charts) != 1 or len(w.edits(charts[0])) != 1:
                     return []
                 start = process_start(pid)
-                if start is None or not w.matches_identity(pid, saved):
+                if start is None:
                     return []
                 if process_start(pid) != start or w.pid(charts[0]) != pid:
                     return []
@@ -132,14 +140,14 @@ def save_target(target):
     temp.replace(TARGET_FILE)
 
 
-def diagnostic():
+def diagnostic(w=None, charts=None):
     """Explain a missing target without relaxing the verified-account boundary."""
     try:
         saved = json.loads(TARGET_FILE.read_text(encoding='utf-8'))
         if saved.get('account_suffix') != '0311':
             raise ValueError()
-        w = Windows()
-        charts = authorized_charts(w)
+        w = w or Windows()
+        charts = authorized_charts(w) if charts is None else charts
         saved = json.loads(TARGET_FILE.read_text(encoding='utf-8'))
         start = process_start(int(saved['pid']))
         if start is None or start != int(saved['process_start']):
@@ -148,7 +156,7 @@ def diagnostic():
         if not charts:
             return {'state': 'no_chart', 'message':
                     '확인된 0311 영웅문에서 보이는 0600 차트를 찾지 못했습니다. 해당 0600을 열어주세요.'}
-        if len(charts) > 1 and not preferred():
+        if len(charts) > 1 and not preferred(w, charts):
             return {'state': 'select_chart', 'message': '0600 차트가 여러 개입니다. 연동할 차트를 선택해주세요.'}
         return {'state': 'ready', 'message': '0600 연결 대상 확인됨 · 실제 종목 전환은 별도 확인 필요'}
     except (OSError, ValueError, KeyError, TypeError):
@@ -196,6 +204,7 @@ class Windows:
     def __init__(self):
         if sys.platform != 'win32':
             raise ValueError('영웅문 연동은 Windows에서만 가능합니다.')
+        self._chart_snapshot = None
         self.u = ctypes.WinDLL('user32', use_last_error=True)
         self.callback = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
         self.u.EnumWindows.argtypes = [self.callback, wintypes.LPARAM]
@@ -215,46 +224,75 @@ class Windows:
         self.u.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
 
     def account_values(self, pid):
-        # Read visible account displays only. Never enumerate dropdown contents,
-        # log account numbers, or touch order controls.
-        values = []
+        # Cache control handles, never account numbers or a positive identity verdict.
+        # Each use rereads visible values, so an in-process account switch is rejected.
+        session = process_start(pid)
+        if session is None:
+            return []
+        key = (pid, session)
+        cached = ACCOUNT_CONTROLS.get(key)
+        def read(handles):
+            values = []
+            for h in handles:
+                if not self.u.IsWindow(h) or self.pid(h) != pid or not self.u.IsWindowVisible(h):
+                    continue
+                value = self.text(h)
+                if re.fullmatch(r'\d{4}-\d{4}', value) and value.endswith('0311'):
+                    values.append(value)
+            return values
+        if cached:
+            values = read(cached['handles'])
+            if values or time.monotonic() - cached['at'] < ACCOUNT_DISCOVERY_TTL:
+                return values
+        handles, values = [], []
         deadline = time.monotonic() + 1.5
         for root in self.enum():
             if self.pid(root) != pid or '영웅문' not in self.title(root):
                 continue
             for h in self.enum(root):
                 if time.monotonic() > deadline:
-                    return []  # Fail closed on a hung/slow UI.
-                if not self.u.IsWindowVisible(h):
-                    continue
+                    break
                 buf = ctypes.create_unicode_buffer(128)
                 self.u.GetClassNameW(h, buf, 128)
-                if buf.value.lower() != 'edit':
+                if buf.value.lower() != 'edit' or not self.u.IsWindowVisible(h):
                     continue
                 value = self.text(h)
                 if re.fullmatch(r'\d{4}-\d{4}', value) and value.endswith('0311'):
+                    handles.append(h)
                     values.append(value)
+        if session is not None:
+            if len(ACCOUNT_CONTROLS) > 8:
+                ACCOUNT_CONTROLS.clear()
+            ACCOUNT_CONTROLS[key] = {'handles': handles, 'at': time.monotonic()}
         return values
 
     def capture_identity(self, pid):
         values = self.account_values(pid)
-        # Two independently displayed matching values avoid trusting a lone edit.
-        accounts = {value for value in values if values.count(value) >= 2}
+        # User-approved convenience policy: one visible matching account display.
+        accounts = set(values)
         image = process_image(pid)
         if len(accounts) != 1 or not image:
             return {}
         salt = secrets.token_hex(16)
         return {'identity_salt': salt,
                 'account_digest': hashlib.sha256((salt + accounts.pop()).encode()).hexdigest(),
-                'image_digest': image}
+                'image_digest': image, 'image_path': process_path(pid)}
 
     def matches_identity(self, pid, saved):
         if not all(saved.get(k) for k in ('identity_salt','account_digest','image_digest')):
             return False
-        if process_image(pid) != saved['image_digest']:
+        current_path = process_path(pid)
+        if saved.get('image_path'):
+            if not current_path or current_path != saved['image_path']:
+                return False
+        elif process_image(pid) != saved['image_digest']:
             return False
+        elif current_path:
+            # Migrate the already-matching legacy digest to the user-approved path policy.
+            saved['image_path'] = current_path
+            save_target(saved)
         values = self.account_values(pid)
-        return any(values.count(v) >= 2 and secrets.compare_digest(
+        return any(secrets.compare_digest(
             hashlib.sha256((saved['identity_salt'] + v).encode()).hexdigest(),
             saved['account_digest']) for v in set(values))
 
@@ -292,6 +330,8 @@ class Windows:
         return pid.value
 
     def charts(self):
+        if self._chart_snapshot is not None:
+            return list(self._chart_snapshot)
         found = []
         for root in self.enum():
             if not self.u.IsWindowVisible(root):
@@ -302,7 +342,8 @@ class Windows:
             for h in [root] + self.enum(root):
                 if self.u.IsWindowVisible(h) and exact_chart(self.title(h)):
                     found.append(h)
-        return list(dict.fromkeys(found))
+        self._chart_snapshot = list(dict.fromkeys(found))
+        return list(self._chart_snapshot)
 
     def edits(self, chart):
         left, top, right, bottom = self.rect(chart)
@@ -319,11 +360,20 @@ class Windows:
         return found
 
 
-def targets():
-    w = Windows()
+def targets(w=None, charts=None):
+    w = w or Windows()
+    charts = authorized_charts(w) if charts is None else charts
     return [{'handle': str(h), 'label': '[0600] ' + ('왼쪽' if w.rect(h)[0] < 0 else '오른쪽')
              + ' · 위치 ' + str(w.rect(h)[0]) + ' · ' + (w.text(e[0]) if len(e := w.edits(h)) == 1 else '입력칸 확인 필요')}
-            for h in authorized_charts(w)]
+            for h in charts]
+
+
+def connection_state():
+    with LOCK:
+        w = Windows()
+        charts = authorized_charts(w)
+        return {'targets': targets(w, charts), 'preferred': preferred(w, charts),
+                'diagnostic': diagnostic(w, charts)}
 
 
 def send(code, windows=None, chart_handle=None):
@@ -332,7 +382,7 @@ def send(code, windows=None, chart_handle=None):
     with LOCK:
         w = windows or Windows()
         charts = authorized_charts(w) if windows is None else w.charts()
-        chart_handle = chart_handle or (preferred() if windows is None else '')
+        chart_handle = chart_handle or (preferred(w, charts) if windows is None else '')
         if chart_handle:
             try:
                 chosen = int(chart_handle)
@@ -340,7 +390,7 @@ def send(code, windows=None, chart_handle=None):
                 chosen = -1
             if chosen not in charts:
                 if windows is None and charts:
-                    replacement = preferred()
+                    replacement = preferred(w, charts)
                     if not replacement:
                         return {'ok': False, 'message': '기존 0600 창이 닫혔습니다. 연동할 차트를 다시 선택해주세요.'}
                     chosen = int(replacement)

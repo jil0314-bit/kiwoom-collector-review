@@ -43,6 +43,7 @@ function heroMemoEntries(text){
 function memoEvidenceEntries(symbol,reasons=dayReasons,day=notesDay){
   const entries=[],info=reasons.infostock?.items?.[symbol],reviewed=reasons.reviewed?.items?.[symbol];
   if(info)entries.push({day,text:info.reason,source:'인포스탁',url:[info.source,reasons.infostock.source].find(url=>/^https?:\/\//.test(url||''))||''});
+  else if(reasons.infostock?.missing_codes?.includes(symbol))entries.push({day,text:'기사 원문 파싱 재확인 중',source:'인포스탁',url:reasons.infostock.source||''});
   else if(reviewed)entries.push({day,text:reviewed.reason,source:reviewed.source||'확인 자료',url:reviewed.url||''});
   for(const n of reasons.news?.items?.[symbol]||[])entries.push({day,text:n.title,source:'관련 뉴스 · '+(n.office||'뉴스'),url:n.url||''});
   for(const h of reasons.history?.[symbol]||[])entries.push({day:h.day,text:h.reason,source:h.source,url:h.url||''});

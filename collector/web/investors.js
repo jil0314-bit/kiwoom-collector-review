@@ -195,14 +195,8 @@ function linkFlowHero(symbol) {
     const chart=$('hero-target').value;
     if(chart==='off'){$('flow-hero-status').textContent='영웅문 연동 꺼짐';return;}
     try {
-      let response=await fetch('/api/hero-link',{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':token},body:JSON.stringify({code:symbol,chart})});
-      if(response.status===403) {
-        token=(await api('/api/investors/status')).token;if(version!==flowHeroVersion)return;
-        response=await fetch('/api/hero-link',{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':token},body:JSON.stringify({code:symbol,chart})});
-      }
-      const result=await response.json();if(version!==flowHeroVersion)return;
-      if(!response.ok)throw new Error(result.error || '영웅문 전송 실패');
-      $('flow-hero-status').textContent=result.message;
+      const result=await window.collectorHeroSend(symbol,chart,token,()=>version===flowHeroVersion);
+      if(!result)return;$('flow-hero-status').textContent=result.message;
     } catch(error) {if(version===flowHeroVersion)$('flow-hero-status').textContent=error.message;}
   });},80);
 }

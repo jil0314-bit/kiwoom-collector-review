@@ -1,7 +1,9 @@
 {
   "snapshot_date": "2026-11-08",
   "timezone": "Asia/Seoul",
-  "policy": "Source and runtime assets copied byte-for-byte. Private runtime data excluded. This inventory covers source files; review documents have separate Git blobs.",
+  "local_before_commit": "f912e18f438ec624887ce750a4b8be976fc44da3",
+  "local_after_commit": "1554973edf410e397400f9c6bf96a4d8f9f7708a",
+  "policy": "Tracked collector source/assets/tests copied byte-for-byte. Private runtime data excluded.",
   "files": [
     {
       "path": "collector/.gitignore",
@@ -10,16 +12,28 @@
       "git_blob_sha": "5cb0bdaed95bc2f869e1ba0997bd7c98bbc57899"
     },
     {
-      "path": "collector/admin_restart.ps1",
-      "bytes": 3357,
-      "sha256": "994ce35ab64ec2caf0283b06389ff1772c0c11d4508d21302991d01e7f69ba65",
-      "git_blob_sha": "3cfcabe90e8944c0eab39a24a277c931512b7d49"
-    },
-    {
       "path": "collector/AGENTS.md",
       "bytes": 2353,
       "sha256": "93ca5201c0f7b7ae3e69a010a134f2ca840ac003867a427f35516595cf524acc",
       "git_blob_sha": "a106d0ea10a3ff40c433fa2efd4a9d5639b6fda2"
+    },
+    {
+      "path": "collector/INVESTOR_FLOWS_SPEC.md",
+      "bytes": 11219,
+      "sha256": "572c751085f4455e979ed8ad9c8d05cb9a047590a5209d439477650271579652",
+      "git_blob_sha": "417f1a2c467a2aa24a5b7d04b5160ac69a5d477e"
+    },
+    {
+      "path": "collector/README.md",
+      "bytes": 39066,
+      "sha256": "1967e7d838000b9cebb771d20d6e1c005c194f8ea455e00c064623d026913878",
+      "git_blob_sha": "1f621822d9b8c698fff9ece09ff3cdef084594a6"
+    },
+    {
+      "path": "collector/admin_restart.ps1",
+      "bytes": 5101,
+      "sha256": "6ebfa3e61bd2758c8636de19739e619e049e8e0e27632689cd00d9f7e58d9a5e",
+      "git_blob_sha": "b543dbbaba2f1cf046f3e5cd9df386ef18d767b0"
     },
     {
       "path": "collector/amount_top.py",
@@ -29,9 +43,9 @@
     },
     {
       "path": "collector/app.py",
-      "bytes": 47394,
-      "sha256": "2ddcd1d3df5b0b5e30aa14e7e82a98666f325aa0333f47e852cfbe76fd133d0c",
-      "git_blob_sha": "35a9202863ac4d7b2d3604f17bd72f7ea8bc5be6"
+      "bytes": 47427,
+      "sha256": "708fc7e1505081c24737d8b95b1366129e82cfe7eed4d1511a86ee881b2df9ff",
+      "git_blob_sha": "3d9056bc0bc4541af5ad88eba2fe20ce8483a137"
     },
     {
       "path": "collector/archive.py",
@@ -70,6 +84,18 @@
       "git_blob_sha": "bb59e06a9a543b5632abbcaeb81934d1825919f0"
     },
     {
+      "path": "collector/docs/ka10080_reference_20261025.md",
+      "bytes": 3412,
+      "sha256": "dceb644341d8537dcd6103171e3cf704c0ef0c6412acfdb9d122e658ade7d4a6",
+      "git_blob_sha": "b8e3ad7328f3e213d2643794128a7464178f79eb"
+    },
+    {
+      "path": "collector/docs/reliability_fix_20261108.md",
+      "bytes": 3745,
+      "sha256": "cc6be01e0a124d132521cf1bddf6d37625518040816bef878f6c3c68e5c7b7a1",
+      "git_blob_sha": "6635971b4825bea1d6270ae755343938a9eb0b5f"
+    },
+    {
       "path": "collector/hero4memo.py",
       "bytes": 2697,
       "sha256": "a3d369d9acb381fd815ea565ab33ab8cbb65ee8d7ab3f09a974a0bc97e9ccd26",
@@ -77,27 +103,21 @@
     },
     {
       "path": "collector/hero_link.py",
-      "bytes": 18257,
-      "sha256": "5335ad0bef929cac85178af03161592cb138aba735c1ef7b27fc50cffdd1c3c7",
-      "git_blob_sha": "2ce778ea8ccce8a29ebeac9873ce2547b3d0f5d6"
+      "bytes": 20207,
+      "sha256": "92e78c6984f024ff57399ea62135fe05519027d6fa81ba38f3c380104fbf4ff9",
+      "git_blob_sha": "e0132c7cd28e5666970729e4336b46162e0cbbbc"
     },
     {
       "path": "collector/install_schedule.ps1",
-      "bytes": 1224,
-      "sha256": "ed79759aef9cbe82e76ce03f582be31dbce5aff06a54915bbcf3a53a3d5d6727",
-      "git_blob_sha": "ac808c3b169042d4fb8cf069d03dca1b1b828b85"
+      "bytes": 1595,
+      "sha256": "0b81b8c3da57558d4daadeaf08accef8b7368fa03c48e5a0a561b68d1c8442c2",
+      "git_blob_sha": "f6622542edeb60000432769f0a92783aa1919ab8"
     },
     {
       "path": "collector/investor_flows.py",
       "bytes": 17820,
       "sha256": "ea52558114768b7f6cac4caf8da84e444571e491c4071e8d3288286abe85a99d",
       "git_blob_sha": "05fe45b6c5364aa9f80e8838931030f832106dc3"
-    },
-    {
-      "path": "collector/INVESTOR_FLOWS_SPEC.md",
-      "bytes": 11219,
-      "sha256": "572c751085f4455e979ed8ad9c8d05cb9a047590a5209d439477650271579652",
-      "git_blob_sha": "417f1a2c467a2aa24a5b7d04b5160ac69a5d477e"
     },
     {
       "path": "collector/kiwoom.py",
@@ -112,12 +132,6 @@
       "git_blob_sha": "b10ad84c0f256f09fc48e5727993817718ac978c"
     },
     {
-      "path": "collector/README.md",
-      "bytes": 36276,
-      "sha256": "b938a7607aea2ac426fcbf8e8fa96501f4f6c6ff783bc46104f1072394144dab",
-      "git_blob_sha": "aeb4a1aa0b38ea8c30916317115c776220a64141"
-    },
-    {
       "path": "collector/reason_memos.py",
       "bytes": 7913,
       "sha256": "1a5448c4f6ec1344777e3e70d4a540f48552b916a122b585210e9b75c13c4f21",
@@ -125,9 +139,9 @@
     },
     {
       "path": "collector/reasons.py",
-      "bytes": 21702,
-      "sha256": "b0a6296876c231cdb48b92306a741d905b196c1a5842ba0c368da7f3be635ab4",
-      "git_blob_sha": "e974281439dadf05787c9672f891bf457f86643d"
+      "bytes": 22493,
+      "sha256": "25bb0597ea222d7b0ff62de09b1fde5c8f7811804de7d1ae4930b5cbfdc6eb75",
+      "git_blob_sha": "a5a29cf0d8a70ec7322b3657fc560a2f8cc68262"
     },
     {
       "path": "collector/recommendation_sources.json",
@@ -137,15 +151,15 @@
     },
     {
       "path": "collector/recommendations.py",
-      "bytes": 29358,
-      "sha256": "62f3f6ad86b545bb6b5936ab5baa0c2760cfe9881b2feeeba34ac7c38e430a27",
-      "git_blob_sha": "5063aaa29ffd769d28016ec09205467648768e54"
+      "bytes": 33021,
+      "sha256": "2c8a106e2c4a5a8ffc8f8447e751bbf31ecc28f5272443370209ee3f72a429f5",
+      "git_blob_sha": "2e40863485c59f4e28f24fa9e9bfaad138e142be"
     },
     {
       "path": "collector/release_manifest.json",
-      "bytes": 6146,
-      "sha256": "5f7ef3ff496e15bc25e54db7e9ebf96af9a5c1dc005ece6380eea24b68a6fbf4",
-      "git_blob_sha": "e298539ba7e22b95f1558bacb1c5054814025784"
+      "bytes": 6451,
+      "sha256": "6dfcbb55cf628c082730bcba76a4acb1ef05f843e0cadadc7b795d5d7f60fbc8",
+      "git_blob_sha": "59729ea094dc0888d3b2969dfd653cdb145c0f4c"
     },
     {
       "path": "collector/shared_archive.py",
@@ -167,9 +181,9 @@
     },
     {
       "path": "collector/start.vbs",
-      "bytes": 825,
-      "sha256": "ae8b4fb3e5da92aaaa293888f30557dd2cdc99e22a31e2fadf7b66c9e6b9d9bc",
-      "git_blob_sha": "ce02dfdeb56096cec3f3f342d0f65d6b7bed2bb8"
+      "bytes": 1533,
+      "sha256": "9096cad95b58a0a0a9fcc88819e7dd545d0b2f3bf19505c4ad1f7d64320bb744",
+      "git_blob_sha": "8b03d162a6534cb6bab4710bb4b40ec5ea261369"
     },
     {
       "path": "collector/stock_profiles.py",
@@ -215,9 +229,15 @@
     },
     {
       "path": "collector/test_hero_link.py",
-      "bytes": 10451,
-      "sha256": "d716dfecc1dcf28d944354c38841fb565ce467c2fd3ef87a310c4740d3199465",
-      "git_blob_sha": "7a33ec7e7ec200dc170cbef442b3e327586631ff"
+      "bytes": 13296,
+      "sha256": "6e70daf9e0dead78cb9af57476a215e916b4503b91256c844d8c34e0d8f0a4db",
+      "git_blob_sha": "004de379dd07345fab13d6575530a71318001459"
+    },
+    {
+      "path": "collector/test_hero_retry.cjs",
+      "bytes": 1826,
+      "sha256": "db664784d780ac8757c5a2233d818f04dec46ff7b16f8e09913691c6c735b6c2",
+      "git_blob_sha": "fb1e9a810a01fcb370c9c5ed0929bc2853e3e39d"
     },
     {
       "path": "collector/test_investor_flows.py",
@@ -251,15 +271,15 @@
     },
     {
       "path": "collector/test_reasons.py",
-      "bytes": 15362,
-      "sha256": "1f897943a88e91f80b1af02008ee80a2552eb39efc6177b0707cec8ad53e9694",
-      "git_blob_sha": "ebad50f1181321a1965e82eb468a8a21db1929ad"
+      "bytes": 17129,
+      "sha256": "07fd5b48329d4d0924ac213b544903060d45787889110db6bebf29d0fb278326",
+      "git_blob_sha": "2d9d48874c310808d556eee5d226f2115a221282"
     },
     {
       "path": "collector/test_recommendations.py",
-      "bytes": 10327,
-      "sha256": "ed7fef0bcd17b12db34221a92d9ac9d3fb780e00203062305e1eec936e47b17d",
-      "git_blob_sha": "9114436c768a9776df521d44f4b503ad765bd292"
+      "bytes": 12749,
+      "sha256": "e13efc950f3eaaae2aea4c4b35423906efc04794ae3fc9e0917cee32914e87ec",
+      "git_blob_sha": "1ef79fcca70ac04f73022ae4c88f519a39611f46"
     },
     {
       "path": "collector/test_shared_archive.py",
@@ -322,24 +342,6 @@
       "git_blob_sha": "d61eb76456827e6c7e37a7cbafb25dc949f0bdc3"
     },
     {
-      "path": "collector/window.py",
-      "bytes": 1389,
-      "sha256": "4c0ed8f5848115804fbed6f624e9a015adb6bea1f976025357ec79d2952de2b1",
-      "git_blob_sha": "e92af61dd9d6fa4a7c3a05c553231dc05eb5a23d"
-    },
-    {
-      "path": "collector/공유사용방법.txt",
-      "bytes": 2566,
-      "sha256": "7146c53325a91095df514445e5040b6a5eaf91a27b3f317f457c4b8b57f73a90",
-      "git_blob_sha": "71e619d237c9404cde7ff5bfb0418097a932711c"
-    },
-    {
-      "path": "collector/공유수집기시작.cmd",
-      "bytes": 104,
-      "sha256": "3f0c4c2d6c3914397fbf989af7fe39f5273fed0a3024ad10a8bc792d7795ae25",
-      "git_blob_sha": "f2ee3369006e7a2e854c4d404c19e4df743c0034"
-    },
-    {
       "path": "collector/web/amount-top.html",
       "bytes": 3378,
       "sha256": "6245c9dd6f1ec166254b21d3a6c52c7734318eda2eb807676bc563fddb8d58de",
@@ -347,9 +349,9 @@
     },
     {
       "path": "collector/web/app.js",
-      "bytes": 41356,
-      "sha256": "4e3f83bbac1998f30b8db08bfa51c86994457322aa663902f61d8e2a90349be9",
-      "git_blob_sha": "a004e3e4f41b10e4095bf98631237d5ede1cf371"
+      "bytes": 40680,
+      "sha256": "4b28408e6f63981d37a2f7bc6670461f878d066439f5fc4061734e942515b9df",
+      "git_blob_sha": "044974676780ae6879742b218502ddb5a61c5805"
     },
     {
       "path": "collector/web/chart-fast.js",
@@ -359,9 +361,9 @@
     },
     {
       "path": "collector/web/hero-reconnect.js",
-      "bytes": 1637,
-      "sha256": "081981e1edb2de0bc651208aede216930f33ccd75c4ec6d1dcbce696a5b9b6b4",
-      "git_blob_sha": "b8dfec39392bfb1834ecfb225ae12f0038cf7400"
+      "bytes": 2658,
+      "sha256": "04314816bafc29e81e6cf12cb97981a540d0b80d4b5329e27a8589de810abeab",
+      "git_blob_sha": "134106e73d9d0ef728a92dae35d673af7fad7020"
     },
     {
       "path": "collector/web/index.html",
@@ -383,9 +385,9 @@
     },
     {
       "path": "collector/web/investors.js",
-      "bytes": 21533,
-      "sha256": "f292a3d7c7eae8646a983ae4cc2596fabaa4b7076c92b349c89d204d6db8a496",
-      "git_blob_sha": "91a5c2bc4add8d2072dc17add6c84f5ae528aa6f"
+      "bytes": 20998,
+      "sha256": "ec0dcb6ca1cdb495d26200911e1a03e0b506b585dabfa48698c6ccdb21bd0456",
+      "git_blob_sha": "663c01750f84a20934273b170d54e134f10922ab"
     },
     {
       "path": "collector/web/mascot.png",
@@ -395,9 +397,9 @@
     },
     {
       "path": "collector/web/notes.js",
-      "bytes": 18186,
-      "sha256": "24a284a360b343c711235c0debb5335fa136aea85095113744e63155a19502b3",
-      "git_blob_sha": "f5d1003af98e9208eb015c51a2a9bb490c3f3d18"
+      "bytes": 18366,
+      "sha256": "7c787c1d2b158985284a351313e116dd3a1d845986a23eed42b1580a8adeed4b",
+      "git_blob_sha": "c3ed97b03df681d505b58b9a6f7a26d2668eccb3"
     },
     {
       "path": "collector/web/rank-chart.css",
@@ -407,9 +409,9 @@
     },
     {
       "path": "collector/web/rank-chart.js",
-      "bytes": 10105,
-      "sha256": "9ff5c3b143dec1fc95c349678cdc104eb1d902ace4e74efe010c14512250cab5",
-      "git_blob_sha": "9f95782fabb67edd7815a5b693803404bd9b2f84"
+      "bytes": 9974,
+      "sha256": "c1d6e56d5a8c0d9f1085bec062de55acbe91caca3f05177dc91a958f6b7396c7",
+      "git_blob_sha": "31ece2605b40c0b51fa36f264dcda8486214223e"
     },
     {
       "path": "collector/web/recommendations.css",
@@ -449,9 +451,9 @@
     },
     {
       "path": "collector/web/themes.js",
-      "bytes": 44656,
-      "sha256": "836ae3a408ec2ddba8154b20aba32ac66a061710e80500d512bd132f7f057597",
-      "git_blob_sha": "4ae9469b26fe1db30f5662218896497928f0a9d5"
+      "bytes": 44059,
+      "sha256": "63199c66733d5a8a2fcaadc4c83323155b65be0f7785fc05236e581db811af15",
+      "git_blob_sha": "35b5b272d9a17c6897f5a5eb852a91ec5d745c8b"
     },
     {
       "path": "collector/web/volume-notes.js",
@@ -485,15 +487,27 @@
     },
     {
       "path": "collector/web/volume.js",
-      "bytes": 31381,
-      "sha256": "72d98c43c11d4faaa0d329e25cb9905ced9a3c8b92757c385db672064e4a7bfd",
-      "git_blob_sha": "b40da713f34c2ac96fd9bf39fc23fce0752af412"
+      "bytes": 30761,
+      "sha256": "d09f1cc9205c312650fc9bd3b498dcfe67c1f96f80f19c27e3736ace9c268b20",
+      "git_blob_sha": "9b1d7ac42622ddb3e8e455863cef6112ae139574"
     },
     {
-      "path": "collector/docs/ka10080_reference_20261025.md",
-      "bytes": 3412,
-      "sha256": "dceb644341d8537dcd6103171e3cf704c0ef0c6412acfdb9d122e658ade7d4a6",
-      "git_blob_sha": "b8e3ad7328f3e213d2643794128a7464178f79eb"
+      "path": "collector/window.py",
+      "bytes": 2112,
+      "sha256": "e17ac58a5138564f7608c03026b9a431e910945da79b482afa9142491f5c77c1",
+      "git_blob_sha": "f656e0e0f418eeb8c5b8f45975ae34852cdfacaf"
+    },
+    {
+      "path": "collector/공유사용방법.txt",
+      "bytes": 2566,
+      "sha256": "7146c53325a91095df514445e5040b6a5eaf91a27b3f317f457c4b8b57f73a90",
+      "git_blob_sha": "71e619d237c9404cde7ff5bfb0418097a932711c"
+    },
+    {
+      "path": "collector/공유수집기시작.cmd",
+      "bytes": 104,
+      "sha256": "3f0c4c2d6c3914397fbf989af7fe39f5273fed0a3024ad10a8bc792d7795ae25",
+      "git_blob_sha": "f2ee3369006e7a2e854c4d404c19e4df743c0034"
     },
     {
       "path": "hero4_daily_memo.py",
@@ -510,10 +524,13 @@
   ],
   "excluded": [
     "collector/data/",
-    "collector/.window-profile/",
-    "__pycache__/",
-    "credentials and .env",
-    "personal notes and portfolios",
-    "logs, screenshots, backups, old ZIPs"
+    "credentials",
+    ".env",
+    "personal notes",
+    "logs",
+    "screenshots",
+    "backups",
+    "old ZIPs",
+    "browser profiles"
   ]
 }

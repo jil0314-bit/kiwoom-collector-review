@@ -225,6 +225,30 @@ class PublicUnavailable(ValueError):
     pass
 
 
+def channel_video_entries(content, limit=60):
+    """Supplement the 15-item RSS with publicly rendered channel video IDs."""
+    initial = json_after(content, r'(?:var\s+)?ytInitialData\s*=\s*')
+    result = {}
+    def walk(value):
+        if len(result) >= limit:
+            return
+        if isinstance(value, dict):
+            video = value.get('videoRenderer', {})
+            code = video.get('videoId', '')
+            if re.fullmatch(r'[A-Za-z0-9_-]{11}', code):
+                title = video.get('title', {})
+                text = title.get('simpleText') or ''.join(x.get('text', '') for x in title.get('runs', []))
+                result[code] = {'url': 'https://www.youtube.com/watch?v=' + code,
+                                'title': text, 'published_at': None, 'description': ''}
+            for child in value.values():
+                walk(child)
+        elif isinstance(value, list):
+            for child in value:
+                walk(child)
+    walk(initial)
+    return list(result.values())
+
+
 def captions(url):
     player = json_after(fetch(url), r"(?:var\s+)?ytInitialPlayerResponse\s*=\s*")
     if player.get("playabilityStatus", {}).get("status") != "OK":
@@ -435,6 +459,14 @@ def document(item):
                 meta["broadcast_date"] = valid_day("20%s-%s-%s" % dm.groups())
             except ValueError:
                 pass
+    if not meta.get('published_at'):
+        player = json_after(fetch(item['url']), r'(?:var\s+)?ytInitialPlayerResponse\s*=\s*')
+        micro = player.get('microformat', {}).get('playerMicroformatRenderer', {})
+        value = micro.get('publishDate') or micro.get('uploadDate')
+        if value:
+            meta['published_at'] = published(value)
+        if not meta.get('published_at') and not meta.get('broadcast_date'):
+            raise ValueError('영상 게시일·방송일 확인 불가; 날짜 추정 저장하지 않음')
     try:
         lines = captions(item["url"])
     except PublicUnavailable:
@@ -491,13 +523,25 @@ def worker(data):
                         if not cid or not re.fullmatch(r'UC[\w-]{22}', cid):
                             raise ValueError("공식 채널 ID 확인 필요")
                     entries = feed_entries(fetch("https://www.youtube.com/feeds/videos.xml?" + urlencode({"channel_id": cid})))
-                    items = [{**e, "kind": "youtube", "broadcaster": source["name"], "program": next((p["name"] for p in config.get("broadcast_programs", []) if p["broadcaster"] == source["name"] and p["name"] in e["title"]), None)} for e in entries if e.get("published_at") and e["published_at"][:10] >= cutoff]
+                    coverage_warning = ''
+                    if len(entries) >= 15:
+                        try:
+                            supplement = channel_video_entries(fetch('https://www.youtube.com/channel/' + cid + '/videos'))
+                            entries = list({e['url']: e for e in [*supplement, *entries]}.values())
+                            coverage_warning = 'RSS 15건 상한·공개 동영상 목록 최대60건 보충; 전체 회차 보장 아님'
+                        except Exception as exc:
+                            coverage_warning = 'RSS 15건 상한·동영상 목록 보충 실패: ' + str(exc)[:100]
+                    items = [{**e, "kind": "youtube", "broadcaster": source["name"], "program": next((p["name"] for p in config.get("broadcast_programs", []) if p["broadcaster"] == source["name"] and p["name"] in e["title"]), None)} for e in entries if not e.get("published_at") or e["published_at"][:10] >= cutoff]
                 for item in items:
                     old = book["documents"].get(item["url"], {})
                     book["documents"][item["url"]] = {**item, **old}
                 book["sources"][key] = {"name": source["name"], "status": "목록 확인", "checked_at": stamp(), "found": len(items), "coverage": "최신 공개 목록·최근 3일; 전체 회차 보장 아님"}
+                if source.get("kind") == "mtn" and not items:
+                    book['sources'][key].update(status='확인 필요', message='최근 3일 공개 회차 0건·휴방 또는 페이지 구조 변경 확인 필요')
                 if source.get("kind") != "mtn":
                     book["sources"][key]["channel_id"] = cid
+                    if coverage_warning:
+                        book['sources'][key].update(status='범위 제한', message=coverage_warning)
             except Exception as exc:
                 book["sources"][key] = {"name": source["name"], "status": "수집 실패", "checked_at": stamp(), "message": str(exc)[:180]}
             with LOCK:
@@ -514,11 +558,16 @@ def worker(data):
             try:
                 result = document(item)
                 records, warning = result if isinstance(result, tuple) else (result, None)
+                if item.get('kind') == 'mtn' and not records:
+                    warning = '공개 기사 종목 0건·본문 구조 또는 종목 식별 확인 필요'
                 # Unknown recommendation dates are filed under publication day,
                 # visibly distinct from the recommendation-date field.
                 day = item.get("broadcast_date") or (item.get("published_at") or "")[:10]
                 for r in records:
-                    r["archive_day"] = r.get("recommended_date") or day
+                    r["archive_day"] = r.get("recommended_date") or (r.get('published_at') or '')[:10] or day
+                    if not r['archive_day']:
+                        raise ValueError('원문 날짜 확인 불가; 저장 보류')
+                records = [r for r in records if not r.get('published_at') or r['published_at'][:10] >= cutoff]
                 grouped = {}
                 for r in records:
                     grouped.setdefault(r["archive_day"], []).append(r)
