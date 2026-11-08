@@ -5,6 +5,7 @@ $collectorRoot = $PSScriptRoot
 $collectorResult = Join-Path $collectorRoot 'data\admin_restart_result.json'
 $collectorPython = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\pythonw.exe'
 if (Test-Path -LiteralPath (Join-Path $PSScriptRoot '.venv\Scripts\pythonw.exe')) { $collectorPython = Join-Path $PSScriptRoot '.venv\Scripts\pythonw.exe' }
+if (Test-Path -LiteralPath (Join-Path $PSScriptRoot '.runtime\pythonw.exe')) { $collectorPython = Join-Path $PSScriptRoot '.runtime\pythonw.exe' }
 Add-Type -TypeDefinition @'
 using System;
 using System.Text;

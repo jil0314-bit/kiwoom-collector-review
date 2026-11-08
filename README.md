@@ -1,3 +1,9 @@
+## Recommended: easier LG Gram installer — no separate Python install (2026-11-08)
+
+[Download EASY ZIP](https://github.com/jil0314-bit/kiwoom-collector-review/raw/refs/heads/main/downloads/LG_Collector_Easy_20261108.zip) · [Three-step Korean guide](downloads/LG_EASY_INSTALL.txt) · [Verification/limitations](review/LG_EASY_INSTALL_VALIDATION_20261108.md).
+
+Unzip -> double-click 1_처음설치.cmd -> enter Kiwoom credentials. Public IP registration still requires the user; the setup form links the official portal. CPython3.14.10 and Pillow13 are included in a private runtime; no manual Python or pip download on target PC. 208 tests, all219 package-file hashes, relocated isolated-runtime HTTP/import checks and .NET/Python DPAPI compatibility passed. Source fe3ffd0 ->0a6863e. Actual LG installation/authentication and physical0600 remain unverified. Earlier ZIPs and sections below are historical; use the EASY ZIP above for new installations.
+
 ## LG Gram independent installer (2026-11-08)
 
 [Download installation ZIP](https://github.com/jil0314-bit/kiwoom-collector-review/raw/refs/heads/main/downloads/LG_Collector_20261108.zip) · [Easy Korean steps](downloads/LG_INSTALL.txt) · [Verification and limitations](review/LG_INSTALL_VALIDATION_20261108.md).

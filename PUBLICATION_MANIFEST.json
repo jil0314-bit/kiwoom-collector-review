@@ -1,8 +1,8 @@
 {
   "snapshot_date": "2026-11-08",
   "timezone": "Asia/Seoul",
-  "local_before_commit": "ed763e31ce66a93d20d229e81619fd364e4d566e",
-  "local_after_commit": "d5cb4ae1cf4c42c092977b2f9521e3e98a617dbb",
+  "local_before_commit": "fe3ffd06988aa4669aff663deb654fbe55608851",
+  "local_after_commit": "0a6863e4cc68f62e3bed7018b2abb79c6b11de32",
   "policy": "Tracked collector source/assets/tests copied byte-for-byte. Private runtime data excluded.",
   "files": [
     {
@@ -10,6 +10,12 @@
       "bytes": 148,
       "sha256": "818d2956c811dc0d3f4ce1da18d767e4d2a84d00a96d56d61b5c071eaf20a906",
       "git_blob_sha": "9f82e86b2500060766cc03d11b6511219949d145"
+    },
+    {
+      "path": "LG_EASY_INSTALL.txt",
+      "bytes": 2992,
+      "sha256": "7f091cba124842d40a88ea8531d66522561ff9782bc789ba408de69527bd9b98",
+      "git_blob_sha": "97cd9c087f09f617f11f5710c3cfb996c3de5499"
     },
     {
       "path": "LG_INSTALL.md",
@@ -25,9 +31,9 @@
     },
     {
       "path": "collector/.gitignore",
-      "bytes": 56,
-      "sha256": "5f75d7cc0c2aed9226d566eb0a11434a53c846813daa09e2a8339339d2e7be3d",
-      "git_blob_sha": "9c59f73d741598ef669835162f42479e16da8a15"
+      "bytes": 67,
+      "sha256": "a4bde401c1143724434af5bd811479dbfa3d19ef29b192c86c2a878d5bf9e27a",
+      "git_blob_sha": "b31a586feaa1facb48c0ce5697b70cf59f885394"
     },
     {
       "path": "collector/AGENTS.md",
@@ -49,9 +55,9 @@
     },
     {
       "path": "collector/admin_restart.ps1",
-      "bytes": 6529,
-      "sha256": "aadc39c875568b8e720c19e862f7ba6c8325071b9f05ffc217d97daa76d1785e",
-      "git_blob_sha": "1cfbd6dfdde7a01e6736cfc22c2661ba7fd4dd01"
+      "bytes": 6677,
+      "sha256": "2e4c84260ee832df9a2237a546fddf7ad61ec78c881b33c008cc995bcc5fca63",
+      "git_blob_sha": "761668c2198f186bdcddcc48ea7397c4ba310bf3"
     },
     {
       "path": "collector/amount_top.py",
@@ -103,9 +109,15 @@
     },
     {
       "path": "collector/configure_lg.py",
-      "bytes": 3514,
-      "sha256": "2c5052f21c743ee86fcc9dbfe2b914b405dfd55abda64a5e9544adb7c0b1a5d5",
-      "git_blob_sha": "cfdb48f0c4ee158ae763145c450fb969d4fdf53c"
+      "bytes": 3522,
+      "sha256": "ac311a97de0e5f8716d7c482fefc86ca88ec2b3ea6614f63de85954e2650e403",
+      "git_blob_sha": "3efdb1a134657befeb197bd0f1310b40347e210d"
+    },
+    {
+      "path": "collector/configure_lg_easy.ps1",
+      "bytes": 4924,
+      "sha256": "f24649d13a27c1c715ee698fab062dc06bd65f66202e5b6eadf8cfb38732952e",
+      "git_blob_sha": "3eed0703c821674c1d9d9049bd82e69ee4c612c4"
     },
     {
       "path": "collector/docs/investor_amount_top50_20261108.md",
@@ -118,6 +130,12 @@
       "bytes": 3412,
       "sha256": "dceb644341d8537dcd6103171e3cf704c0ef0c6412acfdb9d122e658ade7d4a6",
       "git_blob_sha": "b8e3ad7328f3e213d2643794128a7464178f79eb"
+    },
+    {
+      "path": "collector/docs/lg_easy_install_20261108.md",
+      "bytes": 1578,
+      "sha256": "c011dac4d1a0ed933ddd14f6c99abe487a6d911a4fd0c67004930e14fff0a64e",
+      "git_blob_sha": "20befc4aec3fa72bd8c3494437a20268f7a2139f"
     },
     {
       "path": "collector/docs/lg_install_validation_20261108.md",
@@ -157,9 +175,9 @@
     },
     {
       "path": "collector/install_schedule.ps1",
-      "bytes": 1756,
-      "sha256": "869475032a68615297512017e0cc1a9a0b27f5bf498e426f399ce751c5219dba",
-      "git_blob_sha": "6acd2c87dbec3f32ea0e8402ea2d3c0b7c4440b4"
+      "bytes": 1904,
+      "sha256": "41c377f8dd3d376f9ccc77fe5fd7fcec97848967e39de4b2b184de5b51878332",
+      "git_blob_sha": "478b73f3007fe8a4d7e31e3e8e47a4ba405dda2f"
     },
     {
       "path": "collector/investor_flows.py",
@@ -211,15 +229,15 @@
     },
     {
       "path": "collector/release_manifest.json",
-      "bytes": 6930,
-      "sha256": "e077e6622289b4ab0c531494d55f6559db947926fcd45b3ef49dfd1fcb1d01fc",
-      "git_blob_sha": "7a677d2f4dc0f5136fb545875d87fe484bfcb122"
+      "bytes": 7142,
+      "sha256": "ddda193da50e9a545a27e94f57a44da52b5f858a4517e67f4b1a426a8ae10736",
+      "git_blob_sha": "1ac5cb2ec1ef9826b28bd623db6c247f7f75aaf3"
     },
     {
       "path": "collector/setup_lg.ps1",
-      "bytes": 5286,
-      "sha256": "6c96623b3138fc202780f7b8ce65a2466d8eb6965d119168485fe9bdda59b38d",
-      "git_blob_sha": "9248ccacdb0e81a5b74bfa55e17f77d9b47fa8fa"
+      "bytes": 6017,
+      "sha256": "4cf04efa8a720e33aedf13e5e726bf3dad2f789f89186cfbc2dc51cd70b1a9bb",
+      "git_blob_sha": "a8b31b3848c60675eeea2abe9cf0fffd6e57126c"
     },
     {
       "path": "collector/shared_archive.py",
@@ -241,9 +259,9 @@
     },
     {
       "path": "collector/start.vbs",
-      "bytes": 1649,
-      "sha256": "ecbc94faeda29ada35fc32dccac6b826873331d2f1159ac23b5608f6604a5203",
-      "git_blob_sha": "cbec5861ea10f00e616cf6d344923d693c6ade04"
+      "bytes": 1755,
+      "sha256": "97ea84c3b725114bab83bb2395c56aa803df96b2f224df6da4f58ed7f5b4f56e",
+      "git_blob_sha": "6021c0ad5c9947b13f4ffa7bdfe64444e82b188e"
     },
     {
       "path": "collector/stock_profiles.py",

@@ -2,8 +2,6 @@
 import json
 from pathlib import Path
 import sys
-import tkinter as tk
-from tkinter import filedialog, messagebox
 import local_config as config
 
 
@@ -12,6 +10,8 @@ def main():
         import app, chart, hero_link, recommendations, investor_flows
         print('PASS: runtime imports')
         return
+    import tkinter as tk
+    from tkinter import filedialog, messagebox
     result = {'saved':False}
     window = tk.Tk()
     window.title('LG그램 수집기 · 처음 설정')

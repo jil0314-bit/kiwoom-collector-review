@@ -3,6 +3,7 @@ $taskName = 'KiwoomTop100Archive_2005'
 $collectorPython = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\pythonw.exe'
 if (-not (Test-Path -LiteralPath $collectorPython)) { $collectorPython = Join-Path $env:LOCALAPPDATA 'Programs\Python\Python313\pythonw.exe' }
 if (Test-Path -LiteralPath (Join-Path $PSScriptRoot '.venv\Scripts\pythonw.exe')) { $collectorPython = Join-Path $PSScriptRoot '.venv\Scripts\pythonw.exe' }
+if (Test-Path -LiteralPath (Join-Path $PSScriptRoot '.runtime\pythonw.exe')) { $collectorPython = Join-Path $PSScriptRoot '.runtime\pythonw.exe' }
 if (-not (Test-Path -LiteralPath $collectorPython)) { throw 'Python runtime not found' }
 $collectorEntry = Join-Path $PSScriptRoot 'app.py'
 $action = New-ScheduledTaskAction -Execute $collectorPython -Argument ('-B "' + $collectorEntry + '"') -WorkingDirectory $PSScriptRoot

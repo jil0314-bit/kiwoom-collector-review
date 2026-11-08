@@ -4,3 +4,4 @@ __pycache__/
 .window-profile/
 
 .venv/
+.runtime/

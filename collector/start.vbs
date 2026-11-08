@@ -10,6 +10,9 @@ End If
 If fs.FileExists(root & "\.venv\Scripts\pythonw.exe") Then
   python = root & "\.venv\Scripts\pythonw.exe"
 End If
+If fs.FileExists(root & "\.runtime\pythonw.exe") Then
+  python = root & "\.runtime\pythonw.exe"
+End If
 If Not fs.FileExists(python) Then
   MsgBox "Python runtime not found. See README.md."
   WScript.Quit 1
