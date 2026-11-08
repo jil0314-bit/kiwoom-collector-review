@@ -19,6 +19,8 @@ FINAL_MAX_ATTEMPTS = 5
 LOCK = threading.RLock()
 RUN = threading.Lock()
 STATE = {"busy": False, "message": "평일 09:10부터 자동 수집", "day": None}
+TOP_LIMIT = 50
+MIN_TARGET = 30
 PREFIXES = {"foreign": "for_netprps", "institution": "orgn_netprps"}
 
 
@@ -93,7 +95,7 @@ def periods(data):
 def display_rows(doc, key, market=None):
     period = doc.get("kind") == "period"
     rankings = doc.get("markets", {}).get(market, {}).get("rankings", {}) if market else doc["rankings"]
-    return sorted((row for row in rankings.get(key, []) if row["rank"] <= (30 if period else 20)),
+    return sorted((row for row in rankings.get(key, []) if row["rank"] <= TOP_LIMIT),
                   key=lambda row: row["rank"])
 
 
@@ -236,10 +238,70 @@ def fetch(api, day, market="000"):
     return normalized, {"request": body, "pages": pages}
 
 
-def refresh(data, day, api=None, clock=None):
+def fetch_amount_rankings(api, day, market, intraday=False):
+    """1053 provisional KRX or dated daily integrated amounts; never volume ranked.
+
+    ka10058's published won description differs from the live million-KRW
+    response, verified against ka10059 on 2026-11-06 (095610: 19504).
+    Quantity is deliberately UNKNOWN; do not infer units or filter liquidity.
+    """
+    valid_day(day)
+    if market not in ('001', '101'):
+        raise ValueError('시장 구분 오류')
+    rankings, audit = {}, {}
+    for key, investor in (('foreign', '9000'), ('institution', '9999')):
+        api_id = 'ka10065' if intraday else 'ka10058'
+        body = ({'trde_tp':'1', 'mrkt_tp':market, 'orgn_tp':investor, 'amt_qty_tp':'1'}
+                if intraday else {'strt_dt':day.replace('-',''), 'end_dt':day.replace('-',''),
+                'trde_tp':'2', 'mrkt_tp':market, 'invsr_tp':investor, 'stex_tp':'3'})
+        table = 'opmr_invsr_trde_upper' if intraday else 'invsr_daly_trde_stk'
+        field = 'netslmt' if intraday else 'netslmt_amt'
+        records, pages, seen, cursor = {}, [], set(), ''
+        for _ in range(30):
+            response, headers = api.request(api_id, body, cursor)
+            if response.get('return_code', 0) not in (0, '0') or not isinstance(response.get(table), list):
+                raise DataError('시장별 투자자 금액 목록 조회 실패')
+            safe_rows = []
+            for row in response[table]:
+                if not isinstance(row, dict):
+                    raise DataError('투자자 금액 행 형식 오류')
+                code = code_of(row.get('stk_cd'))
+                amount = signed_int(row.get(field))
+                if amount is None:
+                    raise DataError('순매수금액 누락: 이전 자료 유지')
+                record = {'code':code, 'name':str(row.get('stk_nm') or code),
+                          'net_amount_10m_krw':amount / 10, 'net_quantity_1000_shares':None}
+                if code in records and records[code] != record:
+                    raise DataError('투자자 금액 중복 종목 충돌')
+                records[code] = record
+                safe_rows.append({k:row.get(k) for k in ('stk_cd','stk_nm',field)})
+            pages.append(safe_rows)
+            headers = {k.lower():v for k,v in headers.items()}
+            if headers.get('cont-yn') != 'Y':
+                break
+            cursor = str(headers.get('next-key') or '')
+            if not cursor or cursor in seen:
+                raise DataError('투자자 금액 연속조회 키 누락·반복')
+            seen.add(cursor)
+        else:
+            raise DataError('투자자 금액 연속조회 한도 초과')
+        ordered = sorted((r for r in records.values() if r['net_amount_10m_krw'] > 0),
+                         key=lambda r:(-r['net_amount_10m_krw'],r['code']))[:TOP_LIMIT]
+        if not ordered:
+            raise DataError('시장별 양수 순매수 목록 없음: 이전 자료 유지')
+        for rank, record in enumerate(ordered, 1):
+            record['rank'] = rank
+        rankings[key] = ordered
+        audit[key] = {'api_id':api_id, 'request':body, 'pages':pages,
+                      'source_amount_unit':'백만원', 'received_unique':len(records),
+                      'quantity_collected':False, 'pagination_exhausted':True}
+    return rankings, audit
+
+
+def refresh(data, day, api=None, clock=None, historical=False):
     clock = clock or (lambda: datetime.now(KST))
     current = clock()
-    if valid_day(day) != current.date().isoformat() or current.weekday() >= 5:
+    if (not historical and (valid_day(day) != current.date().isoformat() or current.weekday() >= 5)) or (historical and (valid_day(day) >= current.date().isoformat() or datetime.strptime(day, '%Y-%m-%d').weekday() >= 5)):
         raise DataError("외국인·기관 수집은 오늘 평일만 가능")
     api = api or Kiwoom()
     # Ranking API does not return a source date. Reject non-trading days using
@@ -247,30 +309,40 @@ def refresh(data, day, api=None, clock=None):
     bars, _ = api.daily_bars("005930", day, count=3)
     if not any(bar.get("ts") == day and bar.get("volume", 0) > 0 for bar in bars):
         raise DataError("당일 거래일 증거 없음: 휴장·미제공 가능, 이전 자료 유지")
-    rankings, raw = fetch(api, day)
+    intraday = not historical and current.strftime("%H:%M") < "16:00"
+    raw = {"markets": {}}
     markets = {}
     for market, label in (("001", "코스피"), ("101", "코스닥")):
-        market_rankings, market_raw = fetch(api, day, market)
+        market_rankings, market_raw = fetch_amount_rankings(api, day, market, intraday)
         markets[market] = {"name": label, "rankings": market_rankings}
         raw.setdefault("markets", {})[market] = market_raw
     finished = clock()
-    if finished.date().isoformat() != day:
+    if finished.date().isoformat() != current.date().isoformat():
         raise DataError("외국인·기관 조회 도중 날짜 변경: 이전 자료 유지")
-    doc = {"schema": 1, "day": day, "api_id": "ka90009", "hero4_screen": "0785",
-           "market": "KRX+NXT", "basis": "net_buy_amount", "source_date": "UNKNOWN",
+    rankings = {}
+    for key in PREFIXES:
+        combined = sorted([dict(row) for entry in markets.values() for row in entry['rankings'][key]],
+                          key=lambda r:(-r['net_amount_10m_krw'],r['code']))[:TOP_LIMIT]
+        for rank, row in enumerate(combined, 1):
+            row['rank'] = rank
+        rankings[key] = combined
+    doc = {"schema": 2, "day": day, "api_id": "ka10065" if intraday else "ka10058",
+           "hero4_screen": "1053" if intraday else "일별 투자자", "provisional": intraday,
+           "collection_mode": "historical_backfill" if historical else "live",
+           "market": "KRX (장중 잠정)" if intraday else "KRX+NXT (일별)", "basis": "net_buy_amount", "source_date": "UNKNOWN",
            "source_date_note": "조회 날짜는 요청값입니다. API 응답에 기준 날짜가 없습니다.",
            "trading_day_evidence": {"code": "005930", "day": day},
            "requested_at": current.isoformat(timespec="seconds"),
            "fetched_at": finished.isoformat(timespec="seconds"),
-           "after_close_refresh": current.strftime("%H:%M") >= FINAL_TIME,
+           "after_close_refresh": not historical and current.strftime("%H:%M") >= FINAL_TIME,
            "units": {"amount": "천만원", "quantity": "천주"},
            "rankings": rankings, "markets": markets, "raw": raw,
-           "display_coverage": {"limit_per_list": 20,
+           "display_coverage": {"limit_per_list": TOP_LIMIT, "minimum_target": MIN_TARGET,
                "counts": {market: {key: len(rows) for key, rows in entry["rankings"].items()}
                           for market, entry in markets.items()},
                "below_limit": [{"market": market, "investor": key, "count": len(rows)}
                                for market, entry in markets.items() for key, rows in entry["rankings"].items()
-                               if len(rows) < 20]}}
+                               if len(rows) < MIN_TARGET]}}
     doc["sha256"] = digest(doc)
     with LOCK:
         write(root(data) / (day + ".json"), doc)
@@ -353,7 +425,7 @@ def start(data, coordinator, manual=False, current=None):
             refresh(data, day)
             doc = read_day(data, day)
             short = doc.get("display_coverage", {}).get("below_limit", []) if doc else []
-            STATE["message"] = "외국인·기관 순매수 저장 완료" + (" · 일부 목록은 API 제공 종목이 20개 미만" if short else "")
+            STATE["message"] = "외국인·기관 순매수 저장 완료" + (" · 일부 시장·투자자 목록 양수 순매수가 30개 미만" if short else "")
             write(root(data) / "last_error.json", None)
         except Exception as exc:
             message = str(exc) if isinstance(exc, DataError) else "외국인·기관 처리·저장 실패: 이전 자료 유지"

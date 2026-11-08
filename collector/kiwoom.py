@@ -15,7 +15,7 @@ KST = timezone(timedelta(hours=9))
 HOST = "https://api.kiwoom.com"
 ROUTES = {"ka10030": "/api/dostk/rkinfo", "ka10023": "/api/dostk/rkinfo", "ka10027": "/api/dostk/rkinfo", "ka10080": "/api/dostk/chart", "ka10081": "/api/dostk/chart",
           "ka90001": "/api/dostk/thme", "ka90002": "/api/dostk/thme", "ka10095": "/api/dostk/stkinfo",
-          "ka90009": "/api/dostk/rkinfo", "ka10099": "/api/dostk/stkinfo"}
+          "ka10058": "/api/dostk/stkinfo", "ka10065": "/api/dostk/rkinfo", "ka90009": "/api/dostk/rkinfo", "ka10099": "/api/dostk/stkinfo"}
 
 
 class DataError(Exception):

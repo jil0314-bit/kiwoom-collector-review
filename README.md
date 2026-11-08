@@ -1,3 +1,7 @@
+## Latest investor amount TOP50 fix (2026-11-08)
+
+Source checkpoint 01d2095 -> fix 2049c1b. KOSPI/KOSDAQ and foreign/institutional lists now collect up to50 positive net-buy amounts without volume/quantity filters. Intraday KRX provisional ka10065 and dated integrated ka10058 have explicit provenance. All four 2026-11-06 lists were re-collected, top amounts cross-checked with ka10059, 200 displayed rows matched saved data and CSV. All201 Python tests passed. See [scope, observed unit correction, verification and limitations](review/INVESTOR_AMOUNT_TOP50_20261108.md). Older historical files retain their original coverage; next trading-day live updating is unverified. Sections below describe earlier snapshots.
+
 ## Latest recommendation-screen fix (2026-11-08)
 
 Local source checkpoint d4753e4 -> fix 4b7001f. Recommendation extraction, trading, orders and 0600 routes are unchanged. Default all-record display now distinguishes mentions from recommendations; latest confirmed recommendations are one click away. Optional profiles no longer block saved records. See [scope, live UI evidence, limitations and tests](review/RECOMMENDATION_VISIBILITY_20261108.md). YouTube caption acquisition failures remain unresolved and are explicitly visible. Earlier sections below describe earlier snapshots.

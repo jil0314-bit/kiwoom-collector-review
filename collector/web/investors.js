@@ -11,7 +11,7 @@ const flowColors = {5:'#d28a16',10:'#9a54d8',20:'#109e9b',30:'#ef6487',60:'#3778
 function flowRows(key) {
   const query = $('search').value.trim().toLowerCase(), period = record?.kind === 'period';
   return (record?.markets?.[$('market').value]?.rankings[key] || [])
-    .filter(r => r.rank <= (period ? 30 : 20) && (r.code+' '+r.name).toLowerCase().includes(query))
+    .filter(r => r.rank <= 50 && (r.code+' '+r.name).toLowerCase().includes(query))
     .sort((a,b) => a.rank-b.rank);
 }
 function flowItems() {return ['foreign','institution'].flatMap(key => flowRows(key).map(row => ({key,...row})));}
@@ -35,7 +35,7 @@ function render() {
   for (const key of ['foreign','institution']) {
     const body = $(key); body.replaceChildren();
     const period = record?.kind === 'period';
-    const rows = (record?.markets?.[$('market').value]?.rankings[key] || []).filter(r => r.rank <= (period ? 30 : 20))
+    const rows = (record?.markets?.[$('market').value]?.rankings[key] || []).filter(r => r.rank <= 50)
       .sort((a,b) => a.rank-b.rank);
     $(key+'-count').textContent = rows.length ? `${$('market').selectedOptions[0].textContent} · ${rows.length}종목` : '';
     for (const row of rows.filter(r => (r.code+' '+r.name).toLowerCase().includes(query))) {
@@ -46,7 +46,7 @@ function render() {
       tr.setAttribute('aria-selected', String(flowPick?.code === row.code && flowPick?.key === key));
       tr.addEventListener('click', () => chooseFlow({key,...row}, true));
       tr.addEventListener('keydown', e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault();chooseFlow({key,...row}, true);}});
-      for (const value of [row.rank, row.name, row.net_amount_10m_krw, row.net_quantity_1000_shares]) {
+      for (const value of [row.rank, row.name, row.net_amount_10m_krw]) {
         const td = document.createElement('td');
         td.textContent = value === null || value === undefined ? 'UNKNOWN' : typeof value === 'number' ? value.toLocaleString('ko-KR') : value;
         tr.append(td);
@@ -55,14 +55,14 @@ function render() {
       const code = document.createElement('small'); code.textContent = row.code; tr.children[1].append(code);
       const category=document.createElement('small');category.textContent=profileLabel(profile);tr.children[1].append(category);
       const cap=document.createElement('small');cap.textContent=marketCapText(profile,record?.kind==='period'?record.period_end:record?.day);tr.children[1].append(cap);
-      for (const cell of [tr.children[2],tr.children[3]]) {
+      for (const cell of [tr.children[2]]) {
         const n = Number(cell.textContent.replaceAll(',',''));
         if (Number.isFinite(n)) cell.className = n < 0 ? 'negative' : n > 0 ? 'positive' : '';
       }
       body.append(tr);
     }
     if (!body.children.length) {
-      const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 4;
+      const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 3;
       td.textContent = rows.length ? '검색 결과 없음' : '저장 자료 없음 · 당일 수집 성공 후 표시됩니다.'; tr.append(td); body.append(tr);
     }
   }
@@ -72,8 +72,8 @@ function render() {
   if (!flowPick && items.length) chooseFlow(items[0], false);
   const coverage=record?.display_coverage?.counts?.[$('market').value];
   $('basis').textContent=flowBasis;
-  if (coverage && record.kind !== 'period' && (coverage.foreign<20 || coverage.institution<20))
-    $('basis').textContent += ` · API 제공 외국인 ${coverage.foreign}개 / 기관 ${coverage.institution}개 (각 최대 20개 표시)`;
+  if (coverage && record.kind !== 'period' && (coverage.foreign<30 || coverage.institution<30))
+    $('basis').textContent += ` · API 제공 외국인 ${coverage.foreign}개 / 기관 ${coverage.institution}개 (각 최대 50개 표시)`;
 }
 async function loadDay() {
   const day = $('day').value;
@@ -88,8 +88,8 @@ async function loadDay() {
   if (record) {
     $('download').href = '/api/investors/'+(period ? 'period-csv' : 'csv')+'?'+params;
     $('basis').textContent = period
-      ? `기간 합산 ${start}~${end} · 각 TOP 30 · 순매수금액 기준 · ${record.coverage?.note || '조회 범위 UNKNOWN'} · 기간 수량 UNKNOWN`
-      : `조회일 ${record.day} · 1위 → 20위 · 수신 ${record.fetched_at.replace('T',' ')} · ${record.collection_mode === 'historical_backfill' ? '과거일 조회' : record.after_close_refresh ? '20:05 이후 재조회' : '장중 자료'} · 원본 기준일 UNKNOWN (API 미제공)`;
+      ? `기간 합산 ${start}~${end} · 각 TOP 30 · 순매수금액 기준 · ${record.coverage?.note || '조회 범위 UNKNOWN'} · 수량은 순위에 사용하지 않음`
+      : `조회일 ${record.day} · 금액순 최대 50위 · ${record.market || '거래소 기준 UNKNOWN'} · ${record.provisional ? '장중 잠정' : '일별 집계'} · 수신 ${record.fetched_at.replace('T',' ')} · ${record.collection_mode === 'historical_backfill' ? '과거일 조회' : record.after_close_refresh ? '20:05 이후 재조회' : '장중 자료'} · 원본 기준일 UNKNOWN (API 미제공)`;
   }
   flowBasis=record ? $('basis').textContent : '';
   render();

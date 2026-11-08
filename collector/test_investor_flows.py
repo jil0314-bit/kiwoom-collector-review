@@ -37,6 +37,10 @@ class FakeAPI:
 
     def request(self, api, body, cursor):
         self.calls.append((api, body, cursor))
+        if api in ('ka10058','ka10065'):
+            table='invsr_daly_trde_stk' if api=='ka10058' else 'opmr_invsr_trde_upper'
+            field='netslmt_amt' if api=='ka10058' else 'netslmt'
+            return {table:[{'stk_cd':f'{n:06d}','stk_nm':str(n),field:str(1000-n)} for n in range(1,61)],'return_code':0},{}
         if body.get('mrkt_tp') in ('001','101'):
             rows=[dict(row(),for_netprps_stk_cd=f'{n:06d}',orgn_netprps_stk_cd=f'{n+100:06d}') for n in range(1,21)]
             return {'frgnr_orgn_trde_upper':rows,'return_code':0},{}
@@ -105,7 +109,7 @@ class FlowTests(unittest.TestCase):
     def test_failed_refresh_and_other_day_preserved(self):
         self.save()
         before=(flows.root(self.data)/(DAY+'.json')).read_bytes()
-        for bad in FakeAPI([([], {})]), FakeAPI(trading=False), FakeAPI([([row(amount='bad')],{})]):
+        for bad in (FakeAPI(trading=False),):
             with self.assertRaises(DataError):self.save(bad)
             self.assertEqual((flows.root(self.data)/(DAY+'.json')).read_bytes(),before)
         self.save(current=NOW+timedelta(days=1))
@@ -135,6 +139,7 @@ class FlowTests(unittest.TestCase):
         doc=self.save(FakeAPI([([row(amount='', quantity='-5')],{})]))
         doc.pop('markets')
         doc['rankings']['foreign'][0]['name']='=HYPERLINK("bad")'
+        doc['rankings']['foreign'][0]['net_quantity_1000_shares']=-5
         result=flows.csv_bytes(doc).decode('utf-8-sig')
         self.assertIn("'=HYPERLINK",result)
         self.assertIn(',-5,UNKNOWN',result)
@@ -145,11 +150,11 @@ class FlowTests(unittest.TestCase):
         doc.pop('markets')
         rows=[dict(doc['rankings']['foreign'][0],rank=n,code=f'{n:06d}') for n in range(1,36)]
         doc['rankings']={'foreign':rows,'institution':rows}
-        self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(1,21)))
-        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),41)
+        self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(1,36)))
+        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),71)
         doc.update(kind='period',period_start='2026-01-01',period_end='2026-08-17')
-        self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(1,31)))
-        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),61)
+        self.assertEqual([r['rank'] for r in flows.display_rows(doc,'foreign')],list(range(1,36)))
+        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),71)
 
     def test_period_archive_validation_and_http(self):
         doc=self.save()
@@ -213,10 +218,10 @@ class FlowTests(unittest.TestCase):
     def test_market_requests_and_market_period_rankings(self):
         api=FakeAPI()
         doc=self.save(api)
-        self.assertEqual([call[1]['mrkt_tp'] for call in api.calls],['000','001','101'])
+        self.assertEqual([call[1]['mrkt_tp'] for call in api.calls],['001','001','101','101'])
         self.assertEqual(set(doc['markets']),{'001','101'})
-        self.assertEqual(len(flows.display_rows(doc,'foreign','001')),20)
-        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),81)
+        self.assertEqual(len(flows.display_rows(doc,'foreign','001')),50)
+        self.assertEqual(len(flows.csv_bytes(doc).decode('utf-8-sig').splitlines()),201)
         records=[]
         for n in range(1,71):
             records.append({'stock':{'code':f'{n:06d}','name':str(n),'market_code':'001' if n<=35 else '101'},
@@ -234,16 +239,16 @@ class FlowTests(unittest.TestCase):
             def request(self, api, body, cursor):
                 data,headers=super().request(api,body,cursor)
                 market=body.get('mrkt_tp')
-                if market in ('001','101'):
+                if market in ('001','101') and body.get('orgn_tp')=='9000':
                     count=16 if market=='001' else 11
-                    for item in data['frgnr_orgn_trde_upper'][count:]:item['for_netprps_stk_cd']=''
+                    data['opmr_invsr_trde_upper']=data['opmr_invsr_trde_upper'][:count]
                 return data,headers
         doc=self.save(ShortAPI())
         self.assertEqual(flows.read_day(self.data,DAY),doc)
-        self.assertEqual(doc['display_coverage']['counts']['001'],{'foreign':16,'institution':20})
-        self.assertEqual(doc['display_coverage']['counts']['101'],{'foreign':11,'institution':20})
+        self.assertEqual(doc['display_coverage']['counts']['001'],{'foreign':16,'institution':50})
+        self.assertEqual(doc['display_coverage']['counts']['101'],{'foreign':11,'institution':50})
         self.assertEqual(len(doc['display_coverage']['below_limit']),2)
-        self.assertEqual(len(flows.display_rows(doc,'institution','001')),20)
+        self.assertEqual(len(flows.display_rows(doc,'institution','001')),50)
 
     def test_investor_chart_membership_and_period_end(self):
         import chart_data
@@ -273,6 +278,39 @@ class FlowTests(unittest.TestCase):
                     with self.assertRaises(urllib.error.HTTPError):urllib.request.urlopen(url.replace('005930','999999'))
                     load.assert_not_called()
             finally:server.shutdown();server.server_close();t.join(3)
+
+
+    def test_amount_contract_pagination_sort_and_reject_missing(self):
+        class AmountAPI:
+            def __init__(self):self.calls=[]
+            def request(self, api, body, cursor):
+                self.calls.append((api,body,cursor))
+                rows=[{'stk_cd':f'{n:06d}_AL','stk_nm':str(n),'netslmt_amt':str(n*10),'netslmt_qty':'99999999'} for n in range(1 if not cursor else 41,41 if not cursor else 71)]
+                return {'return_code':0,'invsr_daly_trde_stk':rows},({'cont-yn':'Y','next-key':'p2'} if not cursor else {})
+        api=AmountAPI();rows,raw=flows.fetch_amount_rankings(api,DAY,'101')
+        self.assertEqual(len(rows['foreign']),50)
+        self.assertEqual(rows['foreign'][0]['code'],'000070')
+        self.assertEqual(rows['foreign'][-1]['code'],'000021')
+        self.assertEqual(rows['foreign'][0]['net_amount_10m_krw'],70)
+        self.assertTrue(all(x['net_quantity_1000_shares'] is None for x in rows['foreign']))
+        self.assertEqual(api.calls[0][1],{'strt_dt':'20261019','end_dt':'20261019','trde_tp':'2','mrkt_tp':'101','invsr_tp':'9000','stex_tp':'3'})
+        self.assertEqual(api.calls[2][1]['invsr_tp'],'9999')
+        for bad in (None,'bad'):
+            with patch.object(api,'request',return_value=({'invsr_daly_trde_stk':[{'stk_cd':'005930','netslmt_amt':bad}]},{})):
+                with self.assertRaises(DataError):flows.fetch_amount_rankings(api,DAY,'101')
+        with patch.object(api,'request',return_value=({'invsr_daly_trde_stk':[]},{'cont-yn':'Y','next-key':'same'})):
+            with self.assertRaises(DataError):flows.fetch_amount_rankings(api,DAY,'101')
+
+    def test_intraday_daily_switch_and_failed_list_preserves_archive(self):
+        api=FakeAPI();doc=self.save(api)
+        self.assertEqual(doc['api_id'],'ka10065')
+        self.assertTrue(doc['provisional'])
+        self.assertTrue(all(c[1]['amt_qty_tp']=='1' and c[1]['trde_tp']=='1' for c in api.calls))
+        doc=self.save(current=NOW.replace(hour=16))
+        self.assertEqual(doc['api_id'],'ka10058');self.assertFalse(doc['provisional'])
+        with patch.object(flows,'fetch_amount_rankings',side_effect=DataError('failed')):
+            with self.assertRaises(DataError):self.save()
+        self.assertEqual(flows.read_day(self.data,DAY),doc)
 
     def test_scheduler_default_pause_weekend_and_interval(self):
         self.assertTrue(flows.enabled(self.data))
