@@ -2,13 +2,15 @@
 const $=id=>document.getElementById(id), fmt=n=>n==null?'—':Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2});
 const WEEK=['일','월','화','수','목','금','토'];
 let state=null, chosen='', themeLoading=false, lastUpdated='', pick=null;
+let stockProfiles={};
+const marketCapText=(p,day)=>p?.market_cap>0?'시총 '+Number(p.market_cap).toLocaleString('ko-KR')+'억'+(p.cap_day&&p.cap_day!==day?' · '+p.cap_day+' 기준':''):'시총 확인중';
 function element(tag,text,cls){const e=document.createElement(tag);if(text!=null)e.textContent=text;if(cls)e.className=cls;return e}
 const el=element;
 const pct=n=>(n>0?'+':'')+Number(n).toFixed(2)+'%';
 const tone=n=>n>0?'up':n<0?'down':'flat';
 const dayLabel=day=>({md:day.slice(5).replace('-','.'),dow:WEEK[new Date(day+'T12:00:00Z').getUTCDay()]});
 const toast=text=>{if($('editor')&&$('editor').open){$('ed-note').textContent=text;return}$('toast').textContent=text;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',6500)};
-async function api(path){if(path.startsWith('/api/chart?'))path+='&fast=1';const r=await fetch(path);const data=await r.json();if(!r.ok)throw Error(data.error||'요청 실패');return data}
+async function api(path){if(path.startsWith('/api/chart?'))path+='&fast=1&async=1';const r=await (path.startsWith('/api/chart?')&&!path.includes('prefetch=1')?collectorChartFetch(path):fetch(path));const data=await r.json();if(!r.ok)throw Error(data.error||'요청 실패');return data}
 let heroLinkVersion=0,heroLinkQueue=Promise.resolve(),heroLinkTimer;
 function linkHero(symbol){
   const version=++heroLinkVersion;clearTimeout(heroLinkTimer);
@@ -128,7 +130,10 @@ function card(t,i,info,top100){
   const list=el('ul',null,'th-leaders');
   for(const s of t.leaders||[]){
     const li=el('li');li.dataset.code=s.code;li.dataset.theme=t.code;li.tabIndex=0;li.setAttribute('role','button');
+    const profile=stockProfiles[s.code]||{};
     const left=el('div',null,'th-stock');left.append(el('b',s.name),el('small',s.code),memoButton(s));
+    left.append(el('small','테마 · '+t.name,'th-classification'));
+    left.append(el('small',(profile.industry?'업종 · '+profile.industry:'업종 확인중')+' · '+marketCapText(profile,chosen),'th-classification'));
     if(s.pinned)left.append(el('span','고정','th-tag pin'));
     if(s.added)left.append(el('span','추가','th-tag add'));
     if(top100&&s.code in top100)left.append(el('span','TOP100 '+top100[s.code]+'위','th-top100'));
@@ -387,8 +392,9 @@ async function load(day){
   try{
     const data=await api('/api/themes'+(day?'?day='+encodeURIComponent(day):''));
     const dayChanged=data.day!==chosen;
-    if(dayChanged){dayNotes={};hideMemoPreview()}
+    if(dayChanged){dayNotes={};stockProfiles={};hideMemoPreview()}
     state=data;chosen=data.day;render();loadMemos(chosen);
+    api('/api/stock-profiles?day='+encodeURIComponent(chosen)).then(result=>{if(chosen===result.day){stockProfiles=result.profiles||{};render()}}).catch(()=>{});
     const r=state.record,updated=r?r.updated_at:'';
     if(dayChanged){requestVersion++;clearChart();const first=leaders()[0];if(first)await selectStock(first)}
     else if(pick&&updated!==lastUpdated){const keepTime=record&&selected<record.bars.length-1?record.bars[selected]?.ts:null;await selectStock(pick,keepTime)}

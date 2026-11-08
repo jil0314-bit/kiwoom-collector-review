@@ -4,6 +4,15 @@ let status={}, meta={stocks:[]}, record=null, choice='', code='', selected=-1, r
 let frame='minute', loading=false, liveChart=true;
 let liveQuotes={},quoteRequest=0,quotesBusy=false;
 let listMode='ranking', watchlists=[], watchGroup='';
+let stockProfiles={}, profileDay='', profileAt=0, profileVersion=0;
+const profileLabel=p=>p?.themes?.length?'테마 · '+p.themes.slice(0,2).join(' · ')+(p.themes.length>2?' 외 '+(p.themes.length-2):''):p?.groups?.length?'관심그룹 · '+p.groups.slice(0,2).join(' · ')+(p.groups.length>2?' 외 '+(p.groups.length-2):''):p?.industry?'테마 미확인 · 업종 '+p.industry:'테마 미확인';
+const marketCapText=(cap,capDay,day)=>cap>0?'시총 '+Number(cap).toLocaleString('ko-KR')+'억'+(capDay&&capDay!==day?' · '+capDay+' 기준':''):'시총 확인중';
+async function loadProfiles(day){
+  if(profileDay===day&&Date.now()-profileAt<60000)return;
+  if(profileDay!==day)stockProfiles={};
+  profileDay=day;profileAt=Date.now();const version=++profileVersion;
+  try{const data=await api('/api/stock-profiles?day='+encodeURIComponent(day));if(version!==profileVersion||choice.split('|')[0]!==day)return;stockProfiles=data.profiles||{};renderStocks()}catch(e){}
+}
 const periods=()=>['day','week'].includes(frame)?[5,10,20,30,60,120]:[5,10,20,60,120,240];
 const maColors={5:'#d28a16',10:'#9a54d8',20:'#109e9b',30:'#ef6487',60:'#3778e6',120:'#e57927',240:'#546380'};
 const barLabel=ts=>frame==='day'?ts:frame==='week'?ts+' 주':ts.slice(11,16);
@@ -16,7 +25,7 @@ const signedPercent=n=>n==null?'—':(n>0?'+':'')+n.toFixed(2)+'%';
 const changeClass=n=>n>0?'change-up':n<0?'change-down':'change-flat';
 function barChanges(i){const b=record.bars[i];return {body:percent(b.close,b.open),previous:i>0?percent(b.close,record.bars[i-1].close):null}}
 const toast=text=>{$('toast').textContent=text;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',6500)};
-async function api(path,options){if(path.startsWith('/api/chart?'))path+='&fast=1';const r=await fetch(path,options);const data=await r.json();if(!r.ok)throw Error(data.error||'요청 실패');return data}
+async function api(path,options){if(path.startsWith('/api/chart?'))path+='&fast=1&async=1';const r=await (path.startsWith('/api/chart?')&&!path.includes('prefetch=1')?collectorChartFetch(path,options):fetch(path,options));const data=await r.json();if(!r.ok)throw Error(data.error||'요청 실패');return data}
 function params(withRevision=false){const [day,kind]=choice.split('|');const q=new URLSearchParams({day,kind,code});q.set('frame',frame);q.set('source','volume');if(liveChart)q.set('live','1');if(withRevision)q.set('rev',meta.revision||meta.ranking_at||'');return q}
 const activeGroup=()=>watchlists.find(g=>String(g.number)===watchGroup);
 const currentEntries=()=>listMode==='watchlist'?(meta.tracked||[]):meta.stocks;
@@ -32,7 +41,7 @@ const old=$('archive').value;const catalog=status.catalog; $('archive').replaceC
 if(!catalog.length){$('archive').add(new Option('오늘 · 첫 거래량 순위 조회 중',status.now.slice(0,10)+'|latest'));$('archive').value=$('archive').options[0].value;if(listMode==='ranking')return}else{const valid=catalog.some(c=>c.day+'|'+c.kind===old);$('archive').value=valid?old:$('archive').options[0].value}
 const changed=choice!==$('archive').value;choice=$('archive').value;await loadDay(changed);
 }catch(e){$('auth').textContent='수집기 연결 확인 필요';$('progress').textContent=e.message||'실행 파일로 수집기를 켜주세요.'}finally{refreshing=false}}
-async function loadDay(changed=false){if(changed)liveQuotes={};const oldRevision=meta.revision||meta.ranking_at;meta=await api('/api/volume/day?'+params());loadNotes(choice.split('|')[0]);$('saved').replaceChildren(document.createTextNode(String(meta.stocks.filter(s=>s.status==='saved').length)+' '),element('small','/ '+meta.stocks.length+'종목'));$('ranktime').textContent=(meta.kind==='preview'?(meta.day<status.now.slice(0,10)?'장중 저장 · 최종 미수집 · ':'장중 최신 · '):'최종 · ')+(meta.ranking_at||'').slice(11,19)+' KST';renderStocks();if(changed)refreshQuotes();if(!loading&&(changed||!record||!liveChart&&listMode==='ranking'&&oldRevision!==(meta.revision||meta.ranking_at))){const keepTime=!changed&&record&&selected<record.bars.length-1?record.bars[selected]?.ts:null;const s=listMode==='watchlist'?currentStocks().find(s=>s.code===code)||currentStocks()[0]:meta.stocks.find(s=>(s.status==='saved'||liveChart)&&s.code===code)||meta.stocks.find(s=>s.status==='saved'||liveChart);if(s){if(changed)chooseCurrentStock(s.code);else await selectStock(s.code,keepTime)}else clearChart()}}
+async function loadDay(changed=false){if(changed)liveQuotes={};const oldRevision=meta.revision||meta.ranking_at;meta=await api('/api/volume/day?'+params());loadNotes(choice.split('|')[0]);loadProfiles(choice.split('|')[0]);$('saved').replaceChildren(document.createTextNode(String(meta.stocks.filter(s=>s.status==='saved').length)+' '),element('small','/ '+meta.stocks.length+'종목'));$('ranktime').textContent=(meta.kind==='preview'?(meta.day<status.now.slice(0,10)?'장중 저장 · 최종 미수집 · ':'장중 최신 · '):'최종 · ')+(meta.ranking_at||'').slice(11,19)+' KST';renderStocks();if(changed)refreshQuotes();if(!loading&&(changed||!record||!liveChart&&listMode==='ranking'&&oldRevision!==(meta.revision||meta.ranking_at))){const keepTime=!changed&&record&&selected<record.bars.length-1?record.bars[selected]?.ts:null;const s=listMode==='watchlist'?currentStocks().find(s=>s.code===code)||currentStocks()[0]:meta.stocks.find(s=>(s.status==='saved'||liveChart)&&s.code===code)||meta.stocks.find(s=>s.status==='saved'||liveChart);if(s){if(changed)chooseCurrentStock(s.code);else await selectStock(s.code,keepTime)}else clearChart()}}
 async function refreshQuotes(){
   if(quotesBusy)return;
   const symbols=currentStocks().map(s=>s.code);if(!symbols.length)return;
@@ -57,7 +66,8 @@ for(const s of displayedEntries()){
 if(s.type==='heading'){$('stocks').append(element('div',s.label||'구분','watch-heading'));continue}
 const row=element('div',null,'stock-row');row.dataset.stockCode=s.code;
 const b=element('button',null,'stock'+(s.code===code?' active':''));b.setAttribute('aria-pressed',String(s.code===code));b.append(element('span',listMode==='watchlist'?'·':String(s.rank).padStart(2,'0'),'rank'));
-const name=element('span',s.name,'name');name.append(element('small',s.code+' · 시총 '+fmt(s.market_cap)+'억 · '+(s.status==='saved'?s.count+'봉':'분봉 저장 중')));b.append(name);const q=liveQuotes[s.code]||{price:s.price,rate:s.rate};name.append(element('small',fmt(q.price)+'원 · '+signedPercent(q.rate),changeClass(q.rate)));b.append(element('span',signedPercent(s.volume_rate),'rate change-up'));b.onclick=()=>chooseCurrentStock(s.code);
+const profile=stockProfiles[s.code]||{};const day=choice.split('|')[0];
+const name=element('span',s.name,'name');name.append(element('small',profileLabel(profile)));name.append(element('small',s.code+' · '+marketCapText(s.market_cap||profile.market_cap,s.market_cap?day:profile.cap_day,day)+' · '+(s.status==='saved'?s.count+'봉':'분봉 저장 중')));b.append(name);const q=liveQuotes[s.code]||{price:s.price,rate:s.rate};name.append(element('small',fmt(q.price)+'원 · '+signedPercent(q.rate),changeClass(q.rate)));b.append(element('span',signedPercent(s.volume_rate),'rate change-up'));b.onclick=()=>chooseCurrentStock(s.code);
 row.append(b,noteMark(s));$('stocks').append(row)
 }
 $('stocks').scrollTop=listScroll;decorateNotes();renderVolumeSummary();

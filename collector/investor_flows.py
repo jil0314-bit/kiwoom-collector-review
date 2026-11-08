@@ -15,6 +15,7 @@ from kiwoom import DataError, Kiwoom, KST, code_of
 
 INTERVAL = 600
 FINAL_TIME = "20:05"
+FINAL_MAX_ATTEMPTS = 5
 LOCK = threading.RLock()
 RUN = threading.Lock()
 STATE = {"busy": False, "message": "평일 09:10부터 자동 수집", "day": None}
@@ -311,8 +312,10 @@ def due(data, current, manual=False):
     last = journal.get("last_start_epoch", 0)
     if hhmm >= FINAL_TIME:
         doc = read_day(data, day)
+        attempts = journal.get("final_attempts", 0)
+        retry_interval = 900 if attempts < 3 else 1800
         return not (doc and doc.get("after_close_refresh")) and (
-            journal.get("final_attempts", 0) < 3 and current.timestamp() - journal.get("last_final_epoch", 0) >= 900)
+            attempts < FINAL_MAX_ATTEMPTS and current.timestamp() - journal.get("last_final_epoch", 0) >= retry_interval)
     return hhmm < "20:00" and current.timestamp() - last >= INTERVAL
 
 
@@ -334,7 +337,7 @@ def start(data, coordinator, manual=False, current=None):
         if journal.get("day") != day:
             journal = {"day": day}
         journal["last_start_epoch"] = current.timestamp()
-        if current.strftime("%H:%M") >= FINAL_TIME:
+        if current.strftime("%H:%M") >= FINAL_TIME and not manual:
             journal["final_attempts"] = journal.get("final_attempts", 0) + 1
             journal["last_final_epoch"] = current.timestamp()
         write(root(data) / "schedule.json", journal)

@@ -48,6 +48,7 @@
 .th-leaders li.sel{background:linear-gradient(100deg,#e1d0f8,#dcf3ef);box-shadow:inset 3px 0 #a075d0;border-top-color:transparent}
 .th-leaders li:focus-visible{outline:2px solid #a279d0;outline-offset:-2px}
 .th-stock{min-width:0;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.th-stock b{font-weight:700;color:#433556;overflow-wrap:anywhere}.th-stock small{font-size:.68rem;color:#a597b5;font-variant-numeric:tabular-nums}
+.th-stock .th-classification{flex-basis:100%;color:#655278;white-space:normal;line-height:1.35}
 .th-price{font-size:.8rem;color:#6d6380;font-variant-numeric:tabular-nums}
 .th-chip{justify-self:end;padding:2px 8px;border-radius:7px;font-size:.78rem;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
 .th-chip.up{background:#fde8ee;color:#c93d60}.th-chip.down{background:#e6f0fd;color:#2f6bbd}.th-chip.flat{background:#f1eef6;color:#8d80a0}

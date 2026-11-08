@@ -167,7 +167,23 @@ def load(data, day, code, frame, revision=None, source="ranking", name=None, liv
             if not payload:
                 raise DataError("저장된 종목 자료가 없습니다.")
             name = json.loads(payload)["stock"]["name"]
-        result = load_live(data, current_day, code, frame, name or code)
+        try:
+            result = load_live(data, current_day, code, frame, name or code)
+        except DataError as exc:
+            # A closed session may have no minutes. Keep the selected archive visible,
+            # with its actual date, rather than describing it as live/today's data.
+            if not frame.startswith("minute") or day >= current_day or str(exc) != "해당 날짜 08:00~20:00 분봉 없음":
+                raise
+            try:
+                result = load(data, day, code, frame, source=source, name=name, live=False)
+                if not result.get("bars"):
+                    raise exc
+            except (DataError, OSError, KeyError, ValueError):
+                raise exc
+            result["live"] = False
+            result["live_fallback"] = True
+            result["requested_live_day"] = current_day
+            result["chart_notice"] += f" 현재 조회일 {current_day} 분봉 없음 · {day} 저장 분봉 표시."
         result["archive_day"] = day
         return result
     if source == "ranking":

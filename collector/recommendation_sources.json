@@ -1,0 +1,498 @@
+{
+  "checked_date": "2026-11-01",
+  "programs": [
+    {
+      "name": "여의도 투자본부 1부",
+      "url": "https://www.mtn.co.kr/program/588",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "여의도 투자본부 2부",
+      "url": "https://www.mtn.co.kr/program/589",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "적중! 대박 예감",
+      "url": "https://www.mtn.co.kr/program/583",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "고래사냥",
+      "url": "https://www.mtn.co.kr/program/582",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "내 수익을 부탁해",
+      "url": "https://www.mtn.co.kr/program/520",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "종목상담 주식민원처리반",
+      "url": "https://www.mtn.co.kr/program/590",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "머니왕",
+      "url": "https://www.mtn.co.kr/program/544",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "주식특공대 1부 / 강남큰손의 명품투자",
+      "url": "https://www.mtn.co.kr/program/579",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "주식특공대 2부 / 공명 정지우의 주식싹쓰리",
+      "url": "https://www.mtn.co.kr/program/551",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "주식특공대 3부",
+      "url": "https://www.mtn.co.kr/program/585",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "성공! 마감전략 1부",
+      "url": "https://www.mtn.co.kr/program/562",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "성공! 마감전략 2부",
+      "url": "https://www.mtn.co.kr/program/577",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "터닝포인트11",
+      "url": "https://www.mtn.co.kr/program/568",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "오후장 작전타임",
+      "url": "https://www.mtn.co.kr/program/559",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "출발! 성공투자",
+      "url": "https://www.mtn.co.kr/program/541",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "시장공감10",
+      "url": "https://www.mtn.co.kr/program/392",
+      "kind": "mtn",
+      "broadcaster": "MTN"
+    }
+  ],
+  "channels": [
+    {
+      "name": "MTN",
+      "url": "https://www.youtube.com/channel/UClErHbdZKUnD1NyIUeQWvuQ",
+      "channel_id": "UClErHbdZKUnD1NyIUeQWvuQ",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "매일경제TV",
+      "url": "https://www.youtube.com/channel/UCnfwIKyFYRuqZzzKBDt6JOA",
+      "channel_id": "UCnfwIKyFYRuqZzzKBDt6JOA",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "한국경제TV",
+      "url": "https://www.youtube.com/channel/UCF8AeLlUbEpKju6v1H6p8Eg",
+      "channel_id": "UCF8AeLlUbEpKju6v1H6p8Eg",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "창원개미TV",
+      "url": "https://www.youtube.com/channel/UCqsuesS39x5nUWcBH-1Q6YA",
+      "channel_id": "UCqsuesS39x5nUWcBH-1Q6YA",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "강민우 돈깡TV",
+      "url": "https://www.youtube.com/channel/UCI6C5V4J8FWRcLcOdh1yElw",
+      "channel_id": "UCI6C5V4J8FWRcLcOdh1yElw",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "AP투자연구소 김용재소장",
+      "url": "https://www.youtube.com/@ap5798",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "주식단테_20년차트고수",
+      "url": "https://www.youtube.com/@%EC%A3%BC%EC%8B%9D%EB%8B%A8%ED%85%8C",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "1분주식",
+      "url": "https://www.youtube.com/@1minstock",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "부자아빠주식학교",
+      "url": "https://www.youtube.com/@buja_papa",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "세력주분석채널",
+      "url": "https://www.youtube.com/@%EC%84%B8%EB%A0%A5%EC%A3%BC%EB%B6%84%EC%84%9D%EC%B1%84%EB%84%90",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "안정모의 주식투자",
+      "url": "https://www.youtube.com/@%EC%95%88%EC%A0%95%EB%AA%A8%EC%9D%98%EC%A3%BC%EC%8B%9D%ED%88%AC%EC%9E%90",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "주식장인",
+      "url": "https://www.youtube.com/@jang--in",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "시황맨TV",
+      "url": "https://www.youtube.com/@blueoak1004",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "[주식] 더트레이딩tv",
+      "url": "https://www.youtube.com/@thetrading2021",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "차트프로",
+      "url": "https://www.youtube.com/@chart_pro",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "제도권주식분석 by ETF STUDIO",
+      "url": "https://www.youtube.com/@%EC%A0%9C%EB%8F%84%EA%B6%8C%EC%A3%BC%EC%8B%9D%EB%B6%84%EC%84%9D",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "게으른개미의 잃지 않는 가치투자",
+      "url": "https://www.youtube.com/@ant-stock",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "박두환의 실전투자교실",
+      "url": "https://www.youtube.com/@duhwanpark534",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "김민수의 같이투자",
+      "url": "https://www.youtube.com/@%EA%B9%80%EB%AF%BC%EC%88%98%EC%9D%98%EA%B0%99%EC%9D%B4%ED%88%AC%EC%9E%90",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "vip tv - 가까워진 가치투자",
+      "url": "https://www.youtube.com/@vip-tv",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "주식학교",
+      "url": "https://www.youtube.com/@%EC%A3%BC%EC%8B%9D%ED%95%99%EA%B5%90%EA%B3%B5%EC%8B%9D%EC%B1%84%EB%84%90",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "아인의 주식투자",
+      "url": "https://www.youtube.com/@%EC%95%84%EC%9D%B8%EC%9D%98%EC%A3%BC%EC%8B%9D%ED%88%AC%EC%9E%90",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "주식투자 리드온TV",
+      "url": "https://www.youtube.com/@lead_on",
+      "kind": "youtube",
+      "enabled": true
+    },
+    {
+      "name": "심플 관심종목 TV",
+      "url": "https://www.youtube.com/channel/UChQIBrXk5QMyJjF3Hl_5-kQ",
+      "channel_id": "UChQIBrXk5QMyJjF3Hl_5-kQ",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01"
+    },
+    {
+      "name": "급등주 장인 폭등남",
+      "url": "https://www.youtube.com/channel/UCxCWqQ_njJawLwaZrX12XMA",
+      "channel_id": "UCxCWqQ_njJawLwaZrX12XMA",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01"
+    },
+    {
+      "name": "내일상한가",
+      "url": "https://www.youtube.com/channel/UCKU8WwSeCTarFQE5N_D8otA",
+      "channel_id": "UCKU8WwSeCTarFQE5N_D8otA",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01"
+    },
+    {
+      "name": "주식일타",
+      "url": "https://www.youtube.com/channel/UCN2ApcWLqDzz-4qTeCuswFw",
+      "channel_id": "UCN2ApcWLqDzz-4qTeCuswFw",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01",
+      "verified_handle": "@주식일타7",
+      "feed_title": "3D Pulse",
+      "identity_note": "주식일타(@주식일타7)와 3D Pulse는 동일 채널 ID. 중복 수집하지 않음. 공식 페이지·공개 피드 재대조: 2026-11-01.",
+      "aliases": [
+        "3D Pulse"
+      ]
+    },
+    {
+      "name": "급등주훈련소-세력사냥꾼 제이스",
+      "url": "https://www.youtube.com/channel/UCYfqTGR7iRkl7TN6KHmgIcQ",
+      "channel_id": "UCYfqTGR7iRkl7TN6KHmgIcQ",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01"
+    },
+    {
+      "name": "세력사냥꾼 제이스",
+      "url": "https://www.youtube.com/channel/UCI_mSWFKxGphOBMGqz0nkVg",
+      "channel_id": "UCI_mSWFKxGphOBMGqz0nkVg",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01",
+      "latest_public_video_at_check": "2024-11-19T07:15:01+09:00",
+      "identity_note": "급등주훈련소-세력사냥꾼 제이스와 별도 채널. 오래된 영상을 오늘 추천으로 취급하지 않음."
+    },
+    {
+      "name": "여의도 경제연구소TV",
+      "url": "https://www.youtube.com/channel/UCU0a9y-4dKhFjUUXH3q2t6w",
+      "channel_id": "UCU0a9y-4dKhFjUUXH3q2t6w",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01"
+    },
+    {
+      "name": "명품차트분석",
+      "url": "https://www.youtube.com/channel/UC6haO7lRiXKrgSeynRUfGNw",
+      "channel_id": "UC6haO7lRiXKrgSeynRUfGNw",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01"
+    },
+    {
+      "name": "상한가 연구소TV",
+      "url": "https://www.youtube.com/channel/UCVhirIgF69JYODeDxxr_dew",
+      "channel_id": "UCVhirIgF69JYODeDxxr_dew",
+      "kind": "youtube",
+      "enabled": true,
+      "verified_date": "2026-11-01"
+    }
+  ],
+  "broadcast_programs": [
+    {
+      "name": "종결자: 랭킹전",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000175",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "종결자: 맞대결",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000176",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "종결자: 최강고수전",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000177",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "마켓 브릿지",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000174",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "친절한 종목상담 4989",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000168",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "굿모닝 오늘의 증시",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000153",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "증시 오늘",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000152",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "증시10",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000161",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "증시 오늘과 내일",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000151",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "주식상담 넘버원",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000156",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "스치면 상한가 리턴즈",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000173",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "야간투자본부",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000166",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "용호상박",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000171",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "사주팔자 보러와",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000167",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "생생한 주식쇼 生쇼",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000006",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "스치면 상한가",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000077",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "글로벌 증시 투나잇",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000158",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "글로벌 투자의 정석 월가월부",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000172",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "주식남녀",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000169",
+      "broadcaster": "매일경제TV"
+    },
+    {
+      "name": "더 워룸",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P4007",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "스탁리그 히어로즈",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P4057",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "종목쇼",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P3881",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "출발증시 1부",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P3893",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "출발증시 2부",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P3894",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "마켓인사이트",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P3842",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "K-스탁 라이브",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P3429",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "마켓워치",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P3843",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "성공투자 오후증시",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P3883",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "판도라",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P4006",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "국민주식고충처리반 1~6부",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P2652",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "주식, 알아야번다",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P4014",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "머니플러스",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P3653",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "이상로 - 텐텐배거 투자공식 시즌2",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P4026",
+      "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "우슬초 - 위대한 투자수업 시즌2",
+      "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P4055",
+      "broadcaster": "한국경제TV"
+    }
+  ]
+}

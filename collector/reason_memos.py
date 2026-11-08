@@ -17,8 +17,9 @@ def evidence(record, stock, day):
     code, name = stock['code'], stock['name']
     info = record.get('infostock', {}).get('items', {}).get(code)
     if info:
-        source = record['infostock'].get('source', '')
-        return info['reason'], '인포스탁', source if source.startswith('https://') else '영웅문 증시요약(6)', '기사 사유'
+        source = info.get('source') or record['infostock'].get('source', '')
+        title = info.get('article_title') or record['infostock'].get('title', '증시요약(6)')
+        return info['reason'], '인포스탁', source if source.startswith('https://') else '영웅문 ' + title, '기사 사유'
     reviewed = record.get('reviewed', {}).get('items', {}).get(code)
     if reviewed:
         return reviewed['reason'], reviewed.get('source', '검토 자료'), reviewed.get('url', ''), '출처 분석'
@@ -108,7 +109,7 @@ def sync_all(data, through, *, apply=True, mark_unknown=False):
                 if text:
                     # Prefer the previously written research when preserving an existing note.
                     item = item or researched
-                if item:
+                if record.get('infostock', {}).get('items', {}).get(code):
                     incoming.setdefault(code, []).append(hero_line(day, item))
             report['notes_added'] += added
             report['by_day'].append({'day': day, 'stocks': len(stocks), 'added': added, 'supported': supported, 'unconfirmed': missing})

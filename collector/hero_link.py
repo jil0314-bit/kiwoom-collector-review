@@ -5,10 +5,45 @@ import re
 import threading
 import sys
 import json
+import hashlib
+import secrets
+import time
 from pathlib import Path
 
-LOCK = threading.Lock()
+LOCK = threading.RLock()
 TARGET_FILE = Path(__file__).resolve().parent / 'data' / 'hero_link_target.json'
+IMAGE_CACHE = {}
+
+
+def process_image(pid):
+    """Bind recovery to the exact previously confirmed executable, not its name."""
+    k = ctypes.WinDLL('kernel32', use_last_error=True)
+    k.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    k.OpenProcess.restype = wintypes.HANDLE
+    k.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD,
+                                           wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
+    k.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = k.OpenProcess(0x1000, False, pid)
+    if not handle:
+        return None
+    try:
+        buf, size = ctypes.create_unicode_buffer(2048), wintypes.DWORD(2048)
+        if not k.QueryFullProcessImageNameW(handle, 0, buf, ctypes.byref(size)):
+            return None
+        path = Path(buf.value)
+        if path.name.lower() != 'nkrunlite.exe':
+            return None
+        stat = path.stat()
+        key = (str(path).lower(), stat.st_mtime_ns, stat.st_size)
+        if key not in IMAGE_CACHE:
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            IMAGE_CACHE.clear()
+            IMAGE_CACHE[key] = hashlib.sha256((key[0] + ':' + digest).encode()).hexdigest()
+        return IMAGE_CACHE[key]
+    except OSError:
+        return None
+    finally:
+        k.CloseHandle(handle)
 
 
 def preferred():
@@ -16,14 +51,137 @@ def preferred():
         saved = json.loads(TARGET_FILE.read_text(encoding='utf-8'))
         handle = str(saved['handle'])
         w = Windows()
-        charts = w.charts()
+        charts = authorized_charts(w)
+        handle = str(json.loads(TARGET_FILE.read_text(encoding='utf-8'))['handle'])
         if int(handle) in charts:
             return handle
-        side = saved.get('side')
-        matches = [h for h in charts if (w.rect(h)[0] < 0) == (side == 'left')] if side in ('left', 'right') else []
-        return str(matches[0]) if len(matches) == 1 else ''
+        # A chart may be reopened within the verified Hero4 process.
+        if len(charts) == 1:
+            return str(charts[0])
+        # Never silently choose another chart when the selected chart is closed.
+        return ''
     except (OSError, ValueError, KeyError):
         return ''
+
+
+def process_start(pid):
+    """Creation timestamp of a running process; exited handles retain old timestamps."""
+    k = ctypes.WinDLL('kernel32', use_last_error=True)
+    k.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    k.OpenProcess.restype = wintypes.HANDLE
+    k.GetProcessTimes.argtypes = [wintypes.HANDLE] + [ctypes.POINTER(wintypes.FILETIME)] * 4
+    k.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+    k.WaitForSingleObject.restype = wintypes.DWORD
+    k.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = k.OpenProcess(0x101000, False, pid)  # QUERY_LIMITED_INFORMATION | SYNCHRONIZE
+    if not handle:
+        return None
+    try:
+        if k.WaitForSingleObject(handle, 0) != 0x102:  # WAIT_TIMEOUT: still running
+            return None
+        created, exited, kernel, user = [wintypes.FILETIME() for _ in range(4)]
+        if not k.GetProcessTimes(handle, ctypes.byref(created), ctypes.byref(exited),
+                                 ctypes.byref(kernel), ctypes.byref(user)):
+            return None
+        if k.WaitForSingleObject(handle, 0) != 0x102:
+            return None
+        return (created.dwHighDateTime << 32) | created.dwLowDateTime
+    finally:
+        k.CloseHandle(handle)
+
+
+def authorized_charts(w):
+    """Only charts owned by the user-confirmed 0311 Hero4 login session."""
+    try:
+        saved = json.loads(TARGET_FILE.read_text(encoding='utf-8'))
+        pid = int(saved['pid'])
+        if saved.get('account_suffix') != '0311':
+            return []
+        if process_start(pid) == int(saved['process_start']):
+            # A login can change accounts without changing the process or its PID.
+            if saved.get('account_digest') and not w.matches_identity(pid, saved):
+                return []
+        else:
+            with LOCK:
+                candidates = w.charts()
+                matches = [p for p in {w.pid(h) for h in candidates}
+                           if w.matches_identity(p, saved)]
+                if len(matches) != 1:
+                    return []
+                pid = matches[0]
+                charts = [h for h in candidates if w.pid(h) == pid
+                          and w.rect(h)[3] - w.rect(h)[1] > 110
+                          and ('left' if w.rect(h)[0] < 0 else 'right') == saved.get('side')]
+                if len(charts) != 1 or len(w.edits(charts[0])) != 1:
+                    return []
+                start = process_start(pid)
+                if start is None or not w.matches_identity(pid, saved):
+                    return []
+                if process_start(pid) != start or w.pid(charts[0]) != pid:
+                    return []
+                saved.update(pid=pid, process_start=start, handle=str(charts[0]))
+                save_target(saved)
+        return [h for h in w.charts() if w.pid(h) == pid]
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+
+
+def save_target(target):
+    temp = TARGET_FILE.with_suffix('.tmp')
+    temp.write_text(json.dumps(target), encoding='utf-8')
+    temp.replace(TARGET_FILE)
+
+
+def diagnostic():
+    """Explain a missing target without relaxing the verified-account boundary."""
+    try:
+        saved = json.loads(TARGET_FILE.read_text(encoding='utf-8'))
+        if saved.get('account_suffix') != '0311':
+            raise ValueError()
+        w = Windows()
+        charts = authorized_charts(w)
+        saved = json.loads(TARGET_FILE.read_text(encoding='utf-8'))
+        start = process_start(int(saved['pid']))
+        if start is None or start != int(saved['process_start']):
+            return {'state': 'session_changed', 'message':
+                    '영웅문 재실행 후 동일 계좌 자동 확인 대기 중입니다. 0311 계좌와 0600을 펼쳐주세요. 확인이 안 되면 재연결 버튼을 사용하세요.'}
+        if not charts:
+            return {'state': 'no_chart', 'message':
+                    '확인된 0311 영웅문에서 보이는 0600 차트를 찾지 못했습니다. 해당 0600을 열어주세요.'}
+        if len(charts) > 1 and not preferred():
+            return {'state': 'select_chart', 'message': '0600 차트가 여러 개입니다. 연동할 차트를 선택해주세요.'}
+        return {'state': 'ready', 'message': '0600 연결 대상 확인됨 · 실제 종목 전환은 별도 확인 필요'}
+    except (OSError, ValueError, KeyError, TypeError):
+        return {'state': 'unconfirmed', 'message': '0311 계좌의 영웅문 연결 대상 확인이 필요합니다.'}
+
+
+def confirm_session(account_suffix):
+    """Explicit user attestation only; never infer an account from a process ID."""
+    if account_suffix != '0311':
+        raise ValueError('0311 계좌 확인이 필요합니다.')
+    with LOCK:
+        w = Windows()
+        charts = w.charts()
+        # Minimized MDI charts have only a title bar, not a usable chart area.
+        charts = [h for h in charts if w.rect(h)[3] - w.rect(h)[1] > 110]
+        if len(charts) != 1 or len(w.edits(charts[0])) != 1:
+            return {'ok': False, 'message': '연결할 0311 계좌의 0600 차트 하나만 펼쳐주세요. 여러 창이면 임의 연결하지 않습니다.'}
+        chart = charts[0]
+        pid = w.pid(chart)
+        start = process_start(pid)
+        if start is None:
+            return {'ok': False, 'message': '영웅문 실행 세션을 확인하지 못했습니다.'}
+        if chart not in w.charts() or w.pid(chart) != pid or process_start(pid) != start:
+            return {'ok': False, 'message': '확인 중 영웅문 화면이 변경되었습니다. 다시 확인해주세요.'}
+        target = {'account_suffix': account_suffix, 'pid': pid, 'process_start': start,
+                  'handle': str(chart), 'side': 'left' if w.rect(chart)[0] < 0 else 'right'}
+        identity = w.capture_identity(pid)
+        if not isinstance(identity, dict) or not all(identity.get(k) for k in
+                                                      ('identity_salt', 'account_digest', 'image_digest')):
+            return {'ok': False, 'message': '0311 계좌 표시를 자동 확인하지 못해 연결 대상을 저장하지 않았습니다.'}
+        target.update(identity)
+        save_target(target)
+        return {'ok': True, 'message': '0311 계좌의 현재 0600 연결 대상을 저장했습니다. 종목을 선택해 전환을 확인해주세요.'}
 
 
 def exact_chart(title):
@@ -56,6 +214,50 @@ class Windows:
         self.u.SendMessageTimeoutW.restype = ctypes.c_size_t
         self.u.PostMessageW.argtypes = [wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
 
+    def account_values(self, pid):
+        # Read visible account displays only. Never enumerate dropdown contents,
+        # log account numbers, or touch order controls.
+        values = []
+        deadline = time.monotonic() + 1.5
+        for root in self.enum():
+            if self.pid(root) != pid or '영웅문' not in self.title(root):
+                continue
+            for h in self.enum(root):
+                if time.monotonic() > deadline:
+                    return []  # Fail closed on a hung/slow UI.
+                if not self.u.IsWindowVisible(h):
+                    continue
+                buf = ctypes.create_unicode_buffer(128)
+                self.u.GetClassNameW(h, buf, 128)
+                if buf.value.lower() != 'edit':
+                    continue
+                value = self.text(h)
+                if re.fullmatch(r'\d{4}-\d{4}', value) and value.endswith('0311'):
+                    values.append(value)
+        return values
+
+    def capture_identity(self, pid):
+        values = self.account_values(pid)
+        # Two independently displayed matching values avoid trusting a lone edit.
+        accounts = {value for value in values if values.count(value) >= 2}
+        image = process_image(pid)
+        if len(accounts) != 1 or not image:
+            return {}
+        salt = secrets.token_hex(16)
+        return {'identity_salt': salt,
+                'account_digest': hashlib.sha256((salt + accounts.pop()).encode()).hexdigest(),
+                'image_digest': image}
+
+    def matches_identity(self, pid, saved):
+        if not all(saved.get(k) for k in ('identity_salt','account_digest','image_digest')):
+            return False
+        if process_image(pid) != saved['image_digest']:
+            return False
+        values = self.account_values(pid)
+        return any(values.count(v) >= 2 and secrets.compare_digest(
+            hashlib.sha256((saved['identity_salt'] + v).encode()).hexdigest(),
+            saved['account_digest']) for v in set(values))
+
     def enum(self, parent=None):
         result = []
         callback = self.callback(lambda h, _: result.append(int(h)) or True)
@@ -83,6 +285,11 @@ class Windows:
         r = wintypes.RECT()
         self.u.GetWindowRect(handle, ctypes.byref(r))
         return r.left, r.top, r.right, r.bottom
+
+    def pid(self, handle):
+        pid = wintypes.DWORD()
+        self.u.GetWindowThreadProcessId(handle, ctypes.byref(pid))
+        return pid.value
 
     def charts(self):
         found = []
@@ -116,7 +323,7 @@ def targets():
     w = Windows()
     return [{'handle': str(h), 'label': '[0600] ' + ('왼쪽' if w.rect(h)[0] < 0 else '오른쪽')
              + ' · 위치 ' + str(w.rect(h)[0]) + ' · ' + (w.text(e[0]) if len(e := w.edits(h)) == 1 else '입력칸 확인 필요')}
-            for h in w.charts()]
+            for h in authorized_charts(w)]
 
 
 def send(code, windows=None, chart_handle=None):
@@ -124,22 +331,32 @@ def send(code, windows=None, chart_handle=None):
         raise ValueError('종목코드 형식 오류')
     with LOCK:
         w = windows or Windows()
-        charts = w.charts()
+        charts = authorized_charts(w) if windows is None else w.charts()
         chart_handle = chart_handle or (preferred() if windows is None else '')
         if chart_handle:
-            chosen = int(chart_handle)
+            try:
+                chosen = int(chart_handle)
+            except (TypeError, ValueError):
+                chosen = -1
             if chosen not in charts:
-                return {'ok': False, 'message': '선택한 0600 차트가 닫혔습니다. 연동 차트를 다시 선택해주세요.'}
+                if windows is None and charts:
+                    replacement = preferred()
+                    if not replacement:
+                        return {'ok': False, 'message': '기존 0600 창이 닫혔습니다. 연동할 차트를 다시 선택해주세요.'}
+                    chosen = int(replacement)
+                else:
+                    return {'ok': False, 'message': '0311 계좌의 영웅문 0600을 확인할 수 없습니다. 다시 확인해주세요.'}
             charts = [chosen]
         if len(charts) != 1:
-            return {'ok': False, 'message': '차트 위에서 연동할 영웅문 0600을 선택해주세요.' if charts else '영웅문 [0600] 키움종합차트를 열어주세요.'}
+            return {'ok': False, **diagnostic()} if windows is None else {'ok': False, 'message': '0311 계좌의 연동 차트를 선택해주세요.' if charts else '0311 계좌의 영웅문 연결을 다시 확인해주세요.'}
         chart = charts[0]
         edits = w.edits(chart)
         if len(edits) != 1:
             return {'ok': False, 'message': '0600 종목코드 입력칸을 정확히 식별하지 못했습니다. 전송하지 않았습니다.'}
         target = edits[0]
         # Revalidate immediately before writing, never fall back to another window.
-        if not exact_chart(w.title(chart)) or w.edits(chart) != [target]:
+        if (not exact_chart(w.title(chart)) or w.edits(chart) != [target]
+                or (windows is None and chart not in authorized_charts(w))):
             return {'ok': False, 'message': '0600 화면이 변경되어 전송하지 않았습니다.'}
         buf = ctypes.create_unicode_buffer(code)
         result = ctypes.c_size_t()

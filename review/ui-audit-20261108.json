@@ -1,0 +1,4846 @@
+{
+  "inline": [
+    {
+      "day": "2026-11-02",
+      "code": "004545",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 004545",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "001527",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 001527",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "396470",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 396470",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "007540",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 007540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "184230",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 184230",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "278650",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 278650",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "248170",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 248170",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "460940",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 460940",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "18064K",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 18064K",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "0015M0",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 0015M0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "163280",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 163280",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "104700",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 104700",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "494120",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 494120",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "359410",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 359410",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "200350",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 200350",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "001940",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 001940",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "045970",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 045970",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "321820",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 321820",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "235980",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 235980",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "180640",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 180640",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "232680",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 232680",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "071970",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 071970",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "432980",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 432980",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "023160",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 023160",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "004105",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 004105",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "141000",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 141000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "014620",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 014620",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "060310",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 060310",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "236200",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 236200",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "054620",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 054620",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "047920",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 047920",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "291650",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 291650",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "250030",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 250030",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "298040",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 298040",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "004020",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 004020",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "010060",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 010060",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "114190",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 114190",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "049120",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 049120",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "127710",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 127710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "0220W0",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 0220W0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "006360",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 006360",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "444530",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 444530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "030530",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 030530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "042660",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 042660",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "383310",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 383310",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "052710",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 052710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "179880",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 179880",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "069920",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 069920",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "381620",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 381620",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "230240",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 230240",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "004100",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 004100",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "121600",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 121600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "115450",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 115450",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "086280",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 086280",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "322000",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 322000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "460930",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 460930",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "393890",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 393890",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "417030",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 417030",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "082740",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 082740",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "066590",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 066590",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "019550",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 019550",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "007810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 007810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "138080",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 138080",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "491000",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 491000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "058630",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 058630",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "010660",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 010660",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "064400",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 064400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "333430",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 333430",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "130500",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 130500",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "279600",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 279600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "023530",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 023530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "009160",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 009160",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "033340",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 033340",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "317400",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 317400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "012860",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 012860",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "014790",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 014790",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "101330",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 101330",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "039290",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 039290",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "029460",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 029460",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "000227",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 000227",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "320000",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 320000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "240600",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 240600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "354320",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 354320",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "016600",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 016600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "054300",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 054300",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "378800",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 378800",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "005880",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 005880",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "010140",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 010140",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "003490",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 003490",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "420570",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 420570",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "045510",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 045510",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "066360",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 066360",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "103590",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 103590",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "290550",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 290550",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "112610",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 112610",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "020560",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-02 · 020560",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "270660",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 270660",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "032620",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 032620",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "139480",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 139480",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "094840",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-02 · 094840",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "18064K",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 18064K",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "276730",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 276730",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "211270",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 211270",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "180640",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 180640",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "127710",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 127710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "430690",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 430690",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "004540",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 004540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "004545",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 004545",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "457600",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 457600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "002320",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 002320",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "376900",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 376900",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "150900",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 150900",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "010640",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 010640",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "043360",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 043360",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "092300",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 092300",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "0053F0",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 0053F0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "267850",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 267850",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "432980",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 432980",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "338840",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 338840",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "488280",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 488280",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "069920",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 069920",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "397810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 397810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "362990",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 362990",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "393210",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 393210",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "0039P0",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 0039P0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "419050",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 419050",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "396690",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 396690",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "006650",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 006650",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "394420",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 394420",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "453340",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 453340",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "093640",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 093640",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "36328K",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 36328K",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "065150",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 065150",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "033250",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 033250",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "005870",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 005870",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "096690",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 096690",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "451760",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 451760",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "095910",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 095910",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "356890",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 356890",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "0015S0",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-03 · 0015S0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "0088M0",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 0088M0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "109670",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 109670",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "259960",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 259960",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "065500",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 065500",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "377030",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 377030",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "043710",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 043710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "290690",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 290690",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "239610",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 239610",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "263860",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 263860",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "136540",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 136540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "317530",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 317530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "139990",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 139990",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "318010",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 318010",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "387570",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 387570",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "405000",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 405000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "051630",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 051630",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "134790",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 134790",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "460940",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 460940",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "376980",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 376980",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "335810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 335810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "145270",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 145270",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "090370",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 090370",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "006840",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 006840",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "187220",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 187220",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "038530",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 038530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "052790",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 052790",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "261520",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 261520",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "007770",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 007770",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "046310",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 046310",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "009730",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 009730",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "332570",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 332570",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "085810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 085810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "275630",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 275630",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "420570",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 420570",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "100120",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 100120",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "067920",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 067920",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "001420",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 001420",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "060540",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 060540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "106240",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 106240",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "099190",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 099190",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "196450",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 196450",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "007530",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 007530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "080470",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 080470",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "170790",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 170790",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "256150",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 256150",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "036800",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 036800",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "078160",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 078160",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "080530",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 080530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "000990",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 000990",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "215480",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 215480",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "439090",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 439090",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "110020",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 110020",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "001560",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 001560",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "087600",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 087600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "002290",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 002290",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "058110",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 058110",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "267980",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 267980",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "143540",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 143540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "009470",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 009470",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "290270",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-03 · 290270",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "18064K",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 18064K",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "004545",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 004545",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "199430",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 199430",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "290690",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 290690",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "389260",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 389260",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "020400",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 020400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "091580",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 091580",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "101360",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 101360",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "009830",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 009830",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "282720",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 282720",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "008830",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 008830",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "107640",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 107640",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "475400",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 475400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "119500",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 119500",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "493330",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 493330",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "036710",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 036710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "243840",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 243840",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "261780",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 261780",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "033790",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 033790",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "104460",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 104460",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "443670",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 443670",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "078600",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 078600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "322000",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 322000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "259960",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 259960",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "003030",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 003030",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "416180",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 416180",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "010060",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 010060",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "126340",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 126340",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "002900",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 002900",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "219750",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 219750",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "382800",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 382800",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "066970",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 066970",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "092040",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 092040",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "121600",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 121600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "336260",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 336260",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "357580",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 357580",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "058730",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 058730",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "140410",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 140410",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "006400",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 006400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "000210",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 000210",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "452280",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 452280",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "047810",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 047810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "0158S0",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 0158S0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "089890",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 089890",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "246710",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 246710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "079950",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 079950",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "388050",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 388050",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "475150",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 475150",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "009835",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 009835",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "222800",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 222800",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "008930",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 008930",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "457190",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 457190",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "348370",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 348370",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "247540",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 247540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "469750",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 469750",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "007810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 007810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "032960",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 032960",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "086520",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 086520",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "065500",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 065500",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "254120",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 254120",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "003670",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 003670",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "383310",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 383310",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "085910",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 085910",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "253590",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 253590",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "405000",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 405000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "107600",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 107600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "057030",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 057030",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "131290",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 131290",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "114190",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 114190",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "042600",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 042600",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "393890",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 393890",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "050110",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 050110",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "144960",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 144960",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "022100",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 022100",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "323280",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 323280",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "036930",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 036930",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "33626K",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 33626K",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "453450",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 453450",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "043200",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 043200",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "006110",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 006110",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "281740",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 281740",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "178320",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 178320",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "222080",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 222080",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "153710",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 153710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "005070",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 005070",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "378340",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 378340",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "137400",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 137400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "365340",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 365340",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "020150",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 020150",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "365330",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 365330",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "010955",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 010955",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "033540",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 033540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "028050",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 028050",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "024850",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-04 · 024850",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "450080",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 450080",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "071950",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 071950",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "036540",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 036540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "005420",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 005420",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "051630",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 051630",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "000215",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-04 · 000215",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "0013Y0",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 0013Y0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "001525",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 001525",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "004545",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 004545",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "021045",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 021045",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "335870",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 335870",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "004540",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 004540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "020400",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 020400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "354200",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 354200",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "001527",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 001527",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "128540",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 128540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "000180",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 000180",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "18064K",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 18064K",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "109610",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 109610",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "008355",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 008355",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "468530",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 468530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "041830",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 041830",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "208370",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 208370",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "089590",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 089590",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "0126Z0",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 0126Z0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "276730",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 276730",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "109670",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 109670",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "326030",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 326030",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "161390",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 161390",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "095500",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 095500",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "040160",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 040160",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "140410",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 140410",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "397810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 397810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "282720",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 282720",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "035720",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 035720",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "001080",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 001080",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "358570",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 358570",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "010130",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 010130",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "041510",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 041510",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "186230",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 186230",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "002630",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 002630",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "405000",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 405000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "128940",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 128940",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "072770",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 072770",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "376300",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 376300",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "272450",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 272450",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "079900",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 079900",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "161890",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 161890",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "456160",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 456160",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "369370",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 369370",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "084440",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 084440",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "091810",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 091810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "014790",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 014790",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "251970",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 251970",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "192820",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 192820",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "051630",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 051630",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "035420",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 035420",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "068270",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 068270",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "000240",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 000240",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "352820",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 352820",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "021240",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 021240",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "383930",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 383930",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "002220",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 002220",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "069960",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 069960",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "373170",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 373170",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "236810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 236810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "238090",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 238090",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "038530",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 038530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "950200",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 950200",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "005300",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 005300",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "008930",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 008930",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "439580",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 439580",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "302440",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 302440",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "267850",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-05 · 267850",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "191410",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 191410",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "333050",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 333050",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "096690",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 096690",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "068760",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 068760",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "113810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 113810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "009970",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 009970",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "187220",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 187220",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "112610",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 112610",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "219750",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 219750",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "086900",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 086900",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "141080",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 141080",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "009420",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 009420",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "335810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 335810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "298690",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 298690",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "064520",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 064520",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "114190",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 114190",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "280360",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 280360",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "0088M0",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 0088M0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "177830",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 177830",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "067160",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 067160",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "241560",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 241560",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "263720",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 263720",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "316140",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 316140",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "445680",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 445680",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "278650",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 278650",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "032680",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 032680",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "195940",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 195940",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "012160",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 012160",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "365330",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 365330",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "241710",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 241710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "013890",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 013890",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "900310",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-05 · 900310",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "001527",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 001527",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "18064K",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 18064K",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "335870",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 335870",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "900100",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 900100",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "128540",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 128540",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "021045",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 021045",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "004835",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 004835",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "004545",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 004545",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "0158S0",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 0158S0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "004830",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 004830",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "012205",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 012205",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "003010",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 003010",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "187660",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 187660",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "064240",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 064240",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "119850",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 119850",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "181710",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 181710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "058850",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 058850",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "317400",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 317400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "261780",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 261780",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "005090",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 005090",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "483350",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 483350",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "200350",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 200350",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "089860",
+      "expected": true,
+      "ready": true,
+      "label": "2026-11-06 · 089860",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "002995",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 002995",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "114190",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 114190",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "0220W0",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 0220W0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "226330",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 226330",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "073110",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 073110",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "121440",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 121440",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "186230",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 186230",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "009730",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 009730",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "222980",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 222980",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "353190",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 353190",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "014990",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 014990",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "321820",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 321820",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "030530",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 030530",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "383930",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 383930",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "005745",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 005745",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "006360",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 006360",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "322780",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 322780",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "101000",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 101000",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "270520",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 270520",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "206640",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 206640",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "194370",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 194370",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "36328K",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 36328K",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "008355",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 008355",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "328380",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 328380",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "093380",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 093380",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "131100",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 131100",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "069410",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 069410",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "290720",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 290720",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "012170",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 012170",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "214260",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 214260",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "328130",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 328130",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "351870",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 351870",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "119830",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 119830",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "080470",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 080470",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "000400",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 000400",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "130500",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 130500",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "050120",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 050120",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "018260",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 018260",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "092440",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 092440",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "214450",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 214450",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "003495",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 003495",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "051380",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 051380",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "101140",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 101140",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "208350",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 208350",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "011330",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 011330",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "043710",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 043710",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "335810",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 335810",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "002220",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 002220",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "134580",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 134580",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "290660",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 290660",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "004105",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 004105",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "461030",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 461030",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "084695",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 084695",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "053350",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 053350",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "452280",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 452280",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "087010",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 087010",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "057030",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 057030",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "0007C0",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 0007C0",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "048410",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 048410",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "002210",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 002210",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "007120",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 007120",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "178320",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 178320",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "012160",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 012160",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "046310",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 046310",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "192410",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 192410",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "204270",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 204270",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "148250",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 148250",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "101360",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 101360",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "109740",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 109740",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "258610",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 258610",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "035900",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 035900",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "052460",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 052460",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "088290",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 088290",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "088280",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 088280",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "376980",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 376980",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "352940",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 352940",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "143240",
+      "expected": false,
+      "ready": true,
+      "label": "2026-11-06 · 143240",
+      "matched": true
+    }
+  ],
+  "modal": [
+    {
+      "day": "2026-11-02",
+      "code": "396470",
+      "label": "2026-11-02 / 396470 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "007540",
+      "label": "2026-11-02 / 007540 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "184230",
+      "label": "2026-11-02 / 184230 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "278650",
+      "label": "2026-11-02 / 278650 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "248170",
+      "label": "2026-11-02 / 248170 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "460940",
+      "label": "2026-11-02 / 460940 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "0015M0",
+      "label": "2026-11-02 / 0015M0 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "104700",
+      "label": "2026-11-02 / 104700 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "359410",
+      "label": "2026-11-02 / 359410 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "200350",
+      "label": "2026-11-02 / 200350 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "001940",
+      "label": "2026-11-02 / 001940 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "045970",
+      "label": "2026-11-02 / 045970 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "321820",
+      "label": "2026-11-02 / 321820 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "232680",
+      "label": "2026-11-02 / 232680 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "071970",
+      "label": "2026-11-02 / 071970 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "023160",
+      "label": "2026-11-02 / 023160 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "014620",
+      "label": "2026-11-02 / 014620 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "060310",
+      "label": "2026-11-02 / 060310 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "236200",
+      "label": "2026-11-02 / 236200 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "054620",
+      "label": "2026-11-02 / 054620 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "047920",
+      "label": "2026-11-02 / 047920 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "298040",
+      "label": "2026-11-02 / 298040 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "004020",
+      "label": "2026-11-02 / 004020 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "010060",
+      "label": "2026-11-02 / 010060 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "0220W0",
+      "label": "2026-11-02 / 0220W0 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "006360",
+      "label": "2026-11-02 / 006360 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "030530",
+      "label": "2026-11-02 / 030530 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "042660",
+      "label": "2026-11-02 / 042660 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "179880",
+      "label": "2026-11-02 / 179880 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "004100",
+      "label": "2026-11-02 / 004100 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "121600",
+      "label": "2026-11-02 / 121600 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "115450",
+      "label": "2026-11-02 / 115450 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "086280",
+      "label": "2026-11-02 / 086280 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "322000",
+      "label": "2026-11-02 / 322000 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "460930",
+      "label": "2026-11-02 / 460930 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "393890",
+      "label": "2026-11-02 / 393890 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "417030",
+      "label": "2026-11-02 / 417030 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "082740",
+      "label": "2026-11-02 / 082740 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "023530",
+      "label": "2026-11-02 / 023530 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "005880",
+      "label": "2026-11-02 / 005880 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-02",
+      "code": "020560",
+      "label": "2026-11-02 / 020560 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "211270",
+      "label": "2026-11-03 / 211270 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "180640",
+      "label": "2026-11-03 / 180640 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "430690",
+      "label": "2026-11-03 / 430690 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "002320",
+      "label": "2026-11-03 / 002320 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "376900",
+      "label": "2026-11-03 / 376900 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "150900",
+      "label": "2026-11-03 / 150900 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "010640",
+      "label": "2026-11-03 / 010640 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "092300",
+      "label": "2026-11-03 / 092300 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "0053F0",
+      "label": "2026-11-03 / 0053F0 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "267850",
+      "label": "2026-11-03 / 267850 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "432980",
+      "label": "2026-11-03 / 432980 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "488280",
+      "label": "2026-11-03 / 488280 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "362990",
+      "label": "2026-11-03 / 362990 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "419050",
+      "label": "2026-11-03 / 419050 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "006650",
+      "label": "2026-11-03 / 006650 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "453340",
+      "label": "2026-11-03 / 453340 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-03",
+      "code": "0015S0",
+      "label": "2026-11-03 / 0015S0 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "199430",
+      "label": "2026-11-04 / 199430 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "290690",
+      "label": "2026-11-04 / 290690 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "389260",
+      "label": "2026-11-04 / 389260 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "020400",
+      "label": "2026-11-04 / 020400 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "091580",
+      "label": "2026-11-04 / 091580 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "101360",
+      "label": "2026-11-04 / 101360 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "009830",
+      "label": "2026-11-04 / 009830 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "282720",
+      "label": "2026-11-04 / 282720 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "008830",
+      "label": "2026-11-04 / 008830 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "107640",
+      "label": "2026-11-04 / 107640 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "119500",
+      "label": "2026-11-04 / 119500 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "493330",
+      "label": "2026-11-04 / 493330 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "036710",
+      "label": "2026-11-04 / 036710 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "243840",
+      "label": "2026-11-04 / 243840 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "261780",
+      "label": "2026-11-04 / 261780 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "033790",
+      "label": "2026-11-04 / 033790 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "104460",
+      "label": "2026-11-04 / 104460 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "443670",
+      "label": "2026-11-04 / 443670 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "078600",
+      "label": "2026-11-04 / 078600 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "322000",
+      "label": "2026-11-04 / 322000 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "259960",
+      "label": "2026-11-04 / 259960 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "003030",
+      "label": "2026-11-04 / 003030 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "416180",
+      "label": "2026-11-04 / 416180 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "010060",
+      "label": "2026-11-04 / 010060 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "126340",
+      "label": "2026-11-04 / 126340 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "002900",
+      "label": "2026-11-04 / 002900 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "382800",
+      "label": "2026-11-04 / 382800 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "066970",
+      "label": "2026-11-04 / 066970 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "121600",
+      "label": "2026-11-04 / 121600 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "336260",
+      "label": "2026-11-04 / 336260 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "357580",
+      "label": "2026-11-04 / 357580 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "058730",
+      "label": "2026-11-04 / 058730 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "140410",
+      "label": "2026-11-04 / 140410 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "006400",
+      "label": "2026-11-04 / 006400 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "000210",
+      "label": "2026-11-04 / 000210 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "047810",
+      "label": "2026-11-04 / 047810 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "388050",
+      "label": "2026-11-04 / 388050 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "222800",
+      "label": "2026-11-04 / 222800 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "457190",
+      "label": "2026-11-04 / 457190 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "247540",
+      "label": "2026-11-04 / 247540 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "003670",
+      "label": "2026-11-04 / 003670 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "042600",
+      "label": "2026-11-04 / 042600 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "393890",
+      "label": "2026-11-04 / 393890 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "050110",
+      "label": "2026-11-04 / 050110 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "036930",
+      "label": "2026-11-04 / 036930 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-04",
+      "code": "024850",
+      "label": "2026-11-04 / 024850 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "0013Y0",
+      "label": "2026-11-05 / 0013Y0 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "004540",
+      "label": "2026-11-05 / 004540 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "020400",
+      "label": "2026-11-05 / 020400 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "354200",
+      "label": "2026-11-05 / 354200 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "128540",
+      "label": "2026-11-05 / 128540 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "109610",
+      "label": "2026-11-05 / 109610 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "468530",
+      "label": "2026-11-05 / 468530 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "041830",
+      "label": "2026-11-05 / 041830 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "208370",
+      "label": "2026-11-05 / 208370 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "089590",
+      "label": "2026-11-05 / 089590 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "0126Z0",
+      "label": "2026-11-05 / 0126Z0 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "276730",
+      "label": "2026-11-05 / 276730 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "326030",
+      "label": "2026-11-05 / 326030 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "140410",
+      "label": "2026-11-05 / 140410 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "282720",
+      "label": "2026-11-05 / 282720 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "035720",
+      "label": "2026-11-05 / 035720 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "001080",
+      "label": "2026-11-05 / 001080 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "358570",
+      "label": "2026-11-05 / 358570 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "010130",
+      "label": "2026-11-05 / 010130 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "041510",
+      "label": "2026-11-05 / 041510 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "128940",
+      "label": "2026-11-05 / 128940 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "072770",
+      "label": "2026-11-05 / 072770 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "376300",
+      "label": "2026-11-05 / 376300 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "091810",
+      "label": "2026-11-05 / 091810 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-05",
+      "code": "267850",
+      "label": "2026-11-05 / 267850 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "128540",
+      "label": "2026-11-06 / 128540 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "0158S0",
+      "label": "2026-11-06 / 0158S0 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "004830",
+      "label": "2026-11-06 / 004830 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "003010",
+      "label": "2026-11-06 / 003010 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "119850",
+      "label": "2026-11-06 / 119850 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "181710",
+      "label": "2026-11-06 / 181710 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "317400",
+      "label": "2026-11-06 / 317400 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "261780",
+      "label": "2026-11-06 / 261780 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "005090",
+      "label": "2026-11-06 / 005090 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "200350",
+      "label": "2026-11-06 / 200350 · 날짜별 보관",
+      "matched": true
+    },
+    {
+      "day": "2026-11-06",
+      "code": "089860",
+      "label": "2026-11-06 / 089860 · 날짜별 보관",
+      "matched": true
+    }
+  ]
+}

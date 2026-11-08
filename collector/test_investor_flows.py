@@ -302,7 +302,10 @@ class FlowTests(unittest.TestCase):
         flows.write(path,{'day':DAY,'final_attempts':1,'last_final_epoch':final.timestamp()})
         self.assertFalse(flows.due(self.data,final+timedelta(minutes=14)))
         self.assertTrue(flows.due(self.data,final+timedelta(minutes=15)))
-        flows.write(path,{'day':DAY,'final_attempts':3})
+        flows.write(path,{'day':DAY,'final_attempts':3,'last_final_epoch':final.timestamp()})
+        self.assertFalse(flows.due(self.data,final+timedelta(minutes=29)))
+        self.assertTrue(flows.due(self.data,final+timedelta(minutes=30)))
+        flows.write(path,{'day':DAY,'final_attempts':5})
         self.assertFalse(flows.due(self.data,final+timedelta(minutes=60)))
 
     def test_coordinator_prevents_overlap_without_charging_attempt(self):

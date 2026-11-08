@@ -51,6 +51,24 @@ class ChartTests(unittest.TestCase):
             with self.assertRaisesRegex(DataError, "분봉 없음"):
                 chart_data.load(Path("unused"), "2026-09-22", "005930", "minute", live=True)
 
+    def test_closed_session_restores_dated_saved_minutes_for_all_intervals(self):
+        import json
+        saved = {"stock": {"code": "005930", "name": "삼성전자"}, "day": "2026-09-22",
+                 "bars": [parse_bar(raw("20260922090000", 100))]}
+        for frame in ("minute", "minute3", "minute5"):
+            with self.subTest(frame=frame), \
+                 patch.object(chart_data.archive, "payload", return_value=(json.dumps(saved), False)), \
+                 patch.object(chart_data.archive, "active", return_value=Path("unused")), \
+                 patch.object(chart_data, "load_live", side_effect=DataError("해당 날짜 08:00~20:00 분봉 없음")):
+                result = chart_data.load(Path("unused"), saved["day"], "005930", frame, live=True)
+                self.assertFalse(result["live"])
+                self.assertTrue(result["live_fallback"])
+                self.assertEqual(result["day"], saved["day"])
+                self.assertEqual(result["frame"], frame)
+                self.assertEqual(result["bars"][0]["close"], 100)
+                self.assertIn("저장 분봉 표시", result["chart_notice"])
+        self.assertNotIn("live_fallback", saved)
+
     def test_live_authentication_failure_does_not_fall_back(self):
         import json
         with patch.object(chart_data.archive, "payload", return_value=(json.dumps({"stock": {"name": "삼성전자"}}), False)), \

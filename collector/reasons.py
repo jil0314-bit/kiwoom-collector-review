@@ -3,12 +3,14 @@
 Stored apart from user notes in data/reasons/YYYY-MM-DD.json; user memos are never touched.
 """
 import json
+import hashlib
 import os
 import re
 import threading
 import time
 import uuid
 import urllib.request
+from urllib.parse import urlencode
 from datetime import datetime
 from html.parser import HTMLParser
 from pathlib import Path
@@ -18,6 +20,7 @@ from kiwoom import KST
 # Hero4 writes the article currently open in its news viewer here. Read only.
 HERO4_NEWS = Path(r"C:\KiwoomHero4\user\#Q2gsNx0%Eg$$\News.html")
 TITLE = "특징 상한가 및 급등"
+FEATURED = ("특징 종목(코스피)", "특징 종목(코스닥)", "특징종목(코스피)", "특징종목(코스닥)")
 STAMP = re.compile(r"(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일\s*(\d{1,2})\s*시\s*(\d{1,2})\s*분")
 
 LOCK = threading.RLock()
@@ -27,7 +30,7 @@ NEWS_URL = "https://m.stock.naver.com/api/news/stock/{code}?pageSize=50&page=1"
 RISING = re.compile(r"특징주|상한가|급등|강세|상승|신고가|껑충|급증|치솟|뛰|↑|수혜|승인|허가|계약|수주|체결|공급|협약|MOU|인수|합병|최대|호실적|흑자|기대")
 ENTRY = re.compile(r"(?:^|(?<=[\t|\n]))[ \t]*(?P<name>[^\t\n|()]*?)[ \t]*(?:\(\s*(?P<code>[0-9A-Z]{6})\s*\))?\s*"
                    r"(?P<price>\d[\d,]*)\s*원\s*\(\s*(?P<rate>[+\-↑↓]?\s*\d+(?:\.\d+)?)\s*%\s*\)", re.M)
-DAYS = re.compile(r"^[\s|]*(\d{1,2})(?=[\s|]|$)")
+DAYS = re.compile(r"^[ \r\n]*(?:[\t|][ ]*)?(\d{1,2})[ ]*(?=[\t|\n]|$)")
 
 
 def path(data, day):
@@ -50,7 +53,7 @@ def write_day(data, day, record):
 
 
 def clean(text):
-    return re.sub(r"\s+", " ", text.replace("|", " ")).strip()
+    return re.sub(r"\s+", " ", text.replace("|", " ").replace("\x00", "")).strip()
 
 
 def parse(text, names):
@@ -81,21 +84,77 @@ def parse(text, names):
     return items
 
 
-def save_infostock(data, day, text, names, source="paste", published=""):
+def article_title(text):
+    for line in text.splitlines():
+        line = clean(line)
+        if "증시요약(" in line and (TITLE in line or any(label in line for label in FEATURED)):
+            return line.removeprefix("제목 : ").removeprefix("제목 ")
+    return ""
+
+
+def parse_feature_groups(text, names):
+    """Expand explicitly named members of rising groups in a featured article."""
+    by_name = {re.sub(r"\s+", "", name): code for code, name in names.items()}
+    items = {}
+    rows = text.replace("\r", "").splitlines()
+    for index, row in enumerate(rows[:-1]):
+        cells = [clean(cell) for cell in row.split("\t") if clean(cell)]
+        if len(cells) != 2 or not cells[0].endswith("그룹주"):
+            continue
+        reason = cells[1]
+        if not re.search(r"상승|급등|상한가", reason) or re.search(r"하락|급락", reason):
+            continue
+        members = re.search(r"\[종목\]\s*:\s*([^\n]+)", rows[index + 1])
+        if not members:
+            continue
+        for member in members.group(1).split(","):
+            name = clean(member)
+            code = by_name.get(re.sub(r"\s+", "", name))
+            if code:
+                items[code] = {"name": names[code], "reason": reason, "rate": None,
+                               "limit_days": None, "rank": None}
+    return items
+
+
+def save_infostock(data, day, text, names, source="paste", published="", archive=""):
     if not isinstance(text, str) or not text.strip() or len(text) > MAX_TEXT:
         raise ValueError("붙여넣은 내용이 비어 있거나 너무 깁니다.")
     path(data, day)
     dated, _ = article_day(text)
     if dated and dated != day:
         raise ValueError(f"기사 날짜 {dated}와 저장 날짜 {day}가 다릅니다. 기사 날짜를 선택하세요.")
+    title = article_title(text)
     items = parse(text, names)
+    if any(label in title for label in FEATURED):
+        items = {code: item for code, item in items.items() if item["rate"] > 0}
+        for code, item in parse_feature_groups(text, names).items():
+            items.setdefault(code, item)
     if not items:
         raise ValueError("종목과 사유를 찾지 못했습니다. 영웅문 기사 본문 전체를 복사(Ctrl+A → Ctrl+C)해서 붙여넣어 주세요.")
+    for item in items.values():
+        item.update(article_title=title, article_day=day, source=source, published=published)
+        if archive:
+            item["archive"] = archive
     with LOCK:
         record = read_day(data, day)
         previous = record.get("infostock", {}).get("items", {})
+        articles = record.get("infostock", {}).get("articles", [])
+        article = {"day": day, "title": title, "source": source, "published": published}
+        if archive:
+            article["archive"] = archive
+        if article not in articles:
+            articles = [*articles, article]
+        merged = {**items, **previous}
+        if TITLE in title:
+            for code, item in items.items():
+                old = previous.get(code, {})
+                if (any(label in old.get('article_title', '') for label in FEATURED)
+                        or (TITLE in old.get('article_title', '') and old.get('source') != 'paste'
+                            and published >= old.get('published', ''))):
+                    merged[code] = item
         record["infostock"] = {"saved_at": datetime.now(KST).isoformat(timespec="seconds"), "source": source,
-                               "published": published, "title": "증시요약(6) - 특징 상한가 및 급등종목", "items": {**previous, **items}}
+                               "published": published, "title": title or "증시요약(6) - 특징 상한가 및 급등종목",
+                               "articles": articles, "items": merged}
         write_day(data, day, record)
     return items
 
@@ -134,7 +193,7 @@ class Cells(HTMLParser):
 
 def html_text(raw):
     parser = Cells()
-    parser.feed(raw)
+    parser.feed(raw.replace("\x00", ""))
     return "".join(parser.parts)
 
 
@@ -150,10 +209,29 @@ def read_hero4(path=None):
     else:
         return None
     text = html_text(content)
-    if TITLE not in text:
+    if not article_title(text):
         return None
     day, published = article_day(text)
     return (day, published, text) if day else None
+
+
+def archive_hero4(data, day, published, source):
+    raw = source.read_bytes()
+    digest = hashlib.sha256(raw).hexdigest()[:16]
+    folder = Path(data) / "reasons" / "hero4_articles"
+    folder.mkdir(parents=True, exist_ok=True)
+    name = f"{day}_{published.replace(':', '')}_{digest}.html"
+    target = folder / name
+    if not target.exists():
+        temp = folder / (name + ".tmp-" + uuid.uuid4().hex)
+        try:
+            temp.write_bytes(raw)
+            os.replace(temp, target)
+        finally:
+            temp.unlink(missing_ok=True)
+    if target.read_bytes() != raw:
+        raise OSError("기사 원문 보관 검증 실패")
+    return target, read_hero4(target)
 
 
 SEEN = {"stamp": None}
@@ -179,7 +257,9 @@ def source_status(data, day):
     record = read_day(data, day)
     target = Path(data) / 'reasons' / 'hero4_source_status.json'
     local = json.loads(target.read_text(encoding='utf-8')) if target.is_file() else {}
-    summary = Path(data) / 'reasons' / 'summary_status.json'
+    summary = Path(data) / 'reasons' / ('summary_' + day + '.json')
+    if not summary.is_file():
+        summary = Path(data) / 'reasons' / 'summary_status.json'
     public = json.loads(summary.read_text(encoding='utf-8')) if summary.is_file() else {}
     return {'day': day, 'article_count': len(record.get('infostock',{}).get('items',{})),
             'local_article_day': local.get('article_day'), 'local_state': local.get('state','UNKNOWN'),
@@ -207,7 +287,11 @@ def watch_hero4(data, names_for, path=None):
         SEEN["stamp"] = stamp
         return None
     day, published, text = found
-    items = save_infostock(data, day, text, names_for(day), source="hero4", published=published)
+    archived, verified = archive_hero4(data, day, published, path)
+    if not verified or verified[:2] != (day, published) or verified[2] != text:
+        return None  # The viewer replaced News.html during our read; retry on the next tick.
+    items = save_infostock(data, day, verified[2], names_for(day), source="hero4", published=published,
+                           archive=str(archived.relative_to(Path(data) / "reasons")))
     write_hero_status(data,state='saved',article_day=day,published=published,count=len(items),codes=list(items))
     SEEN["stamp"] = stamp
     return day, items
@@ -284,8 +368,64 @@ def public_html(url, opener=urllib.request.urlopen):
         return response.read(2_000_000).decode('utf-8')
 
 
+SAMSUNG_BASE = 'https://www.samsungpop.com/ux/kor/trading/marketStock/analysis/company/'
+
+
+def summary_complete(record):
+    info = record.get('infostock', {})
+    articles = info.get('articles') or [info]
+    return bool(info.get('items')) and any(TITLE in a.get('title', '') for a in articles)
+
+
+def fetch_distributor_summary(data, day, names, fetch=public_html):
+    """Public Infostock distributor. Validate list date, detail date and title before saving."""
+    path(data, day)
+    query = urlencode({'gubun': 'news', 'P_StartDt': day, 'A_SrchKeyWord': '증시요약(6)',
+                       'P_Sect2': '1', 'P_MidSect': '13', 'P_ItemCd6': '', 'P_ReqstCnt1': '30'})
+    listing = fetch(SAMSUNG_BASE + 'analysisOnestopContentsListPopup.do?' + query)
+    pattern = r'onclick="goView\(([^)]+)\);">([^<]+)</a>'
+    for call, title in re.findall(pattern, listing):
+        args = re.findall(r"'([0-9]+)'", call)
+        if len(args) != 6 or args[0] != day.replace('-', '') or TITLE not in clean(title):
+            continue
+        keys = ['P_Dt1', 'P_Time11', 'P_ContinueKey4', 'P_LageSect', 'P_MidSect', 'P_SmllSect']
+        params = urlencode(dict(zip(keys, args)))
+        url = SAMSUNG_BASE + 'analysisOnestopContentsListPopupView2.do?' + params
+        detail = html_text(fetch(url))
+        if day not in detail or TITLE not in detail or '인포스탁' not in detail:
+            raise ValueError('인포스탁 기사 상세 날짜·제목·출처 불일치')
+        raw = fetch(SAMSUNG_BASE + 'viewContent.do?' + params + '&A_ProcFlag=Y')
+        text = html_text(raw)
+        parsed = parse(text, names)
+        linked_codes = set(re.findall(r'stockitem\?code=([0-9A-Z]{6})', raw.replace('\x00', '')))
+        if linked_codes - set(parsed):
+            raise ValueError('인포스탁 원문 종목 일부 파싱 누락; 성공 처리하지 않음')
+        if TITLE not in text or not parsed:
+            raise ValueError('인포스탁 기사 본문 누락 또는 형식 변경')
+        own_day, _ = article_day(text)
+        if own_day and own_day != day:
+            raise ValueError('인포스탁 본문 날짜 불일치')
+        at = args[1][:2] + ':' + args[1][2:4]
+        folder = Path(data) / 'reasons' / 'public_articles'
+        folder.mkdir(parents=True, exist_ok=True)
+        digest = hashlib.sha256(raw.encode('utf-8')).hexdigest()
+        target = folder / (day + '_' + digest[:16] + '.html')
+        if not target.exists():
+            temp = target.with_name(target.name + '.tmp-' + uuid.uuid4().hex)
+            temp.write_bytes(raw.encode('utf-8'))
+            os.replace(temp, target)
+        if hashlib.sha256(target.read_bytes()).hexdigest() != digest:
+            raise OSError('인포스탁 공개 원문 보관 검증 실패')
+        return save_infostock(data, day, text, names, source=url, published=at,
+                              archive=str(target.relative_to(Path(data) / 'reasons')))
+    return {}
+
+
 def fetch_summary(data, day, names, fetch=public_html):
     """Public article only, exact publication day; local Hero4 remains the primary source."""
+    if fetch is public_html:
+        # Prefer a searchable dated distributor, not a shallow general-news scan.
+        return fetch_distributor_summary(data, day, names, fetch)
     for page in range(1, 11):
         html = fetch(f'https://stock.mk.co.kr/news/all/pc?page={page}')
         links = SummaryLinks()
@@ -322,5 +462,6 @@ def recent_history(data, day):
             if info or news:
                 entries.append({'day': file.stem, 'reason': info['reason'] if info else news[0]['title'],
                                 'source': '인포스탁' if info else news[0].get('office', '뉴스'),
-                                'url': record.get('infostock', {}).get('source', '') if info else news[0].get('url', '')})
+                                'url': (info.get('source') or record.get('infostock', {}).get('source', ''))
+                                       if info else news[0].get('url', '')})
     return result

@@ -29,6 +29,12 @@ def page(rows, continuation=False, cursor=''):
 
 
 class Tests(unittest.TestCase):
+    def test_main_monitor_is_always_enabled(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(app, 'DATA', Path(tmp)):
+            app.set_monitor(False)
+            self.assertTrue(app.monitor_enabled())
+            self.assertTrue(app.read(Path(tmp) / 'monitor.json')['enabled'])
+
     def test_deleted_optional_watchlist_group_does_not_hide_valid_groups(self):
         import watchlists
         with tempfile.TemporaryDirectory() as tmp:
@@ -116,6 +122,17 @@ class Tests(unittest.TestCase):
             self.assertTrue((previous/'005930.json').is_file())
             self.assertEqual(len(list((Path(d)/DAY).glob('snapshot-*'))),1)
 
+    def test_short_ranking_never_replaces_complete_snapshot(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(app,'DATA',Path(d)), patch.object(app,'now',return_value=AT):
+            api=Fake()
+            app.collect(DAY,api=api)
+            previous=archive.active(Path(d),DAY)
+            api.codes=['005930']
+            with self.assertRaisesRegex(DataError,'1/2'):
+                app.collect(DAY,api=api)
+            self.assertEqual(archive.active(Path(d),DAY),previous)
+            self.assertEqual(len(list((Path(d)/DAY).glob('snapshot-*'))),1)
+
     def test_manual_after_20_is_final_and_replaces_intraday(self):
         with tempfile.TemporaryDirectory() as d, patch.object(app,'DATA',Path(d)):
             with patch.object(app,'now',return_value=AT):
@@ -160,6 +177,20 @@ class Tests(unittest.TestCase):
             app.scheduler_tick(AT.replace(hour=20,minute=10))
             start.assert_not_called()
 
+    def test_final_retry_survives_restart_with_bounded_backoff(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(app,'DATA',Path(d)), patch.object(app,'STATE',{'busy':False}), patch.object(app,'start') as start:
+            final=AT.replace(hour=20,minute=5)
+            path=Path(d)/'schedule.json'
+            app.save(path,{'day':DAY,'final_attempts':3,'last_final_epoch':final.timestamp()})
+            app.scheduler_tick(final+timedelta(minutes=29))
+            start.assert_not_called()
+            app.scheduler_tick(final+timedelta(minutes=30))
+            start.assert_called_once_with(DAY,source='final')
+            start.reset_mock()
+            app.save(path,{'day':DAY,'final_attempts':5,'last_final_epoch':final.timestamp()})
+            app.scheduler_tick(final+timedelta(minutes=60))
+            start.assert_not_called()
+
     def test_open_enables_refresh_and_busy_requests_coalesce(self):
         with tempfile.TemporaryDirectory() as d, patch.object(app,'DATA',Path(d)), patch.object(app,'now',return_value=AT), patch.object(app,'STATE',{'busy':True,'queued':False}), patch.object(app,'LAST_OPEN',0), patch.object(app.time,'monotonic',return_value=100):
             app.GUARD.acquire()
@@ -188,6 +219,7 @@ AT=datetime(2026,9,22,12,0,tzinfo=app.KST)
 
 
 class Fake:
+    expected_count=2
     def __init__(self):
         self.ranks=0
         self.codes=['005930','000660']

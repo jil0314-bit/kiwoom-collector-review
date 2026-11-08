@@ -3,21 +3,47 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
 import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 KST = timezone(timedelta(hours=9))
 HOST = "https://api.kiwoom.com"
-ROUTES = {"ka10023": "/api/dostk/rkinfo", "ka10027": "/api/dostk/rkinfo", "ka10080": "/api/dostk/chart", "ka10081": "/api/dostk/chart",
+ROUTES = {"ka10030": "/api/dostk/rkinfo", "ka10023": "/api/dostk/rkinfo", "ka10027": "/api/dostk/rkinfo", "ka10080": "/api/dostk/chart", "ka10081": "/api/dostk/chart",
           "ka90001": "/api/dostk/thme", "ka90002": "/api/dostk/thme", "ka10095": "/api/dostk/stkinfo",
-          "ka90009": "/api/dostk/rkinfo"}
+          "ka90009": "/api/dostk/rkinfo", "ka10099": "/api/dostk/stkinfo"}
 
 
 class DataError(Exception):
     pass
+
+
+class RateLimitError(ConnectionError):
+    def __init__(self, retry_after=0):
+        super().__init__('Kiwoom API rate limit')
+        self.retry_after = retry_after
+
+
+_RATE_LOCK = threading.Lock()
+_RATE_LAST = 0.0
+_TOKEN_LOCK = threading.RLock()
+_SHARED_AUTH = {'token': '', 'expires': datetime.min.replace(tzinfo=KST)}
+
+
+def _retry_after(headers):
+    value = next((v for k, v in headers.items() if k.lower() == 'retry-after'), '')
+    try:
+        seconds = float(value)
+    except (TypeError, ValueError):
+        try:
+            seconds = (parsedate_to_datetime(value) - datetime.now(timezone.utc)).total_seconds()
+        except (TypeError, ValueError, IndexError):
+            seconds = 0
+    return max(0.0, min(120.0, seconds))
 
 
 def credentials():
@@ -96,6 +122,7 @@ def parse_bar(row):
 class Kiwoom:
     def __init__(self, interval=1.1, transport=None):
         self.interval = interval
+        self.shared = transport is None
         self.transport = transport or self._http
         self.token = ""
         self.expires = datetime.min.replace(tzinfo=KST)
@@ -108,7 +135,9 @@ class Kiwoom:
             with urllib.request.urlopen(req, timeout=30) as response:
                 return json.loads(response.read()), dict(response.headers)
         except urllib.error.HTTPError as exc:
-            if exc.code in (429, 500, 502, 503, 504):
+            if exc.code == 429:
+                raise RateLimitError(_retry_after(exc.headers or {})) from None
+            if exc.code in (500, 502, 503, 504):
                 raise ConnectionError("일시적인 API 통신 오류") from None
             raise DataError(f"키움 HTTP 오류 {exc.code}: 인증·허용 IP를 확인하세요.") from None
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
@@ -116,26 +145,31 @@ class Kiwoom:
 
     def _send(self, path, body, headers):
         for attempt in range(5):
-            time.sleep(max(0, self.interval - (time.monotonic() - self.last_request)))
-            self.last_request = time.monotonic()
+            if self.shared:
+                global _RATE_LAST
+                with _RATE_LOCK:
+                    time.sleep(max(0, self.interval - (time.monotonic() - _RATE_LAST)))
+                    _RATE_LAST = time.monotonic()
+            else:
+                time.sleep(max(0, self.interval - (time.monotonic() - self.last_request)))
+                self.last_request = time.monotonic()
             try:
                 data, response_headers = self.transport(path, body, headers)
                 if not isinstance(data, dict):
                     raise DataError("키움 응답 객체 형식 오류")
                 rc = str(data.get("return_code", ""))
                 if rc in ("1700", "429"):
-                    raise ConnectionError("API 호출 제한")
+                    raise RateLimitError(_retry_after(response_headers))
                 if rc != "0":
                     raise DataError(f"키움 응답 오류 코드 {rc[:12]}")
                 return data, {k.lower(): v for k, v in response_headers.items()}
-            except ConnectionError:
+            except ConnectionError as exc:
                 if attempt == 4:
                     raise DataError("API 통신·호출 제한: 5회 재시도 실패") from None
-                time.sleep(min(20, 2 ** (attempt + 1)))
+                time.sleep(max(min(20, 2 ** (attempt + 1)),
+                               exc.retry_after if isinstance(exc, RateLimitError) else 0))
 
-    def authorize(self):
-        if self.token and datetime.now(KST) < self.expires - timedelta(minutes=5):
-            return
+    def _issue_token(self):
         key, secret, _ = credentials()
         data, _ = self._send("/oauth2/token", {"grant_type": "client_credentials",
                              "appkey": key, "secretkey": secret}, {})
@@ -146,6 +180,19 @@ class Kiwoom:
             self.expires = datetime.strptime(data["expires_dt"], "%Y%m%d%H%M%S").replace(tzinfo=KST)
         except (KeyError, ValueError):
             self.expires = datetime.now(KST) + timedelta(minutes=30)
+
+    def authorize(self):
+        if self.token and datetime.now(KST) < self.expires - timedelta(minutes=5):
+            return
+        if not self.shared:
+            self._issue_token()
+            return
+        with _TOKEN_LOCK:
+            if _SHARED_AUTH['token'] and datetime.now(KST) < _SHARED_AUTH['expires'] - timedelta(minutes=5):
+                self.token, self.expires = _SHARED_AUTH['token'], _SHARED_AUTH['expires']
+                return
+            self._issue_token()
+            _SHARED_AUTH.update(token=self.token, expires=self.expires)
 
     def request(self, api, body, cursor=""):
         if api not in ROUTES:
@@ -159,8 +206,18 @@ class Kiwoom:
             # A newer token issued elsewhere on the same app key revokes this one (return code 3).
             if str(exc) != "키움 응답 오류 코드 3":
                 raise
-            self.token = ""
-            self.authorize()
+            if self.shared:
+                with _TOKEN_LOCK:
+                    if (_SHARED_AUTH['token'] != self.token and _SHARED_AUTH['token']
+                            and datetime.now(KST) < _SHARED_AUTH['expires'] - timedelta(minutes=5)):
+                        self.token, self.expires = _SHARED_AUTH['token'], _SHARED_AUTH['expires']
+                    else:
+                        self.token = ""
+                        self._issue_token()
+                        _SHARED_AUTH.update(token=self.token, expires=self.expires)
+            else:
+                self.token = ""
+                self.authorize()
             return self._send(ROUTES[api], body, headers())
 
     def quotes(self, codes):
@@ -176,7 +233,10 @@ class Kiwoom:
                 price = number(row.get("cur_prc", ""), price=True)
                 if price <= 0:
                     continue
+                cap_text = str(row.get("mac", "")).strip()
+                market_cap = number(cap_text, price=True) if cap_text else None
                 result[code] = {"price": price, "rate": number(row.get("flu_rt", "")),
+                                "market_cap": market_cap,
                                 "date": str(row.get("dt", "")), "time": str(row.get("cntr_tm", "")),
                                 "fetched_at": datetime.now(KST).isoformat(timespec="seconds")}
         return result
@@ -189,7 +249,7 @@ class Kiwoom:
         return result[code]
 
     def ranking(self, limit=100):
-        body = {"mrkt_tp": "000", "sort_tp": "1", "trde_qty_cnd": "0000",
+        body = {"mrkt_tp": "000", "sort_tp": "1", "trde_qty_cnd": "0100",
                 "stk_cnd": "16", "crd_cnd": "0", "updown_incls": "1",
                 "pric_cnd": "0", "trde_prica_cnd": "0", "stex_tp": "3"}
         cursor, seen, records, raw = "", set(), {}, []
@@ -203,6 +263,9 @@ class Kiwoom:
                 code = code_of(item.get("stk_cd", ""))
                 rate = number(item.get("flu_rt", ""))
                 if rate <= 0:
+                    continue
+                # Daily cumulative shares; exclude exactly 100,000 as well.
+                if number(item.get("now_trde_qty", "")) <= 100000:
                     continue
                 if code not in records:
                     records[code] = {"code": code, "name": str(item.get("stk_nm", code)),

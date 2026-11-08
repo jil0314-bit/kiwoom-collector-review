@@ -23,6 +23,8 @@ RANK_GUARD = threading.Lock()
 BAR_GUARD = threading.Lock()
 STATE = {"busy": False, "bars_busy": False, "message": "08:00부터 자동 조회", "done": 0, "total": 0}
 LAST_START = 0.0
+LAST_BAR_PASS = 0.0
+BAR_RETRY_INTERVAL = 60
 INTERVAL = 60
 BODY = {"mrkt_tp": "000", "sort_tp": "2", "tm_tp": "2", "trde_qty_tp": "0",
         "tm": "", "stk_cnd": "20", "pric_tp": "8", "stex_tp": "3"}
@@ -81,7 +83,7 @@ def ranking(day, call=request, limit=100):
         for offset in range(0, len(candidates), 10):
             batch = candidates[offset:offset+10]
             details, _ = call("ka10095", {"stk_cd": "|".join(c+"_AL" for c, _ in batch)}, "")
-            caps = {}
+            details_by_code = {}
             for row in details.get("atn_stk_infr", []):
                 code = code_of(row.get("stk_cd", ""))
                 if code not in {c for c, _ in batch}:
@@ -89,18 +91,28 @@ def ranking(day, call=request, limit=100):
                 if row.get("dt") != day.replace("-", ""):
                     raise DataError("오늘 시세가 아닙니다. 휴장·지연 응답 여부 확인 필요")
                 if str(row.get("mac", "")).strip():
-                    caps[code] = number(row["mac"], price=True)
+                    details_by_code[code] = row
             for code, item in batch:
-                if code not in caps:
+                detail = details_by_code.get(code)
+                if detail is None:
                     ignored += 1
                     continue
-                if caps[code] < 500:
+                cap = number(detail["mac"], price=True)
+                if cap < 500:
+                    continue
+                # A positive previous-day change is not a bullish daily candle.
+                # Use today's open and current price from the same dated quote.
+                if not str(detail.get("open_pric", "")).strip() or not str(detail.get("cur_prc", "")).strip():
+                    continue
+                open_price = number(detail["open_pric"], price=True)
+                current_price = number(detail["cur_prc"], price=True)
+                if open_price <= 0 or current_price < 1000 or current_price <= open_price:
                     continue
                 rows[code] = {"code": code, "name": str(item.get("stk_nm", code)),
                               "observed_at": observed_at,
-                              "price": number(item["cur_prc"], price=True), "rate": number(item["flu_rt"]),
+                              "price": current_price, "rate": number(item["flu_rt"]),
                               "volume_rate": number(item["sdnin_rt"]), "previous_volume": number(item["prev_trde_qty"]),
-                              "volume": number(item["now_trde_qty"]), "market_cap": caps[code]}
+                              "volume": number(item["now_trde_qty"]), "market_cap": cap}
             if len(rows) >= limit:
                 break
         if len(rows) >= limit or hdr.get("cont-yn") != "Y":
@@ -188,7 +200,7 @@ def commit_rank(data, day, stocks, raw, at):
             tracked[s["code"]] = dict(s)
         meta = {"day": day, "kind": "final" if at[11:16] >= "20:00" else "preview", "revision": at,
                 "ranking_at": at, "stocks": stocks, "tracked": list(tracked.values()), "bar_status": old.get("bar_status", {}),
-                "filter": "ETF·ETN·스팩 제외 · 1,000원 이상 · 시총 500억 이상 · 신용/거래대금 전체",
+                "filter": "양봉(현재가>시가) · ETF·ETN·스팩 제외 · 1,000원 이상 · 시총 500억 이상 · 신용/거래대금 전체",
                 "status": "running", "expected": len(stocks), "saved": 0,
                 "unknown_cap_excluded": raw["unknown_cap_excluded"],
                 "notice": "REST 거래량 급증률(전일) 내림차순 · KRX+NXT 통합. 영웅문 화면 설정/거래소에 따라 순위가 다를 수 있습니다."}
@@ -208,15 +220,27 @@ def commit_rank(data, day, stocks, raw, at):
         return meta
 
 
+def pending_bars(meta):
+    """Only missing or failed bars for this exact ranking generation need fetching."""
+    basis = meta.get("ranking_at")
+    statuses = meta.get("bar_status", {})
+    return [stock for stock in meta.get("tracked", [])
+            if (statuses.get(stock["code"], {}).get("rank_basis") != basis
+                or statuses.get(stock["code"], {}).get("status") != "saved"
+                or statuses.get(stock["code"], {}).get("error"))]
+
+
 def collect_bars(data, day):
+    global LAST_BAR_PASS
     if not BAR_GUARD.acquire(blocking=False):
         return
+    LAST_BAR_PASS = time.monotonic()
     STATE.update(bars_busy=True)
     try:
         meta = metadata(data, day)
         target_at = meta["ranking_at"]
         # Include earlier entrants to retain their subsequent intraday path.
-        stocks = sorted(meta["tracked"], key=lambda s: (s["code"] not in {x["code"] for x in meta["stocks"]}, s["rank"]))
+        stocks = sorted(pending_bars(meta), key=lambda s: (s["code"] not in {x["code"] for x in meta["stocks"]}, s["rank"]))
         STATE.update(total=len(stocks), done=0)
         for pos, s in enumerate(stocks):
             if datetime.now(KST).date().isoformat() != day:
@@ -257,7 +281,8 @@ def collect_bars(data, day):
             time.sleep(.05)  # Give current-chart/ranking requests a turn between symbols.
         with LOCK:
             m = metadata(data, day)
-            m["saved"] = sum(s.get("status") == "saved" for s in m["stocks"])
+            m["saved"] = sum(s.get("status") == "saved" and s.get("rank_basis") == m["ranking_at"]
+                             and not s.get("error") for s in m["stocks"])
             m["status"] = "saved" if m["saved"] == len(m["stocks"]) else "partial"
             m["final_complete"] = m["ranking_at"][11:16] >= "20:05" and all(
                 s.get("rank_basis", "") >= m["ranking_at"] and not s.get("error") for s in m["tracked"])
@@ -320,8 +345,10 @@ def tick(data, current=None):
         interval = INTERVAL
     if current.timestamp() - LAST_START >= interval:
         start(data, current=current)
-    elif not STATE["bars_busy"] and metadata(data, current.date().isoformat()).get("stocks"):
-        threading.Thread(target=collect_bars, args=(data, current.date().isoformat()), daemon=True).start()
+    elif not STATE["bars_busy"] and time.monotonic() - LAST_BAR_PASS >= BAR_RETRY_INTERVAL:
+        meta = metadata(data, current.date().isoformat())
+        if meta.get("stocks") and pending_bars(meta):
+            threading.Thread(target=collect_bars, args=(data, current.date().isoformat()), daemon=True).start()
 
 
 def chart(data, day, code, frame, live):

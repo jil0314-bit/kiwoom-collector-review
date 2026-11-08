@@ -8,27 +8,55 @@ import volume_surge as v
 from kiwoom import DataError, KST
 
 
-def item(code, rate):
-    return {"stk_cd": code+"_AL", "stk_nm": code, "cur_prc": "+1000", "flu_rt": "-2",
+def item(code, rate, change="-2"):
+    return {"stk_cd": code+"_AL", "stk_nm": code, "cur_prc": "+1000", "flu_rt": change,
             "sdnin_rt": str(rate), "prev_trde_qty": "100", "now_trde_qty": "500"}
 
 
 class VolumeTests(unittest.TestCase):
+    def test_bar_pass_runs_once_per_rank_generation_and_retries_failures(self):
+        stocks = [{"code": "000001"}, {"code": "000002"}]
+        meta = {"ranking_at": "first", "tracked": stocks,
+                "bar_status": {"000001": {"status": "saved", "rank_basis": "first"},
+                               "000002": {"status": "saved", "rank_basis": "first"}}}
+        self.assertEqual(v.pending_bars(meta), [])
+        meta["bar_status"]["000002"]["error"] = "temporary"
+        self.assertEqual([s["code"] for s in v.pending_bars(meta)], ["000002"])
+        meta["bar_status"]["000002"].pop("error")
+        meta["ranking_at"] = "next"
+        self.assertEqual([s["code"] for s in v.pending_bars(meta)], ["000001", "000002"])
+
     def test_filtered_continuation_and_rate_order(self):
         calls = []
         def request(api, body, cursor):
             calls.append((api, body, cursor))
             if api == "ka10023":
-                return ({"trde_qty_sdnin": [item("000001", 900), item("000002", 800)]} if not cursor
+                return ({"trde_qty_sdnin": [item("000001", 900), item("000004", 850, "+5"), item("000002", 800)]} if not cursor
                         else {"trde_qty_sdnin": [item("000003", 700)]}), {"cont-yn": "Y" if not cursor else "N", "next-key": "page2"}
-            return {"atn_stk_infr": [{"stk_cd": c, "mac": "499" if c.startswith("000001") else "500", "dt": "20261008"}
+            return {"atn_stk_infr": [{"stk_cd": c, "mac": "499" if c.startswith("000001") else "500", "dt": "20261008",
+                                       "open_pric": "1100" if c.startswith("000004") else "900", "cur_prc": "1000"}
                                      for c in body["stk_cd"].split("|")]}, {}
         rows, raw = v.ranking("2026-10-08", request, 2)
         self.assertEqual([s["code"] for s in rows], ["000002", "000003"])
-        self.assertEqual(rows[0]["rate"], -2)  # falling-price volume surges stay included
+        self.assertEqual(rows[0]["rate"], -2)  # Down vs yesterday can still be a bullish candle.
+        self.assertNotIn("000004", [s["code"] for s in rows])  # Up vs yesterday can still be bearish.
         self.assertEqual(calls[0][1], v.BODY)
         self.assertEqual(v.BODY["sort_tp"], "2")
         self.assertEqual(v.BODY["stk_cnd"], "20")
+
+    def test_only_verified_bullish_candles_are_saved(self):
+        def request(api, body, cursor):
+            if api == "ka10023":
+                return {"trde_qty_sdnin": [item("000001", 300), item("000002", 200), item("000003", 100)]}, {}
+            quotes = {"000001": ("1100", "1200"), "000002": ("1000", "1000"),
+                      "000003": ("", "1300")}
+            return {"atn_stk_infr": [
+                {"stk_cd": code, "mac": "600", "dt": "20261008",
+                 "open_pric": quotes[code][0], "cur_prc": quotes[code][1]}
+                for code in (c.split("_")[0] for c in body["stk_cd"].split("|"))]}, {}
+        rows, _ = v.ranking("2026-10-08", request)
+        self.assertEqual([s["code"] for s in rows], ["000001"])
+        self.assertEqual(rows[0]["price"], 1200)
 
     def test_stale_date_rejected(self):
         def request(api, body, cursor):

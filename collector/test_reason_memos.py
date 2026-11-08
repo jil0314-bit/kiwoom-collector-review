@@ -71,6 +71,20 @@ class ReasonMemoTests(unittest.TestCase):
 
 
 class QueueLockTests(unittest.TestCase):
+    def test_only_article_backed_lines_can_be_written(self):
+        spec = importlib.util.spec_from_file_location('memo_worker_fixture', Path(__file__).resolve().parent.parent/'hero4_daily_memo.py')
+        worker = importlib.util.module_from_spec(spec)
+        with patch.object(sys, 'path', [str(Path(__file__).resolve().parent.parent)] + sys.path):
+            spec.loader.exec_module(worker)
+        day = '2026-10-20'
+        queue = {'000001': [day + ' 공급계약 체결 소식에 급등 기사 사유 출처: 인포스탁 영웅문 증시요약(6)',
+                            day + ' 구체적 상승 사유 미확인'],
+                 '000002': [day + ' 관련 보도 · 직접 상승 원인 미확정']}
+        record = {'infostock': {'items': {'000001': {'reason': '공급계약 체결 소식에 급등'}}}}
+        with patch.object(worker.reasons, 'read_day', return_value=record):
+            self.assertEqual(worker.verified_pending(queue),
+                             {'000001': [day + ' 공급계약 체결 소식에 급등 기사 사유 출처: 인포스탁 영웅문 증시요약(6)']})
+
     def test_queue_lock_is_released_between_ticks_and_on_error(self):
         spec = importlib.util.spec_from_file_location('memo_worker_fixture', Path(__file__).resolve().parent.parent/'hero4_daily_memo.py')
         worker = importlib.util.module_from_spec(spec)

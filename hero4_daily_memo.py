@@ -47,7 +47,33 @@ def candidate(raw, incoming):
     return ordered, added
 
 
+def verified_pending(incoming):
+    """Only article-backed dated reasons may reach the Hero4 memo file."""
+    result = {}
+    days = {}
+    for code, lines in incoming.items():
+        if not re.fullmatch(r'[0-9A-Z]{6}', code):
+            continue
+        for line in lines:
+            if not isinstance(line, str) or not re.match(r'^20\d\d-\d\d-\d\d ', line):
+                continue
+            day = line[:10]
+            if day not in days:
+                days[day] = reasons.read_day(DATA, day).get('infostock', {}).get('items', {})
+            item = days[day].get(code, {})
+            reason = reasons.clean(item.get('reason', ''))
+            if reason and reason != '확인불가':
+                expected = day + ' ' + reason
+                if (line == expected or line.startswith(expected + ' | ') or
+                        line.startswith(expected + ' 기사 사유 출처: ')):
+                    result.setdefault(code, []).append(line)
+    return result
+
+
 def apply_pending(incoming, target):
+    incoming = verified_pending(incoming)
+    if not incoming:
+        return 0
     importer.ensure_closed()
     original = target.read_bytes()
     updated, added = candidate(original, incoming)
@@ -84,7 +110,9 @@ def tick(day, prepare_only=False):
     items = stored.get('items', {})
     article = reasons.read_hero4() if reasons.HERO4_NEWS.is_file() else None
     if article and article[0] == day:
-        items = reasons.parse(article[2], {}) or items
+        parsed = reasons.parse(article[2], {})
+        if parsed:
+            items = reasons.save_infostock(DATA, day, article[2], {}, source='hero4', published=article[1])
     incoming = dated_lines(day, items)
     if incoming:
         # Preserve previously queued lines, even if the later article has fewer rows.

@@ -15,6 +15,30 @@ ARTICLE = """<html><head><style>td{font-size:9pt}</style></head><body>
 
 
 class ParseTest(unittest.TestCase):
+    def test_featured_article_keeps_only_risers_and_does_not_replace_existing_reason(self):
+        html = """<table><tr><td>제목</td><td>증시요약(5) - 특징 종목(코스닥)</td></tr>
+        <tr><td>일시</td><td>2026년 11월 04일 17시 12분</td></tr></table>
+        <table><tr><td>상승주 (000001) 1,200원 (+20.00%)</td><td>신제품 개발 소식에 급등</td></tr>
+        <tr><td>하락주 (000002) 800원 (-12.00%)</td><td>실적 부진으로 하락</td></tr>
+        <tr><td rowspan="2">로봇 그룹주</td><td>신규 수주 소식에 상승</td></tr>
+        <tr><td>상세 설명 [종목]: 로봇A, 로봇B</td></tr></table>"""
+        text = reasons.html_text(html)
+        names = {"000001": "상승주", "000002": "하락주", "000003": "로봇A", "000004": "로봇B"}
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            reasons.save_infostock(data, "2026-11-04", "상승주 (000001) 1,200원 (+20%) | | 기존 사유", names)
+            added = reasons.save_infostock(data, "2026-11-04", text, names, source="hero4", published="17:12")
+            self.assertEqual(set(added), {"000001", "000003", "000004"})
+            stored = reasons.read_day(data, "2026-11-04")["infostock"]
+            self.assertEqual(stored["items"]["000001"]["reason"], "기존 사유")
+            self.assertNotIn("000002", stored["items"])
+            self.assertEqual(stored["items"]["000003"]["reason"], "신규 수주 소식에 상승")
+            self.assertEqual(stored["items"]["000003"]["article_day"], "2026-11-04")
+            self.assertEqual(stored["items"]["000003"]["article_title"], "증시요약(5) - 특징 종목(코스닥)")
+            news = data / "News.html"
+            news.write_bytes(html.encode("cp949"))
+            self.assertEqual(reasons.read_hero4(news)[0], "2026-11-04")
+
     def test_saved_hero_article_is_not_reported_waiting_or_overwritten(self):
         from unittest.mock import patch
         import app
@@ -77,6 +101,74 @@ class ParseTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(ValueError):
                 reasons.save_infostock(Path(tmp), "2026-09-23", "아무 내용", {})
+
+
+class SummaryRecoveryTest(unittest.TestCase):
+    def test_empty_limit_days_does_not_eat_reason_starting_with_month(self):
+        items = reasons.parse('유티아이 (179880) 100원 (+10%)\t\t10 월 반도체 수출 호조에 급등', {})
+        self.assertIsNone(items['179880']['limit_days'])
+        self.assertEqual(items['179880']['reason'], '10 월 반도체 수출 호조에 급등')
+
+    def test_distributor_requires_exact_date_and_archives_body(self):
+        import json
+        day = '2026-09-23'
+        listing = "<a onclick=\"goView('20260923','170713','123','05','13','02');\">증시요약(6) - 특징 상한가 및 급등종목</a>"
+        def fetch(url):
+            if 'ListPopup.do?' in url:
+                return listing
+            if 'ListPopupView2' in url:
+                return '<p>인포스탁 2026-09-23 증시요약(6) - 특징 상한가 및 급등종목</p>'
+            return ARTICLE.replace('<table class=', '<ta\x00ble class=')
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            items = reasons.fetch_distributor_summary(data, day, {}, fetch)
+            self.assertEqual(len(items), 3)
+            info = reasons.read_day(data, day)['infostock']
+            self.assertTrue((data / 'reasons' / info['articles'][0]['archive']).is_file())
+            self.assertTrue(reasons.summary_complete({'infostock': info}))
+            self.assertEqual(reasons.fetch_distributor_summary(data, '2026-09-24', {}, fetch), {})
+            self.assertFalse(reasons.path(data, '2026-09-24').exists())
+
+    def test_featured_only_is_incomplete_and_main_article_takes_precedence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            featured = reasons.html_text(ARTICLE).replace('증시요약(6) - 특징 상한가 및 급등종목', '증시요약(5) - 특징 종목(코스닥)')
+            reasons.save_infostock(data, '2026-09-23', featured, {}, source='hero4')
+            self.assertFalse(reasons.summary_complete(reasons.read_day(data, '2026-09-23')))
+            main = reasons.html_text(ARTICLE).replace('합의금 지급 합의 체결 소식 속 상한가', '확인된 주 기사 사유')
+            reasons.save_infostock(data, '2026-09-23', main, {}, source='hero4')
+            self.assertTrue(reasons.summary_complete(reasons.read_day(data, '2026-09-23')))
+            self.assertEqual(reasons.read_day(data, '2026-09-23')['infostock']['items']['131100']['reason'], '확인된 주 기사 사유')
+
+    def test_summary_starts_at_1715_and_retries_after_failure(self):
+        import app
+        from datetime import datetime
+        from unittest.mock import patch, Mock
+        with tempfile.TemporaryDirectory() as tmp:
+            run = {'busy': False}
+            thread = Mock()
+            with patch.object(app, 'DATA', Path(tmp)), patch.object(reasons, 'watch_hero4'), patch.object(app, 'SUMMARY_RUNS', run), patch.object(app.threading, 'Thread', return_value=thread):
+                app.reasons_tick(datetime(2026, 11, 6, 17, 14, tzinfo=reasons.KST))
+                thread.start.assert_not_called()
+                app.reasons_tick(datetime(2026, 11, 6, 17, 15, tzinfo=reasons.KST))
+                self.assertEqual(thread.start.call_count, 1)
+                run['busy'] = False
+                app.reasons_tick(datetime(2026, 11, 6, 17, 19, tzinfo=reasons.KST))
+                self.assertEqual(thread.start.call_count, 1)
+                app.reasons_tick(datetime(2026, 11, 6, 17, 20, tzinfo=reasons.KST))
+                self.assertEqual(thread.start.call_count, 2)
+
+    def test_recent_missing_day_retried_even_when_today_complete(self):
+        import app
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            (data / '2026-09-22').mkdir()
+            (data / '2026-09-22' / 'latest.json').write_text('{}')
+            reasons.save_infostock(data, '2026-09-23', reasons.html_text(ARTICLE), {}, source='hero4')
+            with patch.object(app, 'DATA', data), patch.object(app, 'day_names', return_value={}), patch.object(reasons, 'fetch_summary', return_value={}) as fetch:
+                app.collect_summary('2026-09-23', '17:15')
+                fetch.assert_called_once_with(data, '2026-09-22', {})
 
 
 class NewsTest(unittest.TestCase):
