@@ -1,0 +1,311 @@
+{
+  "day": "2026-11-09",
+  "automatic_saved_at": "2026-11-09T17:15:04+09:00",
+  "article_source": "https://www.samsungpop.com/ux/kor/trading/marketStock/analysis/company/analysisOnestopContentsListPopupView2.do?P_Dt1=20261109&P_Time11=171053&P_ContinueKey4=300840&P_LageSect=05&P_MidSect=13&P_SmllSect=02",
+  "article_published": "17:10",
+  "article_count": 37,
+  "parse_missing_codes": [],
+  "summary_complete": true,
+  "archive_sha256": "13b4697586c47a34c8c14fcefcdbfebaa9204889f0d559dde475fc621a428d93",
+  "top100_count": 100,
+  "article_overlap_top100": 35,
+  "ui_modal_checked": 35,
+  "ui_date_checked": true,
+  "ui_text_exact_mismatch": [],
+  "article_codes_outside_top100": [
+    "073490",
+    "363260"
+  ],
+  "collector_note_matches": 35,
+  "hero4_today_readback_count": 0,
+  "hero4_today_queued_count": 35,
+  "hero4_state": "waiting_for_hero4_exit",
+  "manual_fetch_before_auto_evidence": false,
+  "code_changed": false,
+  "ui_method": "Chrome live tab, 35 stock memo buttons opened through UI, visible dated reason text extracted and compared; screenshot captured in chat. New tab opened only after 17:15 auto-save evidence was captured; page opening may trigger its normal ranking refresh. No manual summary collection called.",
+  "codes": [
+    {
+      "code": "0053F0",
+      "ui_text_sha256": "da47d41f4440213ff855785bcf6785c10dcd101873d73e52d0e2dbe3559a83a4",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "0147B0",
+      "ui_text_sha256": "a34efeb75930727557631a87449ce0551e8fde3e973ac4d209afd4260dbea7a6",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "0220W0",
+      "ui_text_sha256": "909258977b8e98e187985d3ba9dc4e26b8e474df81644392c00686972771f970",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "031310",
+      "ui_text_sha256": "7976ff60189b969d6d0646ff70874bd845696164e5eeaa1bb724d9eb162168b5",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "032500",
+      "ui_text_sha256": "9d1f8eb6f2b79ce5ea0b4127d06ffca3f3be7f705a6df4a874de5249ca88906c",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "035510",
+      "ui_text_sha256": "155e7cb99920bc7fdd3b9b225fb31f42ef7236f5d47aec2b3f751b2782a4caf6",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "036540",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "062970",
+      "ui_text_sha256": "2076acbb32168ceb185bbf9ef1c8ca12fdfc139743344f1621d265935d62824a",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "064290",
+      "ui_text_sha256": "99b707dec8d60c2a950a43bdc5d59f508f242c74233e9027fa676835405ce4a3",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "064760",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "066310",
+      "ui_text_sha256": "86a445541073cbb7d6a9a60710eb41427f0f48dd3ff81e0d2afa813e98144340",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "077500",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "086670",
+      "ui_text_sha256": "efa39e1f1ad5d6fe0d85a75a87655c4f2a2311af5b3bfd8990e349b17eb6ffa3",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "088280",
+      "ui_text_sha256": "203a2eeddb26f473401e39b153d084590c194dc5132ee1ce1be3d24cabbf700e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "092870",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "093520",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "099320",
+      "ui_text_sha256": "c5c4633621031bb95609ae014d8b671873ec7ba889c2e3e7d137a669cc48d262",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "100590",
+      "ui_text_sha256": "3c3df0367c618c63775f8c0b5dec6d0ec3f3c554ca0839c6863500ccbceb5f5b",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "119830",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "128540",
+      "ui_text_sha256": "5cad7fc72c5e556e705005bea734c4a0b493dbae0b450510226e89fe846e20a3",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "218410",
+      "ui_text_sha256": "6f99c4863be4eff7382fe782ae23e0bec0e5f399083fe026a1957418038493e6",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "253590",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "267850",
+      "ui_text_sha256": "e967a4511e4c780a473d60f3f6551c2723f0663a7ecb8e8f95a986a08cf180a2",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "323990",
+      "ui_text_sha256": "da2b94abbc226999173b526663dbc023d4df9601ebf0c269d27977ebb32d78bc",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "356680",
+      "ui_text_sha256": "98acbd77b831559ff7411a8d6f7d4191d111e4b2f0b1d2b46d4c65ad4641131a",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "394800",
+      "ui_text_sha256": "2e6232542b4dbed8941e72d9cc17e2e5d4f7c442e940951ce8be8e1c5ec58d68",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "417840",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "425420",
+      "ui_text_sha256": "0ba019c28ff20338fe740c6b20ff0a248423376f8e8eec6a82b5887481b08c8e",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "430690",
+      "ui_text_sha256": "1990eacf1c3ba418c468f7838a5640eac90038b981352d07e6e43f3d9262f59c",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "443670",
+      "ui_text_sha256": "d9f0043d96315f113b985e79a31adad4bf6f8179ebc63c7ab10829d75cf56704",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "445680",
+      "ui_text_sha256": "98dda5c0e3cdf308ca6180404e000bda29584bf45a17aa8ff2971477c442b026",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "456010",
+      "ui_text_sha256": "2b144059ec7d087405fe7a084d40a8b0720ab5bbbc936d50b7a9ad0eab9f42c9",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "462350",
+      "ui_text_sha256": "d977f3b38e16ceecb14a1761c6e9d2d7ca05311d01cd50bf2186c6c1dd03a42b",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "490470",
+      "ui_text_sha256": "a0d2c46fbcb59355800c9ba6bb04f8c6a52a2300539e141bef6fd2ba2181f16b",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    },
+    {
+      "code": "900300",
+      "ui_text_sha256": "c48c86afd1912188d028588f1b7eff956f3ececf4abea575a27d469a212e3adb",
+      "ui_matches_saved": true,
+      "day_displayed": "2026-11-09",
+      "hero4_queued": true,
+      "hero4_readback": false
+    }
+  ],
+  "latest_summary_check_at": "2026-11-09T17:25:10+09:00",
+  "first_summary_state_observed_at": "2026-11-09T17:15:43+09:00",
+  "scheduled_task": "KiwoomTop100Archive_2005"
+}

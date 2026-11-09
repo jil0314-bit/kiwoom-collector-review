@@ -1,8 +1,8 @@
 {
   "snapshot_date": "2026-11-08",
   "timezone": "Asia/Seoul",
-  "local_before_commit": "fe3ffd06988aa4669aff663deb654fbe55608851",
-  "local_after_commit": "0a6863e4cc68f62e3bed7018b2abb79c6b11de32",
+  "local_before_commit": "0a6863e4cc68f62e3bed7018b2abb79c6b11de32",
+  "local_after_commit": "c772b074f7400905f0e61d1112748d771fc78645",
   "policy": "Tracked collector source/assets/tests copied byte-for-byte. Private runtime data excluded.",
   "files": [
     {
@@ -142,6 +142,12 @@
       "bytes": 4110,
       "sha256": "e5e889ed747c6cc2eb9dda2d7b61bb285c1f8ee13b8d8d8056bfe7060d2c19e0",
       "git_blob_sha": "fddf15e93c24a27036a371d937fd13c74d9baccf"
+    },
+    {
+      "path": "collector/docs/reason_live_verification_20261109.json",
+      "bytes": 10701,
+      "sha256": "cdb1b89506053f65b1f94425c8200432925a76afa5b04bb254e224a9e139bdfe",
+      "git_blob_sha": "5a01fe551b76363096188c245338f2afb56689c1"
     },
     {
       "path": "collector/docs/recommendation_visibility_20261108.md",

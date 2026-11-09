@@ -1,3 +1,6 @@
+## 2026-11-09 17:15 live verification
+Automatic article save at17:15:04 KST:37 source rows, no parse omissions;35 overlap the current Top100. All35 dated stock-memo dialogs were opened in a live Chrome tab and displayed exact saved reason text. Collector note store35/35. Actual Hero4 memo read-back0/35:all35 correctly queued while Hero4 is running (waiting_for_hero4_exit). No Hero4 termination or code changes. This is not a claim of completed Hero4 memo writeback. [Machine-readable evidence](review/REASON_LIVE_VERIFICATION_20261109.json). Earlier installer links and source sections remain below.
+
 ## Recommended: easier LG Gram installer — no separate Python install (2026-11-08)
 
 [Download EASY ZIP](https://github.com/jil0314-bit/kiwoom-collector-review/raw/refs/heads/main/downloads/LG_Collector_Easy_20261108.zip) · [Three-step Korean guide](downloads/LG_EASY_INSTALL.txt) · [Verification/limitations](review/LG_EASY_INSTALL_VALIDATION_20261108.md).
