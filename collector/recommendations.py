@@ -22,15 +22,17 @@ from urllib.request import Request, build_opener, HTTPRedirectHandler
 
 from kiwoom import KST
 import watchlists
+import broadcast_recommendations as broadcasts
+import broadcast_audio
 
 ROOT = Path(__file__).resolve().parent
 LOCK = threading.RLock()
 RUN = threading.Lock()
 STATE = {"busy": False, "message": "공개 자료 수집 대기", "last_run": None}
 INTERVAL = 1200
-PARSER_VERSION = 1
-HOSTS = {"www.mtn.co.kr", "news.mtn.co.kr", "www.youtube.com", "youtube.com", "www.youtube-nocookie.com"}
-LABELS = {"new": "신규추천", "consultation": "보유종목 상담", "review": "과거추천 복기", "sell": "매도·축소", "interest": "관심종목", "mention": "단순 언급"}
+PARSER_VERSION = 2
+HOSTS = {"www.mtn.co.kr", "news.mtn.co.kr", "www.youtube.com", "youtube.com", "www.youtube-nocookie.com", "mbnmoney.mbn.co.kr", "vodmm.mbn.co.kr"}
+LABELS = {"new": "신규추천", "consultation": "보유종목 상담", "review": "과거추천 복기", "sell": "매도·축소", "interest": "관심종목", "mention": "단순 언급", "pending": "음성전사 검수대기"}
 
 
 def today():
@@ -65,10 +67,30 @@ def sources():
     return load(ROOT / "recommendation_sources.json", {"channels": [], "programs": []})
 
 
+def excluded_program(item, config):
+    text = broadcasts.compact((item.get('program') or '') + ' ' + (item.get('title') or ''))
+    return any(broadcasts.compact(name) in text for name in config.get('excluded_programs', []))
+
+
+def broadcast_program_match(title, description, broadcaster, config):
+    text = broadcasts.compact((title or '') + ' ' + (description or ''))
+    for program in config.get('broadcast_programs', []):
+        if program.get('broadcaster') != broadcaster:
+            continue
+        labels = [program.get('name', ''), *program.get('aliases', [])]
+        if any(label and broadcasts.compact(label) in text for label in labels):
+            return program.get('name')
+    return None
+
+
 def read(data, day):
     valid_day(day)
     with LOCK:
-        return load(data / "recommendations" / day / "index.json", {"day": day, "records": [], "stocks": []})
+        doc = load(data / "recommendations" / day / "index.json", {"day": day, "records": [], "stocks": []})
+        doc["records"] = [r for r in doc.get("records", []) if r.get("classification") != "mention"]
+        doc["stocks"] = list({r["code"]: {"code": r["code"], "name": r["name"]}
+                              for r in doc["records"] if r.get("code")}.values())
+        return doc
 
 
 def days(data):
@@ -392,6 +414,8 @@ def extract(text, meta, names=None):
             primary = primary_name(line, name)
             if meta.get('evidence_type') == '공개 기사' and not primary:
                 kind = 'mention'
+            if kind == 'mention':
+                continue
             # A multi-stock heading cannot assign the same price/reason to all stocks.
             unambiguous = len(hits) == 1
             reasons = [s.lstrip("-•· ") for s in block[1:] if (s.startswith(("-", "•", "·")) or re.search(r"때문|실적|수주|매출|수급|성장|돌파|지지|계약", s)) and not re.search(r"목표가|손절가|매수가|매수 가격|매수가격|공략가|매매가", s)] if unambiguous else []
@@ -436,7 +460,14 @@ def discover_mtn(program, cutoff):
 
 
 def document(item):
-    meta = {k: item.get(k) for k in ("url", "title", "program", "broadcaster", "broadcast_date", "published_at")}
+    meta = {k: item.get(k) for k in ("url", "title", "program", "broadcaster", "broadcast_date", "published_at", "broadcast_program_id", "post_broadcast")}
+    if item['kind'] == 'mktv-article':
+        return broadcasts.article(item)
+    if item['kind'] == 'mktv':
+        page = Page(fetch(item['url']))
+        if not re.search(r'방영일\s*' + item['broadcast_date'].replace('-', r'\.'), page.text()):
+            raise ValueError('공식 다시보기 회차일 확인 필요')
+        return broadcast_audio.read_or_start(item)
     if item["kind"] == "mtn":
         page = Page(fetch(item["url"]))
         article = next((urljoin(item["url"], a["url"]) for a in page.links if re.search(r"news.mtn.co.kr/(?:news-detail|article)/\d+", a["url"])), None)
@@ -467,11 +498,21 @@ def document(item):
             meta['published_at'] = published(value)
         if not meta.get('published_at') and not meta.get('broadcast_date'):
             raise ValueError('영상 게시일·방송일 확인 불가; 날짜 추정 저장하지 않음')
+    if item.get('post_broadcast') and meta.get('published_at') and not broadcasts.ready(item, meta['published_at'][:10]):
+        return [], '방송 종료 후 수집 대기'
+    browser_warning = None
     try:
         lines = captions(item["url"])
     except PublicUnavailable:
         raise
     except Exception as exc:
+        if item.get('post_broadcast'):
+            try:
+                lines = broadcasts.browser_lines(item['url'])
+            except ValueError as browser_error:
+                browser_warning = str(browser_error)
+            else:
+                return transcript_records(lines, {**meta, 'evidence_type': '공개 브라우저 스크립트'}), None
         # Metadata is evidence of mention only; never fabricate spoken advice.
         meta["evidence_type"] = "제목·설명만 확인 · 발언 미확인"
         records = extract(title + "\n" + item.get("description", "")[:6000], meta)
@@ -479,15 +520,20 @@ def document(item):
             record.update(classification="consultation" if "상담" in title else "mention", buy_price=None, target_price=None, stop_price=None, reason=None,
                           recommended_time=None, review_status="자막 미확인: " + str(exc)[:160])
             record["id"] = hashlib.sha256((meta["url"] + record["code"] + "metadata").encode()).hexdigest()[:24]
-        return records, str(exc)[:180]
+        records = [record for record in records if record["classification"] != "mention"]
+        return records, (str(exc) + (' · ' + browser_warning if browser_warning else ''))[:240]
     meta["evidence_type"] = "공개 한국어 자막"
+    return transcript_records(lines, meta), None
+
+
+def transcript_records(lines, meta):
     # Captions carry offsets, not a wall-clock recommendation time.
     records = extract("\n".join(x["text"] for x in lines), meta)
     for record in records:
         hit = next((x for x in lines if record["name"] in x["text"]), None)
         if hit:
             record["video_offset_seconds"] = hit["offset"]
-    return records, None
+    return records
 
 
 def enabled(data):
@@ -511,9 +557,14 @@ def worker(data):
             if not source.get("enabled", True):
                 continue
             key = source["url"]
+            coverage_warning = ''
             try:
+                lookback_days = 7 if source.get('post_broadcast') else 3
+                source_cutoff = (datetime.now(KST).date() - timedelta(days=lookback_days - 1)).isoformat()
                 if source.get("kind") == "mtn":
-                    items = discover_mtn(source, cutoff)
+                    items = discover_mtn(source, source_cutoff)
+                elif source.get('kind') == 'mktv':
+                    items = broadcasts.discover_mktv(source, source_cutoff)
                 else:
                     cid = source.get("channel_id") or book["sources"].get(key, {}).get("channel_id")
                     if not cid:
@@ -531,17 +582,33 @@ def worker(data):
                             coverage_warning = 'RSS 15건 상한·공개 동영상 목록 최대60건 보충; 전체 회차 보장 아님'
                         except Exception as exc:
                             coverage_warning = 'RSS 15건 상한·동영상 목록 보충 실패: ' + str(exc)[:100]
-                    items = [{**e, "kind": "youtube", "broadcaster": source["name"], "program": next((p["name"] for p in config.get("broadcast_programs", []) if p["broadcaster"] == source["name"] and p["name"] in e["title"]), None)} for e in entries if not e.get("published_at") or e["published_at"][:10] >= cutoff]
+                    items = [{**e, "kind": "youtube", "broadcaster": source["name"], "program": broadcast_program_match(e["title"], e.get("description", ""), source["name"], config)} for e in entries if not e.get("published_at") or e["published_at"][:10] >= cutoff]
+                if source.get('post_broadcast'):
+                    items = [broadcasts.tag(item, source) for item in items if not item.get('broadcast_date') or broadcasts.ready(source, item['broadcast_date'])]
+                    for discover in (broadcasts.discover_clips, broadcasts.discover_articles):
+                        try:
+                            items.extend(discover(source))
+                        except Exception:
+                            coverage_warning += ' · 공식 클립/기사 목록 보완 실패·재시도 예정'
                 for item in items:
+                    if excluded_program(item, config):
+                        continue
                     old = book["documents"].get(item["url"], {})
                     book["documents"][item["url"]] = {**item, **old}
-                book["sources"][key] = {"name": source["name"], "status": "목록 확인", "checked_at": stamp(), "found": len(items), "coverage": "최신 공개 목록·최근 3일; 전체 회차 보장 아님"}
+                    if item.get('post_broadcast'):
+                        if not old.get('post_broadcast'):
+                            book['documents'][item['url']]['next_retry'] = 0
+                        for field in ('program', 'broadcaster', 'post_broadcast', 'broadcast_program_id'):
+                            book['documents'][item['url']][field] = item[field]
+                book["sources"][key] = {"name": source["name"], "status": "목록 확인", "checked_at": stamp(), "found": len(items), "coverage": f"최신 공개 목록·최근 {lookback_days}일; 전체 회차 보장 아님"}
                 if source.get("kind") == "mtn" and not items:
-                    book['sources'][key].update(status='확인 필요', message='최근 3일 공개 회차 0건·휴방 또는 페이지 구조 변경 확인 필요')
-                if source.get("kind") != "mtn":
+                    book['sources'][key].update(status='확인 필요', message=f'최근 {lookback_days}일 공개 회차 0건·휴방 또는 페이지 구조 변경 확인 필요')
+                if source.get("kind") not in ('mtn', 'mktv'):
                     book["sources"][key]["channel_id"] = cid
-                    if coverage_warning:
-                        book['sources'][key].update(status='범위 제한', message=coverage_warning)
+                if source.get('post_broadcast'):
+                    book['sources'][key].update(schedule=source['post_broadcast'], coverage='방송 종료 10분 후·최근 7일 누락 보완·공개 다시보기/기사/공식 클립(전체 발언 보장 아님)')
+                if coverage_warning:
+                    book['sources'][key].update(status='범위 제한', message=coverage_warning)
             except Exception as exc:
                 book["sources"][key] = {"name": source["name"], "status": "수집 실패", "checked_at": stamp(), "message": str(exc)[:180]}
             with LOCK:
@@ -549,10 +616,18 @@ def worker(data):
         # Bounded work per round. Failed documents retry after six hours.
         def priority(x):
             date = (x.get('published_at') or x.get('broadcast_date') or '1970-01-01')[:10]
-            return (x.get('attempts', 0), x.get('kind') != 'mtn', -datetime.strptime(date, '%Y-%m-%d').toordinal())
+            return (not bool(x.get('post_broadcast')), x.get('attempts', 0), x.get('kind') not in ('mtn', 'mktv', 'mktv-article'), -datetime.strptime(date, '%Y-%m-%d').toordinal())
         pending = sorted(book["documents"].values(), key=priority)
+        processed = priority_processed = 0
         for item in pending[:]:
-            if (item.get("status") == "완료" and item.get('parser_version') == PARSER_VERSION) or item.get("next_retry", 0) > time.time():
+            if excluded_program(item, config):
+                continue
+            if item.get('post_broadcast') and priority_processed >= 20:
+                continue
+            completed = item.get('status') == '완료' and item.get('parser_version') == PARSER_VERSION
+            if (completed and (not item.get('post_broadcast') or item.get('next_refresh', 0) > time.time())) or item.get("next_retry", 0) > time.time():
+                continue
+            if item.get('post_broadcast') and item.get('broadcast_date') and not broadcasts.ready(item, item['broadcast_date']):
                 continue
             STATE["message"] = "추천 원문 확인: " + item.get("title", "")[:55]
             try:
@@ -560,6 +635,8 @@ def worker(data):
                 records, warning = result if isinstance(result, tuple) else (result, None)
                 if item.get('kind') == 'mtn' and not records:
                     warning = '공개 기사 종목 0건·본문 구조 또는 종목 식별 확인 필요'
+                if item.get('post_broadcast') and not records and not warning:
+                    warning = '방송 원문의 종목·추천 구간 식별 확인 필요'
                 # Unknown recommendation dates are filed under publication day,
                 # visibly distinct from the recommendation-date field.
                 day = item.get("broadcast_date") or (item.get("published_at") or "")[:10]
@@ -567,7 +644,8 @@ def worker(data):
                     r["archive_day"] = r.get("recommended_date") or (r.get('published_at') or '')[:10] or day
                     if not r['archive_day']:
                         raise ValueError('원문 날짜 확인 불가; 저장 보류')
-                records = [r for r in records if not r.get('published_at') or r['published_at'][:10] >= cutoff]
+                item_cutoff = (datetime.now(KST).date() - timedelta(days=7)).isoformat() if item.get('post_broadcast') else cutoff
+                records = [r for r in records if not r.get('published_at') or r['published_at'][:10] >= item_cutoff]
                 grouped = {}
                 for r in records:
                     grouped.setdefault(r["archive_day"], []).append(r)
@@ -575,14 +653,19 @@ def worker(data):
                     merge(data, day, rows)
                 item.update(status="확인 필요" if warning else "완료", record_count=len(records), checked_at=stamp(), message=warning or ("원문 종목 확인" if records else "확인 가능한 국내 종목 없음"))
                 if warning:
-                    item['next_retry'] = time.time() + 21600
+                    item['next_retry'] = time.time() + (INTERVAL if item.get('post_broadcast') else 21600)
+                else:
+                    item['next_retry'] = 0
+                    item['next_refresh'] = time.time() + 7200
             except Exception as exc:
-                item.update(status="확인 필요", message=str(exc)[:180], checked_at=stamp(), next_retry=time.time() + 21600)
+                item.update(status="확인 필요", message=str(exc)[:180], checked_at=stamp(), next_retry=time.time() + (INTERVAL if item.get('post_broadcast') else 21600))
+            processed += 1
+            priority_processed += bool(item.get('post_broadcast'))
             item["attempts"] = item.get("attempts", 0) + 1
             item['parser_version'] = PARSER_VERSION
             with LOCK:
                 save(data / "recommendations" / "ledger.json", book)
-            if sum(1 for d in book["documents"].values() if d.get("checked_at", "") >= STATE["last_run"]) >= 60:
+            if processed >= 60:
                 break
         STATE["message"] = "공개 자료 확인 완료 · 누락·차단·자막 없음은 수집 현황 참조"
     except Exception as exc:

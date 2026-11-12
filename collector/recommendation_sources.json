@@ -1,17 +1,33 @@
 {
-  "checked_date": "2026-11-08",
+  "checked_date": "2026-11-09",
   "programs": [
     {
       "name": "여의도 투자본부 1부",
       "url": "https://www.mtn.co.kr/program/588",
       "kind": "mtn",
-      "broadcaster": "MTN"
+      "broadcaster": "MTN",
+      "program_id": "588",
+      "channel_id": "UClErHbdZKUnD1NyIUeQWvuQ",
+      "enabled": true,
+      "post_broadcast": {
+        "end": "20:30",
+        "delay_minutes": 10,
+        "timezone": "Asia/Seoul"
+      }
     },
     {
       "name": "여의도 투자본부 2부",
       "url": "https://www.mtn.co.kr/program/589",
       "kind": "mtn",
-      "broadcaster": "MTN"
+      "broadcaster": "MTN",
+      "program_id": "589",
+      "channel_id": "UClErHbdZKUnD1NyIUeQWvuQ",
+      "enabled": true,
+      "post_broadcast": {
+        "end": "21:50",
+        "delay_minutes": 10,
+        "timezone": "Asia/Seoul"
+      }
     },
     {
       "name": "적중! 대박 예감",
@@ -23,7 +39,15 @@
       "name": "고래사냥",
       "url": "https://www.mtn.co.kr/program/582",
       "kind": "mtn",
-      "broadcaster": "MTN"
+      "broadcaster": "MTN",
+      "program_id": "582",
+      "channel_id": "UClErHbdZKUnD1NyIUeQWvuQ",
+      "enabled": true,
+      "post_broadcast": {
+        "end": "19:50",
+        "delay_minutes": 10,
+        "timezone": "Asia/Seoul"
+      }
     },
     {
       "name": "내 수익을 부탁해",
@@ -96,6 +120,34 @@
       "url": "https://www.mtn.co.kr/program/392",
       "kind": "mtn",
       "broadcaster": "MTN"
+    },
+    {
+      "name": "종결자: 랭킹전",
+      "url": "https://mbnmoney.mbn.co.kr/program?program_no=1000175",
+      "kind": "mktv",
+      "broadcaster": "매일경제TV",
+      "program_id": "1000175",
+      "channel_id": "UCnfwIKyFYRuqZzzKBDt6JOA",
+      "enabled": true,
+      "post_broadcast": {
+        "end": "21:30",
+        "delay_minutes": 10,
+        "timezone": "Asia/Seoul"
+      }
+    },
+    {
+      "name": "종결자: 맞대결",
+      "url": "https://mbnmoney.mbn.co.kr/program?program_no=1000176",
+      "kind": "mktv",
+      "broadcaster": "매일경제TV",
+      "program_id": "1000176",
+      "channel_id": "UCnfwIKyFYRuqZzzKBDt6JOA",
+      "enabled": true,
+      "post_broadcast": {
+        "end": "22:30",
+        "delay_minutes": 10,
+        "timezone": "Asia/Seoul"
+      }
     }
   ],
   "channels": [
@@ -333,6 +385,16 @@
   ],
   "broadcast_programs": [
     {
+      "name": "AI황금분석",
+      "url": "https://www.youtube.com/channel/UCnfwIKyFYRuqZzzKBDt6JOA",
+      "broadcaster": "매일경제TV",
+      "aliases": ["AI 황금 분석", "매니저 5인의 시각차"],
+      "broadcast_time": "14:20",
+      "experts": ["백인엽", "신광섭", "이가람", "조기준", "한균수"],
+      "highlight": "important",
+      "collection_note": "공식 공개 영상의 제목·설명에서 프로그램명이 확인된 경우에만 연결. 공개 자막에서 발언이 확인되지 않으면 추천 종목으로 추정하지 않음."
+    },
+    {
       "name": "종결자: 랭킹전",
       "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000175",
       "broadcaster": "매일경제TV"
@@ -501,6 +563,21 @@
       "name": "우슬초 - 위대한 투자수업 시즌2",
       "url": "https://www.wowtv.co.kr/Broad/ProgramMain/Index?menuSeq=644&programCode=P4055",
       "broadcaster": "한국경제TV"
+    },
+    {
+      "name": "여의도 투자본부 1부",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "여의도 투자본부 2부",
+      "broadcaster": "MTN"
+    },
+    {
+      "name": "고래사냥",
+      "broadcaster": "MTN"
     }
+  ],
+  "excluded_programs": [
+    "머니 클래스"
   ]
 }

@@ -1,26 +1,28 @@
 'use strict';
 const recEl=id=>document.getElementById(id),recNode=(tag,text,cls)=>{const e=document.createElement(tag);if(text!=null)e.textContent=text;if(cls)e.className=cls;return e;};
-const recLabels={new:'신규추천',consultation:'보유종목 상담',review:'과거추천 복기',sell:'매도·축소',interest:'관심종목',mention:'단순 언급'};
+const recLabels={pending:'음성전사 검수대기',new:'신규추천',consultation:'보유종목 상담',review:'과거추천 복기',sell:'매도·축소',interest:'관심종목'};
+const recKindClass={pending:'rec-kind-pending',new:'rec-kind-new',consultation:'rec-kind-consultation',review:'rec-kind-review',sell:'rec-kind-sell',interest:'rec-kind-interest'};
 let recData=null,recProfiles={},recVersion=0,recSelected='',recNoteTarget=null,recRevision='',recNoteSaving=false;
 const recDrafts=new Map();
 const recMoney=p=>p?p.min.toLocaleString('ko-KR')+(p.max!==p.min?'~'+p.max.toLocaleString('ko-KR'):'')+'원':'미확인';
 async function recApi(url,body){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);try{const response=await fetch(url,{signal:controller.signal,...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':recData.token},body:JSON.stringify(body)})});const data=await response.json();if(!response.ok)throw Error(data.error||'요청 실패');return data;}catch(e){if(e.name==='AbortError')throw Error('응답 지연 · 보관 자료를 다시 확인해주세요.');throw e;}finally{clearTimeout(timer);}}
 function recLink(url,label){const a=recNode('a',label,'rec-source-link');if(!/^https:\/\//.test(url||''))return a;a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.onclick=e=>e.stopPropagation();return a;}
-function recRows(){const kind=recEl('rec-kind').value,source=recEl('rec-source').value,term=recEl('rec-search').value.trim().toLowerCase();return(recData?.records||[]).filter(r=>(!kind||r.classification===kind)&&(!source||r.broadcaster===source)&&(!term||[r.name,r.code,r.expert,r.program,r.reason].join(' ').toLowerCase().includes(term)));}
+function recRows(){const kind=recEl('rec-kind').value,source=recEl('rec-source').value,term=recEl('rec-search').value.trim().toLowerCase();return(recData?.records||[]).filter(r=>(!kind||(kind==='focus'?['new','interest'].includes(r.classification):r.classification===kind))&&r.classification!=='mention'&&(!source||r.broadcaster===source)&&(!term||[r.name,r.code,r.expert,r.program,r.reason].join(' ').toLowerCase().includes(term)));}
 function recRender(){
  const focusCode=document.activeElement?.closest('#rows tr[data-code]')?.dataset.code;
  const rows=recRows(),stocks=[...new Map(rows.map(r=>[r.code,{code:r.code,name:r.name}])).values()];
  recEl('rec-count').textContent=rows.length+'건 · '+stocks.length+'종목';recEl('rec-empty').hidden=!!rows.length;
  recEl('rec-empty').textContent=recData.records.length?'선택한 조건에 맞는 자료가 없습니다. 분류·채널·검색 조건을 바꾸거나 최근 신규추천을 확인하세요.':'이 날짜의 보관 자료가 없습니다. 다른 날짜 또는 수집 현황을 확인하세요.';
  const counts=recData.records.reduce((a,r)=>(a[r.classification]=(a[r.classification]||0)+1,a),{});
- recEl('rec-summary').textContent='보관 '+recData.day+' · 전체 '+recData.records.length+'건 / 신규추천 '+(counts.new||0)+' / 상담 '+(counts.consultation||0)+' / 단순 언급 '+(counts.mention||0)+' · 단순 언급은 추천이 아닙니다.';
- recEl('rows').replaceChildren(...rows.map(r=>{const tr=recNode('tr');tr.dataset.code=r.code;tr.dataset.record=r.id;
+ recEl('rec-summary').textContent='보관 '+recData.day+' · 표시 '+rows.length+'건 / 신규추천 '+(counts.new||0)+' / 관심종목 '+(counts.interest||0)+' / 상담 '+(counts.consultation||0)+' · 단순 언급 제외';
+ recEl('rows').replaceChildren(...rows.map(r=>{const tr=recNode('tr');tr.dataset.code=r.code;tr.dataset.record=r.id;const importantProgram=r.program==='AI황금분석';if(importantProgram)tr.classList.add('rec-important-program');
   const left=recNode('td'),button=recNode('button',r.name,'rank-stock');button.type='button';left.append(button,recNode('small',r.code));const p=recProfiles[r.code]||{};
-  left.append(recNode('small',p.market_cap>0?'시총 '+Number(p.market_cap).toLocaleString('ko-KR')+'억'+(p.cap_day!==recData.day?' · '+p.cap_day+' 기준':''):'시총 미확인'));
-  left.append(recNode('small','키움 테마 · '+(p.themes?.join(' · ')||'미확인')),recNode('small','관심테마그룹 · '+(p.groups?.join(' · ')||'미확인')),recNode('small','업종 · '+(p.industry||'미확인')));
-  const right=recNode('td');right.append(recNode('span',recLabels[r.classification],'rec-badge '+(r.classification==='new'?'rec-new':'')),recNode('p',(r.expert||'전문가 미확인')+' · '+r.broadcaster+' / '+(r.program||'프로그램 미확인')),
+  left.append(recNode('small',p.market_cap>0?'시총 '+Number(p.market_cap).toLocaleString('ko-KR')+'억'+(p.cap_day!==recData.day?' · '+p.cap_day+' 기준':''):'시총 미확인','rec-sector rec-cap'));
+  left.append(recNode('small','키움 테마 · '+(p.themes?.join(' · ')||'미확인'),'rec-sector rec-theme'),recNode('small','관심테마그룹 · '+(p.groups?.join(' · ')||'미확인'),'rec-sector rec-group'),recNode('small','업종 · '+(p.industry||'미확인'),'rec-sector rec-industry'));
+  const right=recNode('td'),attribution=recNode('div',null,'rec-attribution');right.append(recNode('span',recLabels[r.classification]||'분류 확인 필요','rec-badge '+(recKindClass[r.classification]||'rec-kind-pending')));if(importantProgram)right.append(recNode('span','중요 방송 · AI황금분석','rec-badge rec-important-label'));attribution.append(recNode('span',r.broadcaster||'방송 미확인','rec-origin rec-broadcaster'),recNode('span',r.program||'프로그램 미확인','rec-origin rec-program'),recNode('span',r.expert||'전문가 미확인','rec-origin rec-expert'));right.append(attribution,
    recNode('small','추천 '+(r.recommended_date||'날짜 미확인')+' '+(r.recommended_time||'시각 미확인')+' KST'),recNode('p','추천·매수가 '+recMoney(r.buy_price)+' / 목표가 '+recMoney(r.target_price)+' / 손절가 '+recMoney(r.stop_price)),recNode('p','이유: '+(r.reason||'명시적 근거 요약 미확인')),
    recLink(r.url,'원문 확인'),recNode('small',(r.evidence_type||'')+' · 게시 '+(r.published_at||'미확인')));
+  if(r.candidate_prices)right.append(recNode('small','음성인식 후보(미검증): 매수 '+recMoney(r.candidate_prices.buy_price)+' / 목표 '+recMoney(r.candidate_prices.target_price)+' / 손절 '+recMoney(r.candidate_prices.stop_price)));
   tr.append(left,right);return tr;
  }));
  if(focusCode)recEl('rows').querySelector('tr[data-code="'+focusCode+'"] .rank-stock')?.focus({preventScroll:true});
@@ -43,7 +45,7 @@ async function recRefresh(){const version=++recVersion,selected=recEl('rec-day')
  recEl('rec-monitor').checked=data.enabled;recEl('rec-status').textContent=data.state.message+' · '+(data.state.last_run||'수집 대기')+(data.state.busy?' · 진행 중':'')+' · 선택 날짜 신규추천 '+data.records.filter(r=>r.classification==='new').length+' / 전체 '+data.records.length+'건'+(data.profile_error?' · 시총·테마 조회 확인 필요':'');
  recEl('rec-collect').disabled=data.state.busy;recEl('rec-export').href='/api/recommendations.csv?day='+encodeURIComponent(data.day);recRender();recLedger();
  const documents=Object.values(data.ledger.documents),sources=Object.values(data.ledger.sources),captions=documents.filter(d=>/자막/.test(d.message||'')),failures=sources.filter(s=>['수집 실패','확인 필요'].includes(s.status));
- recEl('rec-health').textContent='선택 날짜 원문 '+documents.length+'개 · 자막 확인 필요 '+captions.length+'개 · 채널·방송 확인 필요 '+failures.length+'곳. '+(data.records.some(r=>r.classification==='new')?'확인된 추천은 신규추천 분류에서 보세요.':'이 날짜에 확인된 신규추천은 없습니다. 최근 신규추천 버튼으로 이전 날짜를 확인하세요.');
+ recEl('rec-health').textContent='선택 날짜 원문 '+documents.length+'개 · 자막 확인 필요 '+captions.length+'개 · 채널·방송 확인 필요 '+failures.length+'곳. '+(data.records.some(r=>['new','interest'].includes(r.classification))?'신규추천·관심종목은 기본 보기에서 확인하세요.':'이 날짜에 확인된 신규추천·관심종목이 없습니다. 최근 날짜와 수집 현황을 확인하세요.');
  // Optional profiles must never hold the saved recommendation list hostage.
  recApi('/api/stock-profiles?'+new URLSearchParams({day:data.day})).then(result=>{if(version!==recVersion)return;recProfiles=result.profiles||{};recRender();}).catch(()=>{if(version===recVersion)recEl('rec-status').textContent+=' · 시총·테마 조회 지연 (보관 목록은 표시됨)';});
 }
