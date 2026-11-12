@@ -241,9 +241,9 @@
     },
     {
       "path": "collector/recommendation_sources.json",
-      "bytes": 19105,
-      "sha256": "2f8414c6083a7dffbef5d855ca614d3b55d21f5ffd8581a2b8cbf7b2d8e71aed",
-      "git_blob_sha": "3506d221353f9bc561a6dd069c176b482b25b440"
+      "bytes": 19113,
+      "sha256": "df2fb76f74061e73a6f930988b26e1029b7293a15f1957190965502c956ffaa4",
+      "git_blob_sha": "834a18a7eb4ba1e4f81c7b070e6dd99cc5a5d1f2"
     },
     {
       "path": "collector/recommendations.py",
@@ -254,8 +254,8 @@
     {
       "path": "collector/release_manifest.json",
       "bytes": 7547,
-      "sha256": "737d92a86237b602abcf7eb168e204b39fb90c21dbfd79b56492874abd175767",
-      "git_blob_sha": "7508e62df0d9b6a33fe623449f3fa0f4f319acf3"
+      "sha256": "5b1d335e95ee50612eed685e45bff197fd301d17a9083b504b53e581b70c5c42",
+      "git_blob_sha": "c0141d3af6e3933361d409474cd4f96a04d4833b"
     },
     {
       "path": "collector/setup_lg.ps1",
