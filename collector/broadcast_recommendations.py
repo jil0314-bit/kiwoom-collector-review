@@ -47,10 +47,10 @@ def discover_mktv(program, cutoff):
     return list(result.values())
 
 
-def discover_clips(program, query=None):
+def discover_clips(program):
     """Search results must identify the verified broadcaster as the owner."""
     import recommendations as r
-    url = 'https://www.youtube.com/results?' + urlencode({'search_query': (query or program['name']) + ' ' + program['broadcaster']})
+    url = 'https://www.youtube.com/results?' + urlencode({'search_query': program['name'] + ' ' + program['broadcaster']})
     initial = r.json_after(r.fetch(url), r'(?:var\s+)?ytInitialData\s*=\s*')
     found = {}
     labels = [compact(x) for x in [program['name'], *program.get('aliases', [])] if compact(x)]
@@ -63,8 +63,7 @@ def discover_clips(program, query=None):
                       for x in video.get('ownerText', {}).get('runs', []) + video.get('shortBylineText', {}).get('runs', [])]
             if re.fullmatch(r'[\w-]{11}', vid) and program['channel_id'] in owners and any(label in compact(title) for label in labels):
                 found[vid] = tag({'url': 'https://www.youtube.com/watch?v=' + vid, 'title': title,
-                                  'published_at': None, 'kind': 'youtube', 'description': '',
-                                  **({'ai_segment': True} if program.get('ai_segment') else {})}, program)
+                                  'published_at': None, 'kind': 'youtube', 'description': ''}, program)
             for child in value.values():
                 walk(child)
         elif isinstance(value, list):
@@ -72,31 +71,6 @@ def discover_clips(program, query=None):
                 walk(child)
     walk(initial)
     return list(found.values())[:12]
-
-
-def discover_ai_segment(program):
-    """Match the actual segment on the official channel, not the entire afternoon show."""
-    import recommendations as r
-    items = {}
-    errors = []
-    labels = [compact(label) for label in [program['name'], *program['aliases']]]
-    channel = 'https://www.youtube.com/channel/' + program['channel_id']
-    for tab in ('videos', 'streams'):
-        try:
-            for item in r.channel_video_entries(r.fetch(channel + '/' + tab)):
-                if any(label in compact(item['title']) for label in labels):
-                    items[item['url']] = tag({**item, 'kind': 'youtube', 'ai_segment': True}, program)
-        except Exception as exc:
-            errors.append(str(exc))
-    for label in [program['name'], *program['aliases']]:
-        try:
-            for item in discover_clips(program, label):
-                items[item['url']] = item
-        except Exception as exc:
-            errors.append(str(exc))
-    if not items and len(errors) == len(labels) + 2:
-        raise ValueError('공식 AI황금분석 클립 검색 확인 필요: ' + errors[0][:100])
-    return list(items.values())
 
 
 def discover_articles(program):

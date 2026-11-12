@@ -18,7 +18,8 @@ PROCESS = None
 
 
 def paths(item):
-    key = hashlib.sha256(item['url'].encode()).hexdigest()[:24]
+    namespace = 'manager-board:' if item.get('ai_segment') else ''
+    key = hashlib.sha256((namespace + item['url']).encode()).hexdigest()[:24]
     folder = ROOT / 'data/recommendations/speech'
     folder.mkdir(parents=True, exist_ok=True)
     return folder / (key + '.job.json'), folder / (key + '.result.json')
@@ -29,18 +30,27 @@ def read_or_start(item):
     global PROCESS
     job, result = paths(item)
     saved = r.load(result, {})
+    board = item.get('ai_segment')
+    if board:
+        from broadcast_board import BOARD_VERSION
+        if saved.get('board_version') != BOARD_VERSION:
+            saved = {}
     if saved.get('complete'):
+        if board:
+            return saved.get('records', []), saved.get('warning')
         return saved.get('records', []), None if saved.get('records') else '전사 완료·국내 종목/추천 구간 식별 확인 필요'
-    message = saved.get('message', '공개 다시보기 음성전사 대기')
+    message = saved.get('message', '전체 다시보기 추천표 검사 대기' if board else '공개 다시보기 음성전사 대기')
     records = saved.get('records', [])
     if PROCESS is not None and PROCESS.poll() is None:
         return records, message
     # Heavy work starts only outside domestic regular/extended market hours.
     from datetime import datetime
     from kiwoom import KST
-    if 8 <= datetime.now(KST).hour < 21:
+    if not board and 8 <= datetime.now(KST).hour < 21:
         return records, '21시 이후 로컬 음성전사 대기·클립/기사는 계속 수집'
-    if not (ROOT / '.speech-runtime/faster_whisper').is_dir():
+    if board and not (ROOT / '.broadcast-ocr-runtime/winrt').is_dir():
+        return records, '한국어 추천표 OCR 실행 환경 확인 필요'
+    if not (ROOT / '.speech-runtime' / ('av' if board else 'faster_whisper')).is_dir():
         return records, '로컬 음성인식 실행 환경 확인 필요'
     if saved.get('retry_after', 0) > __import__('time').time():
         return records, message
@@ -48,10 +58,10 @@ def read_or_start(item):
     flags = getattr(subprocess, 'CREATE_NO_WINDOW', 0) | getattr(subprocess, 'BELOW_NORMAL_PRIORITY_CLASS', 0)
     PROCESS = subprocess.Popen([sys.executable, '-B', str(Path(__file__).resolve()), str(job)],
                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=flags)
-    return records, '공개 다시보기 로컬 음성전사 진행·가격 검수 대기'
+    return records, '전체 다시보기에서 추천표 검사 중' if board else '공개 다시보기 로컬 음성전사 진행·가격 검수 대기'
 
 
-def media_url(item):
+def media_url(item, keyframes=False):
     import recommendations as r
     if urlparse(item['url']).hostname != 'mbnmoney.mbn.co.kr' or item.get('kind') != 'mktv':
         raise ValueError('공식 매일경제TV 다시보기만 전사 가능')
@@ -71,7 +81,14 @@ def media_url(item):
     master = get(url)
     if not master.startswith('#EXTM3U') or '#EXT-X-KEY' in master:
         raise ValueError('공개 비암호화 미디어로 확인되지 않음')
-    child = next((line.strip() for line in master.splitlines() if line.strip() and not line.startswith('#')), None)
+    if keyframes:
+        iframe = re.search(r'^#EXT-X-I-FRAME-STREAM-INF:[^\r\n]*?URI="([^"\r\n]+)"', master, re.M)
+        if iframe:
+            candidate = urljoin(url, iframe.group(1))
+            listing = get(candidate)
+            if listing.startswith('#EXTM3U') and '#EXT-X-I-FRAMES-ONLY' in listing and '#EXT-X-KEY' not in listing:
+                return candidate
+    child = next((line.strip() for line in master.splitlines() if line.strip() and not line.startswith('#')), None) if '#EXT-X-STREAM-INF' in master else None
     if child:
         url = urljoin(url, child)
         if '#EXT-X-KEY' in get(url):
@@ -151,10 +168,18 @@ def main():
         lock.close()
         return
     try:
-        transcribe(item, result)
+        if item.get('ai_segment'):
+            from broadcast_board import scan
+            scan(item, result)
+        else:
+            transcribe(item, result)
     except Exception as exc:
         saved = r.load(result, {})
-        r.save(result, {**saved, 'complete': False, 'message': '음성전사 확인 필요: ' + str(exc)[:180],
+        prefix = '추천표 검사 확인 필요: ' if item.get('ai_segment') else '음성전사 확인 필요: '
+        if item.get('ai_segment'):
+            from broadcast_board import BOARD_VERSION
+            saved['board_version'] = BOARD_VERSION
+        r.save(result, {**saved, 'complete': False, 'message': prefix + str(exc)[:180],
                         'retry_after': __import__('time').time() + 7200})
     finally:
         lock.close()

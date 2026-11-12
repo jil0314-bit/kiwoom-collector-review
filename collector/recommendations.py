@@ -72,6 +72,11 @@ def excluded_program(item, config):
     return any(broadcasts.compact(name) in text for name in config.get('excluded_programs', []))
 
 
+def newest_record(record):
+    return (record.get('first_collected_at') or record.get('collected_at') or '',
+            record.get('published_at') or '', record.get('recommended_time') or '', record['id'])
+
+
 def broadcast_program_match(title, description, broadcaster, config):
     text = broadcasts.compact((title or '') + ' ' + (description or ''))
     for program in config.get('broadcast_programs', []):
@@ -87,7 +92,8 @@ def read(data, day):
     valid_day(day)
     with LOCK:
         doc = load(data / "recommendations" / day / "index.json", {"day": day, "records": [], "stocks": []})
-        doc["records"] = [r for r in doc.get("records", []) if r.get("classification") != "mention"]
+        doc['records'] = sorted((r for r in doc.get('records', []) if r.get('classification') != 'mention'),
+                                key=newest_record, reverse=True)
         doc["stocks"] = list({r["code"]: {"code": r["code"], "name": r["name"]}
                               for r in doc["records"] if r.get("code")}.values())
         return doc
@@ -120,9 +126,13 @@ def merge(data, day, records):
     with LOCK:
         doc = read(data, day)
         incoming = {r['url'] for r in records}
+        existing = {r['id']: r for r in doc['records']}
         items = {r["id"]: r for r in doc["records"] if r['url'] not in incoming}
-        items.update({r["id"]: r for r in records})
-        doc["records"] = sorted(items.values(), key=lambda r: (r.get("recommended_time") or "", r["id"]), reverse=True)
+        for record in records:
+            old = existing.get(record['id'], {})
+            first = old.get('first_collected_at') or old.get('collected_at') or record.get('collected_at') or stamp()
+            items[record['id']] = {**record, 'first_collected_at': first}
+        doc['records'] = sorted(items.values(), key=newest_record, reverse=True)
         doc["stocks"] = list({r["code"]: {"code": r["code"], "name": r["name"]} for r in doc["records"] if r.get("code")}.values())
         doc["updated_at"] = stamp()
         save(data / "recommendations" / valid_day(day) / "index.json", doc)
@@ -643,7 +653,7 @@ def worker(data):
                 if source.get("kind") == "mtn":
                     items = discover_mtn(source, source_cutoff)
                 elif source.get('kind') == 'mktv-segment':
-                    items = broadcasts.discover_ai_segment(source)
+                    items = [{**item, 'ai_segment': True} for item in broadcasts.discover_mktv(source, source_cutoff)]
                 elif source.get('kind') == 'mktv':
                     items = broadcasts.discover_mktv(source, source_cutoff)
                 else:
@@ -686,9 +696,12 @@ def worker(data):
                 if source.get('post_broadcast'):
                     book['sources'][key].update(schedule=source['post_broadcast'], coverage='방송 종료 10분 후·최근 7일 누락 보완·공개 다시보기/기사/공식 클립(전체 발언 보장 아님)')
                 if source.get('ai_segment'):
-                    book['sources'][key]['coverage'] = '매일경제TV 공식 클립에서 AI황금분석 코너명 확인'
+                    book['sources'][key]['coverage'] = '공식 오후 방송 전체 다시보기의 5인 추천표 확인'
                     if not items:
-                        book['sources'][key].update(status='확인 필요', message='AI황금분석으로 식별되는 공개 공식 클립 없음 · 본방송 전체를 코너로 간주하지 않음')
+                        book['sources'][key].update(status='확인 필요', message='최근 공식 오후 방송 전체 다시보기 없음')
+                    else:
+                        latest = max(item['broadcast_date'] for item in items)
+                        book['sources'][key].update(message=f'최신 공개 오후 방송 {latest} · 5인 추천표 확인 대상')
                 if coverage_warning:
                     book['sources'][key].update(status='범위 제한', message=coverage_warning)
             except Exception as exc:

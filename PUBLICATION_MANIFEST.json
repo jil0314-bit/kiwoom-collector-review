@@ -2,7 +2,7 @@
   "snapshot_date": "2026-11-12",
   "timezone": "Asia/Seoul",
   "review_base_commit": "3de6d019707be2bb7b7f37aad29e720d633590f0",
-  "scope": "Broadcast and YouTube recommendation source, live-source fixes and focused checks",
+  "scope": "Broadcast recommendations, full replay manager board OCR, latest collection order and focused checks",
   "policy": "Only the reviewed collector changes were added. Private runtime data excluded.",
   "files": [
     {
@@ -31,9 +31,9 @@
     },
     {
       "path": "collector/.gitignore",
-      "bytes": 67,
-      "sha256": "a4bde401c1143724434af5bd811479dbfa3d19ef29b192c86c2a878d5bf9e27a",
-      "git_blob_sha": "b31a586feaa1facb48c0ce5697b70cf59f885394"
+      "bytes": 110,
+      "sha256": "5a2a60888b1b6f76d0d12853e9ae5f11da3573544c337d742e288a32a253e830",
+      "git_blob_sha": "98b379af34483f77988934bc7474c879295ff4ec"
     },
     {
       "path": "collector/AGENTS.md",
@@ -49,9 +49,9 @@
     },
     {
       "path": "collector/README.md",
-      "bytes": 40095,
-      "sha256": "35e538aa9834af5185b7cb68ae11a664f0a578b12e7237b24eb7a8d8b6e0914e",
-      "git_blob_sha": "eeabbc9108674f87d61c8d07557ce5b0a441a15c"
+      "bytes": 40526,
+      "sha256": "230aa2df68bf2fe93f1001643b5ef8ec54bb2b2e3f2b12583d715cfe1ce12770",
+      "git_blob_sha": "72021151019fdd35915e77d158ee445f6d4a17ca"
     },
     {
       "path": "collector/admin_restart.ps1",
@@ -85,15 +85,21 @@
     },
     {
       "path": "collector/broadcast_audio.py",
-      "bytes": 7749,
-      "sha256": "b04add03ef319d4fe6b7866dcb066c8d3f76e867159e252f96b2d420a9516f0b",
-      "git_blob_sha": "edddef9654bd90ea2afe432daed86c4b9eb376d4"
+      "bytes": 9198,
+      "sha256": "707f5e29af2aee9837c3f45195cbd6f14eef0cb6a837a201e0a9c18530701d12",
+      "git_blob_sha": "e55f3a4602a63655ff1bd62dd12b04b4ae88906e"
+    },
+    {
+      "path": "collector/broadcast_board.py",
+      "bytes": 12124,
+      "sha256": "e9ecc3d718e8ad5cd0a0d9eec5e3388f69e5cbbcd7d72e375755b3aafe798fbd",
+      "git_blob_sha": "28b0ed2b349fcbd39b1c2fb5ed22916fc5b0f81d"
     },
     {
       "path": "collector/broadcast_recommendations.py",
-      "bytes": 7943,
-      "sha256": "876a0db995976e378789e113934421d3a197abb475fd42585a4aba91d2d8f89e",
-      "git_blob_sha": "957d75a6770c12c0fc189cd7315fd66f7bb13140"
+      "bytes": 6679,
+      "sha256": "d116797da6f1f970ac0f82cb20d0499ae7d3323f22d19714c527ace25f41c502",
+      "git_blob_sha": "c418f19414c45213698c04e29db4985022084e82"
     },
     {
       "path": "collector/broadcast_transcript.cjs",
@@ -247,15 +253,21 @@
     },
     {
       "path": "collector/recommendations.py",
-      "bytes": 44262,
-      "sha256": "59d0b8c244bc5ab003754ec4cabbf479fdcac8af54ab7ab49d363cbc831fe342",
-      "git_blob_sha": "03c2b1bf3b84f44f7cb1d39d1bfea36e0a48dfac"
+      "bytes": 45023,
+      "sha256": "a85d5c28c38ff572370fada4b6e29a9a72980d9b4e42c0539768fb47c5fbd249",
+      "git_blob_sha": "ec2ba56c1072f0f5f82faefb814c07e361c04ce7"
     },
     {
       "path": "collector/release_manifest.json",
-      "bytes": 7547,
-      "sha256": "5b1d335e95ee50612eed685e45bff197fd301d17a9083b504b53e581b70c5c42",
-      "git_blob_sha": "c0141d3af6e3933361d409474cd4f96a04d4833b"
+      "bytes": 7745,
+      "sha256": "c959f5f5b08e8ed71e17bc8c9162b7177187f619a074b1c60f65f6cd52c988e5",
+      "git_blob_sha": "dae9461f23eed2cc0889b42d7d4529cc00727d1f"
+    },
+    {
+      "path": "collector/requirements-board-ocr.txt",
+      "bytes": 284,
+      "sha256": "80d85c8bfb60949ae3bae96ff83c127bde93bdc1f4da98342497a7e0398a5a0e",
+      "git_blob_sha": "470e554cdbaa683aea09babe15be4d69620db245"
     },
     {
       "path": "collector/setup_lg.ps1",
@@ -385,9 +397,9 @@
     },
     {
       "path": "collector/test_recommendations.py",
-      "bytes": 16156,
-      "sha256": "3acc31b0fa48a501a608cd2e01a1e04c7f81784a12bfa8bf3e34ba81441669e0",
-      "git_blob_sha": "01d2ef91adf0c0554835f10b7a336f994f6b57b0"
+      "bytes": 18660,
+      "sha256": "692502ba1f379a90479daef9cab4b3f217ea62640d539f4049d941954feafee8",
+      "git_blob_sha": "e1ed26895de18a83f8fdb72044fa57b0e5e2625e"
     },
     {
       "path": "collector/test_recommendations_ui.cjs",
@@ -535,15 +547,15 @@
     },
     {
       "path": "collector/web/recommendations.html",
-      "bytes": 6013,
-      "sha256": "ee2b144205b340f83926e30802d41cc28baf5d5dc5f6654672f3f9058bb6ffe0",
-      "git_blob_sha": "cd34eef72ad8a2494244f9c8d10b3e60cbde2a9c"
+      "bytes": 5910,
+      "sha256": "f8e134eb6d2d2980f043910c64d16ede85d26fa73be488d4f6cf453e08d3cc4a",
+      "git_blob_sha": "5452f83c0f8de1fb4155c3a38f3ed676f6becec3"
     },
     {
       "path": "collector/web/recommendations.js",
-      "bytes": 15343,
-      "sha256": "f935775325c95aa1fa847e7e15bc72a13ffc665f13fdf01a00d0de2e0e374ef4",
-      "git_blob_sha": "3cffda3e714e6d081f3ffd39bc869643840308a2"
+      "bytes": 15467,
+      "sha256": "6d547543ca8d4993e63884efcc0965101aa18aadf16f9631c0dd55c0cbd39e9a",
+      "git_blob_sha": "be2e54e7222b34aa4f7fe43a7a74cb9d2bba8ee3"
     },
     {
       "path": "collector/web/style.css",
