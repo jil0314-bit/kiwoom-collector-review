@@ -2,6 +2,18 @@
   "checked_date": "2026-11-09",
   "programs": [
     {
+      "name": "AI황금분석",
+      "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000151",
+      "kind": "mktv-segment",
+      "broadcaster": "매일경제TV",
+      "program_id": "1000151",
+      "channel_id": "UCnfwIKyFYRuqZzzKBDt6JOA",
+      "aliases": ["AI 황금 분석", "매니저 5인의 시각차"],
+      "ai_segment": true,
+      "enabled": true,
+      "post_broadcast": {"end": "16:00", "delay_minutes": 10, "timezone": "Asia/Seoul"}
+    },
+    {
       "name": "여의도 투자본부 1부",
       "url": "https://www.mtn.co.kr/program/588",
       "kind": "mtn",

@@ -140,6 +140,32 @@ class RecommendationsTest(unittest.TestCase):
         self.assertEqual(warning, '자막 없음')
         self.assertEqual(records, [])
 
+    def test_registered_youtube_uses_public_script_after_empty_caption(self):
+        item = {**self.meta, 'kind': 'youtube', 'title': '신규추천'}
+        public_script = [{'offset': 1, 'text': '오늘의 추천'}, {'offset': 5, 'text': '삼성전자'}]
+        with patch.object(r, 'captions', side_effect=ValueError('자막 없음')), patch.object(r.watchlists, 'names', return_value=self.names):
+            rows, warning = r.document(item, browser_fallback=lambda url: public_script)
+        self.assertIsNone(warning)
+        self.assertEqual([(a['code'], a['evidence_type']) for a in rows], [('005930', '공개 브라우저 스크립트')])
+
+    def test_named_signal_keeps_pick_and_price_separate_from_mentions(self):
+        lines = [
+            {'offset': 1, 'text': '관심주로는 어떤 걸 볼까요? 오늘 첫'},
+            {'offset': 6, 'text': '번째 종목은 산일 전기 준비해 봤습니다.'},
+            {'offset': 18, 'text': '삼성전자와도 사업 비교가 가능합니다. 신규 수주가 늘었습니다.'},
+            {'offset': 42, 'text': '매수가는 현재가 목표가는 15만 원, 손절가 10만5,000원입니다.'},
+            {'offset': 54, 'text': '오늘 두 번째 시그널 종목은 RF 머틀리얼즈입니다.'},
+            {'offset': 89, 'text': '매수가는 현재가 목표가는 35,000원, 손절가는 2만 원입니다.'},
+        ]
+        names = {**self.names, '062040': '산일전기', '327260': 'RF머트리얼즈'}
+        meta = {**self.meta, 'broadcaster': '매일경제TV', 'title': '[이효근의 주도주 시그널] 산일전기, RF머트리얼즈 / 이효근 MBN골드 매니저',
+                'evidence_type': '공개 브라우저 스크립트'}
+        with patch.object(r.watchlists, 'names', return_value=names):
+            rows = r.transcript_records(lines, meta)
+        self.assertEqual([(x['code'], x['expert'], x['target_price']['min'], x['stop_price']['min']) for x in rows],
+                         [('062040', '이효근', 150000, 105000), ('327260', '이효근', 35000, 20000)])
+        self.assertTrue(all(x['buy_price'] is None and x['buy_price_basis'] == '현재가 (원문)' for x in rows))
+
     def test_html_keeps_inline_name_and_article_boundary(self):
         page = r.Page('<nav>SK하이닉스</nav><article><p>▶<b>삼성전자</b>(005930)</p><p>- 실적 성장</p></article><script>bad</script>')
         self.assertNotIn('SK하이닉스', page.text())

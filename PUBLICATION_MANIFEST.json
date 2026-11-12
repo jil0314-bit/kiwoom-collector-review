@@ -2,7 +2,7 @@
   "snapshot_date": "2026-11-12",
   "timezone": "Asia/Seoul",
   "review_base_commit": "3de6d019707be2bb7b7f37aad29e720d633590f0",
-  "scope": "Broadcast and YouTube recommendation source, display and focused checks",
+  "scope": "Broadcast and YouTube recommendation source, live-source fixes and focused checks",
   "policy": "Only the reviewed collector changes were added. Private runtime data excluded.",
   "files": [
     {
@@ -49,9 +49,9 @@
     },
     {
       "path": "collector/README.md",
-      "bytes": 40003,
-      "sha256": "1d7724a8123c8617508f719105a094750bf900e921f46f36a46e9485cfe71229",
-      "git_blob_sha": "a6fa36551508accda90311e19db343fadea0d9f0"
+      "bytes": 40070,
+      "sha256": "81bcbf34e926e7098df62cac0aa00086c1e65031ca77abcbb911d5bf9ade444b",
+      "git_blob_sha": "70a2c6643747a2fee553429805a5250ebfee68f6"
     },
     {
       "path": "collector/admin_restart.ps1",
@@ -91,9 +91,9 @@
     },
     {
       "path": "collector/broadcast_recommendations.py",
-      "bytes": 6577,
-      "sha256": "d043bf65fe32bc74b50b164f2b0176027e3c5fa7b4f17375667ad7125806ea4b",
-      "git_blob_sha": "873b5285b3dce9c3ecf7d33af0144603d80fc59f"
+      "bytes": 7353,
+      "sha256": "31eedf9721435d15c3a7e6e56b715a383bfa29b0cd636ba320b99f0c6ca9c409",
+      "git_blob_sha": "e4d13028e1c7f430247fca189258ad0aed5f2b76"
     },
     {
       "path": "collector/broadcast_transcript.cjs",
@@ -241,21 +241,21 @@
     },
     {
       "path": "collector/recommendation_sources.json",
-      "bytes": 18622,
-      "sha256": "053a3b92194ae45cdf2f838da11e5555600e3ab28a974b0ee6eadd47bb9d0519",
-      "git_blob_sha": "fec265ee2e68926615a4d57b0e3beda194a76088"
+      "bytes": 19105,
+      "sha256": "2f8414c6083a7dffbef5d855ca614d3b55d21f5ffd8581a2b8cbf7b2d8e71aed",
+      "git_blob_sha": "3506d221353f9bc561a6dd069c176b482b25b440"
     },
     {
       "path": "collector/recommendations.py",
-      "bytes": 38213,
-      "sha256": "e8aa0907a9ccb38056fa0be1b01349054792607a5d7c00dea4f14d80607eb1d2",
-      "git_blob_sha": "76f91f8808bb85d80ef8184f88ddec360e05a852"
+      "bytes": 42785,
+      "sha256": "38d0b1ceef1345ef13c11f5688120042c8788113de6036fdaced7ed31d8d0ae6",
+      "git_blob_sha": "114a858836dcf27c088232ce8d81dcf051f19e94"
     },
     {
       "path": "collector/release_manifest.json",
       "bytes": 7547,
-      "sha256": "e7f46afc162b4124b2d11bb35125a28f6d41caedba5df765385dd2a39abef496",
-      "git_blob_sha": "ccc62b811f0fe048cac96b527525f2077704773d"
+      "sha256": "fd0852f11f5389ddece671878b758a86d2b93ffe4edc5e4bb7efbc928ab7b4b6",
+      "git_blob_sha": "4d0b69e65015e84c37a68f045ff91b03ab5b9634"
     },
     {
       "path": "collector/setup_lg.ps1",
@@ -385,9 +385,9 @@
     },
     {
       "path": "collector/test_recommendations.py",
-      "bytes": 12983,
-      "sha256": "4fbbe420f7dd61b9ad8d61bd48808b015276e4ae077462536f3890d8dabd5e50",
-      "git_blob_sha": "ffce3e3c31e7fffe1b98bae5ced06b9c1030ddac"
+      "bytes": 15210,
+      "sha256": "2f2e7c70cf5385915ff7a2e3a8a76efda1ad45913f2d0392a6af652df647232d",
+      "git_blob_sha": "69dc0f300e3d459d184b0214557d82b45c6d3714"
     },
     {
       "path": "collector/test_recommendations_ui.cjs",
@@ -541,9 +541,9 @@
     },
     {
       "path": "collector/web/recommendations.js",
-      "bytes": 15322,
-      "sha256": "c51056bc8a3da4f6e10653c9819e88197bb6e49a59569de820a830c00e713e81",
-      "git_blob_sha": "7c4218cfdb2bb28d501200e91be2ec4be45d11e0"
+      "bytes": 15343,
+      "sha256": "f935775325c95aa1fa847e7e15bc72a13ffc665f13fdf01a00d0de2e0e374ef4",
+      "git_blob_sha": "3cffda3e714e6d081f3ffd39bc869643840308a2"
     },
     {
       "path": "collector/web/style.css",
