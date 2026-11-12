@@ -30,7 +30,7 @@ LOCK = threading.RLock()
 RUN = threading.Lock()
 STATE = {"busy": False, "message": "공개 자료 수집 대기", "last_run": None}
 INTERVAL = 1200
-PARSER_VERSION = 3
+PARSER_VERSION = 4
 HOSTS = {"www.mtn.co.kr", "news.mtn.co.kr", "www.youtube.com", "youtube.com", "www.youtube-nocookie.com", "mbnmoney.mbn.co.kr", "vodmm.mbn.co.kr"}
 LABELS = {"new": "신규추천", "consultation": "보유종목 상담", "review": "과거추천 복기", "sell": "매도·축소", "interest": "관심종목", "mention": "단순 언급", "pending": "음성전사 검수대기"}
 
@@ -248,18 +248,27 @@ class PublicUnavailable(ValueError):
 
 
 def channel_video_entries(content, limit=60):
-    """Supplement the 15-item RSS with publicly rendered channel video IDs."""
+    """Read both versions of the public YouTube channel video list."""
     initial = json_after(content, r'(?:var\s+)?ytInitialData\s*=\s*')
     result = {}
     def walk(value):
         if len(result) >= limit:
             return
         if isinstance(value, dict):
-            video = value.get('videoRenderer', {})
+            video = value.get('videoRenderer') or value.get('gridVideoRenderer') or {}
             code = video.get('videoId', '')
-            if re.fullmatch(r'[A-Za-z0-9_-]{11}', code):
-                title = video.get('title', {})
-                text = title.get('simpleText') or ''.join(x.get('text', '') for x in title.get('runs', []))
+            title = video.get('title', {})
+            text = title.get('simpleText') or ''.join(x.get('text', '') for x in title.get('runs', []))
+            lockup = value.get('lockupViewModel', {})
+            if lockup.get('contentType') == 'LOCKUP_CONTENT_TYPE_VIDEO':
+                code = lockup.get('contentId', '')
+                info = lockup.get('metadata', {}).get('lockupMetadataViewModel', {})
+                text = info.get('title', {}).get('content', '')
+                rows = info.get('metadata', {}).get('contentMetadataViewModel', {}).get('metadataRows', [])
+                age = ' '.join(p.get('text', {}).get('content', '') for row in rows for p in row.get('metadataParts', []))
+                if re.search(r'(?:\d+\s*(?:주|개월|년)\s*전|(?:[3-9]|\d{2,})\s*일\s*전|\d+\s*(?:weeks?|months?|years?)\s+ago|(?:[3-9]|\d{2,})\s+days?\s+ago)', age, re.I):
+                    return
+            if text and re.fullmatch(r'[A-Za-z0-9_-]{11}', code):
                 result[code] = {'url': 'https://www.youtube.com/watch?v=' + code,
                                 'title': text, 'published_at': None, 'description': ''}
             for child in value.values():
@@ -269,6 +278,28 @@ def channel_video_entries(content, limit=60):
                 walk(child)
     walk(initial)
     return list(result.values())
+
+
+def youtube_listing(channel_id):
+    feed_error = None
+    try:
+        entries = feed_entries(fetch('https://www.youtube.com/feeds/videos.xml?' + urlencode({'channel_id': channel_id})))
+    except Exception as exc:
+        entries, feed_error = [], str(exc)[:100]
+    if entries and len(entries) < 15:
+        return entries, ''
+    try:
+        supplement = channel_video_entries(fetch('https://www.youtube.com/channel/' + channel_id + '/videos'))
+    except Exception as exc:
+        if not entries:
+            raise ValueError('피드·공개 동영상 목록 확인 실패: ' + str(exc)[:100]) from exc
+        return entries, 'RSS 15건 상한·동영상 목록 보충 실패: ' + str(exc)[:100]
+    warning = '피드 응답 없음·공개 동영상 목록으로 확인' if not entries else 'RSS 15건 상한·공개 동영상 목록으로 보완'
+    if not entries and not supplement:
+        warning += ' · 최근 영상 0건'
+    if feed_error:
+        warning += ' (' + feed_error + ')'
+    return list({e['url']: e for e in [*supplement, *entries]}.values()), warning
 
 
 def captions(url):
@@ -623,15 +654,7 @@ def worker(data):
                         cid = initial.get('metadata', {}).get('channelMetadataRenderer', {}).get('externalId')
                         if not cid or not re.fullmatch(r'UC[\w-]{22}', cid):
                             raise ValueError("공식 채널 ID 확인 필요")
-                    entries = feed_entries(fetch("https://www.youtube.com/feeds/videos.xml?" + urlencode({"channel_id": cid})))
-                    coverage_warning = ''
-                    if len(entries) >= 15:
-                        try:
-                            supplement = channel_video_entries(fetch('https://www.youtube.com/channel/' + cid + '/videos'))
-                            entries = list({e['url']: e for e in [*supplement, *entries]}.values())
-                            coverage_warning = 'RSS 15건 상한·공개 동영상 목록 최대60건 보충; 전체 회차 보장 아님'
-                        except Exception as exc:
-                            coverage_warning = 'RSS 15건 상한·동영상 목록 보충 실패: ' + str(exc)[:100]
+                    entries, coverage_warning = youtube_listing(cid)
                     items = [{**e, "kind": "youtube", "broadcaster": source["name"], "program": broadcast_program_match(e["title"], e.get("description", ""), source["name"], config)} for e in entries if not e.get("published_at") or e["published_at"][:10] >= cutoff]
                 if source.get('post_broadcast') and not source.get('ai_segment'):
                     items = [broadcasts.tag(item, source) for item in items if not item.get('broadcast_date') or broadcasts.ready(source, item['broadcast_date'])]
@@ -679,12 +702,13 @@ def worker(data):
             return (x.get('broadcast_date') or x.get('published_at') or '')[:10]
 
         def priority(x):
-            date = (document_day(x) or '1970-01-01').replace('-', '')
+            date = (document_day(x) or x.get('last_seen_day') or '1970-01-01').replace('-', '')
             attempts = x.get('attempts', 0) if x.get('parser_version') == PARSER_VERSION else 0
             title = x.get('title') or ''
             has_pick = bool(NEW.search(title) or re.search(r'관심\s*(?:주|종목)|주도주\s*시그널', title))
             return (not bool(x.get('ai_segment')), not bool(x.get('post_broadcast')), attempts,
-                    x.get('kind') not in ('mtn', 'mktv', 'mktv-article'), not has_pick, -int(date) if date.isdecimal() else 0)
+                    x.get('kind') not in ('mtn', 'mktv', 'mktv-article'), not has_pick, -int(date) if date.isdecimal() else 0,
+                    '주도주 시그널' not in title)
 
         browser_attempts = 0
 
@@ -696,7 +720,7 @@ def worker(data):
             return broadcasts.browser_lines(url)
 
         pending = sorted(book["documents"].values(), key=priority)
-        processed = priority_processed = 0
+        processed = priority_processed = non_youtube_processed = 0
         for item in pending[:]:
             if excluded_program(item, config):
                 continue
@@ -704,6 +728,8 @@ def worker(data):
             if (document_day(item) or item.get('last_seen_day') or '') < item_cutoff:
                 continue
             if item.get('post_broadcast') and priority_processed >= 20:
+                continue
+            if item.get('kind') != 'youtube' and non_youtube_processed >= 40:
                 continue
             completed = item.get('status') == '완료' and item.get('parser_version') == PARSER_VERSION
             retry_wait = item.get('parser_version') == PARSER_VERSION and item.get('next_retry', 0) > time.time()
@@ -743,6 +769,7 @@ def worker(data):
                 item.update(status="확인 필요", message=str(exc)[:180], checked_at=stamp(), next_retry=time.time() + (INTERVAL if item.get('post_broadcast') else 21600))
             processed += 1
             priority_processed += bool(item.get('post_broadcast'))
+            non_youtube_processed += item.get('kind') != 'youtube'
             item['attempts'] = (item.get('attempts', 0) if item.get('parser_version') == PARSER_VERSION else 0) + 1
             item['parser_version'] = PARSER_VERSION
             with LOCK:

@@ -208,6 +208,18 @@ class RecommendationsTest(unittest.TestCase):
         self.assertEqual(rows[0]['url'],'https://www.youtube.com/watch?v=abcdefghijk')
         self.assertIsNone(rows[0]['published_at'])
 
+    def test_channel_list_recovers_when_feed_fails(self):
+        def lockup(code, age):
+            return {'lockupViewModel': {'contentId': code, 'contentType': 'LOCKUP_CONTENT_TYPE_VIDEO',
+                'metadata': {'lockupMetadataViewModel': {'title': {'content': '공개 회차'}, 'metadata': {'contentMetadataViewModel': {
+                    'metadataRows': [{'metadataParts': [{'text': {'content': age}}]}]}}}}}}
+        listing = 'var ytInitialData = ' + json.dumps({'contents': [lockup('abcdefghijk', '2시간 전'), lockup('abcdefghijl', '5일 전')]}) + ';'
+        with patch.object(r, 'fetch', side_effect=[OSError('피드 404'), listing]):
+            rows, warning = r.youtube_listing('UC' + 'a' * 22)
+        self.assertIn('공개 동영상 목록', warning)
+        self.assertEqual([row['url'] for row in rows], ['https://www.youtube.com/watch?v=abcdefghijk'])
+        self.assertIsNone(rows[0]['published_at'])
+
     def test_mtn_empty_listing_is_warning_not_silent_success(self):
         with tempfile.TemporaryDirectory() as tmp:
             data=Path(tmp)
