@@ -94,6 +94,29 @@ class VolumeTests(unittest.TestCase):
             self.assertTrue((v.root(data)/"2026-09-09").exists())
             self.assertEqual(v.cutoff(date(2028,3,31)), date(2028,2,29))
 
+    def test_retention_failure_does_not_block_today_ranking(self):
+        current = datetime(2026, 11, 16, 9, 15, tzinfo=KST)
+        day = current.date().isoformat()
+        stock = {"code": "005930", "price": 1000, "rank": 1}
+        def run_thread(*, target, args=(), daemon):
+            from types import SimpleNamespace
+            return SimpleNamespace(start=lambda: target(*args))
+        with tempfile.TemporaryDirectory() as tmp, patch.object(v, 'datetime') as clock, \
+                patch.object(v, 'LAST_PRUNE_DAY', None), patch.dict(v.STATE), \
+                patch.object(v.threading, 'Thread', side_effect=run_thread), patch.object(v, 'collect_bars') as collect:
+            data = Path(tmp)
+            old = v.root(data) / '2026-10-08'
+            old.mkdir(parents=True)
+            clock.now.return_value = current
+            raw = {"unknown_cap_excluded": 0, "observed_at": current.isoformat()}
+            with patch.object(v, 'ranking', return_value=([stock], raw)), \
+                    patch.object(v.shutil, 'rmtree', side_effect=PermissionError('read-only')):
+                self.assertEqual(v.start(data, current=current), 'started')
+            self.assertTrue(old.is_dir())
+            self.assertEqual(v.catalog(data)[0]['day'], day)
+            self.assertIn('1개', v.STATE['retention_warning'])
+            collect.assert_called_once_with(data, day)
+
     def test_schedule_and_final_guards(self):
         with tempfile.TemporaryDirectory() as tmp, patch.object(v, 'start') as start:
             data = Path(tmp)

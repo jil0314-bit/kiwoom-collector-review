@@ -19,7 +19,7 @@ STARTED = False
 LIMIT = 128
 
 
-def seed(data, day, code, frame, source, name, live, revision=None):
+def seed(data, day, code, frame, source, name, live, revision=None, history=False):
     """Read existing files without waiting for the API-client lock or making requests."""
     target_day = datetime.now(KST).date().isoformat() if live else day
     cache_data = data / 'volume_surge' / 'cache' if source == 'volume' else data
@@ -34,39 +34,55 @@ def seed(data, day, code, frame, source, name, live, revision=None):
         path = data / 'volume_surge' / day / (code + '.json')
         if path.is_file():
             record = json.loads(path.read_bytes())
+    elif source == 'watchlist' and not live and frame.startswith('minute'):
+        payload, _ = archive.payload(data, day, code)
+        if payload:
+            record = json.loads(payload)
     base = record or {'day': target_day, 'kind': 'preview', 'stock': {'code': code, 'name': name or code}}
     if frame.startswith('minute'):
-        path = cache_data / 'watchlist_history' / target_day / (code + '.json')
-        if (live or source == 'watchlist') and path.is_file():
-            saved = json.loads(path.read_bytes())
-            base = {**base, 'day': target_day, 'bars': saved['bars'], 'fetched_at': saved['fetched_at']}
+        interval = 1 if frame == 'minute' else int(frame[-1])
+        directory = f'chart_minute_history_{interval}'
+        path = cache_data / directory / target_day / (code + '.json')
+        if not path.is_file():
+            path = cache_data / 'watchlist_history' / target_day / (code + '.json')
+        saved = chart_data.read_cache(path, target_day) if live or source == 'watchlist' else None
+        if saved:
+            actual_day = saved['bars'][-1]['ts'][:10]
+            base = {**base, 'day': actual_day, 'bars': saved['bars'], 'fetched_at': saved['fetched_at']}
+            if actual_day != target_day:
+                base.update(requested_day=target_day, kind='final')
             raw = saved['raw']
         elif record:
-            path = (archive.active(data, day) if source == 'ranking' else data / 'volume_surge' / day) / (code + '.raw.json.gz')
+            folder = data / 'volume_surge' / day if source == 'volume' else archive.active(data, day)
+            path = folder / (code + '.raw.json.gz')
             raw = json.loads(gzip.decompress(path.read_bytes())) if path.is_file() else {}
             base['fetched_at'] = record.get('fetched_at') or record.get('saved_at') or record['bars'][-1]['ts'].replace(' ', 'T') + '+09:00'
         else:
             return None
-        result = chart_data.minute_record(base, raw) if frame == 'minute' else chart_data.grouped_record(base, raw, int(frame[-1]))
+        result = chart_data.minute_view(base, raw, frame, history)
+    elif frame == 'month':
+        saved = chart_data.read_cache(cache_data / 'monthly_history' / target_day / (code + '.json'), target_day)
+        if not saved:
+            return None
+        result = chart_data.monthly_record(base, saved, history)
     else:
         directories = ('weekly_history', 'chart_history') if frame == 'week' else ('chart_history', 'weekly_history')
         saved = None
         for directory in directories:
             path = cache_data / directory / target_day / (code + '.json')
-            if path.is_file():
-                saved = json.loads(path.read_bytes())
+            saved = chart_data.read_cache(path, target_day)
+            if saved:
                 break
         if not saved:
             return None
         if frame == 'week':
-            result = chart_data.weekly_record(base, saved['bars'], saved['fetched_at'])
+            result = chart_data.weekly_record(base, saved['bars'], saved['fetched_at'], history)
         else:
-            result = {**base, 'frame': 'day', 'bars': chart_data.averages([dict(b) for b in saved['bars']], chart_data.PERIODS['day'])[-180:],
-                      'fetched_at': saved['fetched_at'], 'chart_notice': '일봉 · 저장된 조회 자료 · 종가 단순평균 · 20·60선 3배 굵기.'}
+            result = chart_data.daily_record(base, saved, history)
     if not result.get('bars'):
         return None
     # A persisted snapshot is never silently presented as newly fetched market data.
-    result['live'] = live
+    result['live'] = live and 'requested_day' not in result
     result['archive_day'] = day
     result['chart_notice'] += ' 저장 자료 먼저 표시 · 조회 ' + result['fetched_at'][:19].replace('T', ' ') + ' KST.'
     return result
@@ -97,7 +113,7 @@ def worker():
                 event.set()
 
 
-def get(key, loader, fallback, ttl, *, wait=True, prefetch=False):
+def get(key, loader, fallback, ttl, *, wait=True, prefetch=False, reload=False):
     global STARTED
     with GUARD:
         if not STARTED:
@@ -107,7 +123,7 @@ def get(key, loader, fallback, ttl, *, wait=True, prefetch=False):
     if cached is None:
         try:
             first = fallback()
-        except (OSError, ValueError, KeyError):
+        except (OSError, ValueError, KeyError, IndexError, TypeError):
             first = None
         if first:
             with GUARD:
@@ -118,22 +134,24 @@ def get(key, loader, fallback, ttl, *, wait=True, prefetch=False):
     with GUARD:
         cached = CACHE.get(key)
         error = ERRORS.get(key)
-        if cached and time.monotonic() - cached[0] < ttl:
+        if cached and not reload and key not in JOBS and key not in ACTIVE and time.monotonic() - cached[0] < ttl:
             return cached[1]
-        if error and time.monotonic() - error[0] < 15:
+        if error and not reload and time.monotonic() - error[0] < 15:
             if not cached:
                 raise DataError(error[1])
             return {**cached[1], 'refresh_error': error[1], 'chart_notice': cached[1].get('chart_notice', '') + ' 최신 조회 실패 · 이전 자료 유지: ' + error[1]}
+        if prefetch:
+            return cached[1] if cached else {'pending': True, 'bars': []}
+        if reload:
+            ERRORS.pop(key, None)
         event = JOBS[key][1] if key in JOBS else ACTIVE.get(key) or threading.Event()
         if key not in JOBS and key not in ACTIVE:
             JOBS[key] = (loader, event)
-            if prefetch:
-                JOBS.move_to_end(key, last=False)
             while len(JOBS) > 16:
                 _, (_, cancelled) = JOBS.popitem(last=False)
                 cancelled.set()
             GUARD.notify()
-        elif key in JOBS and not prefetch:
+        elif key in JOBS:
             JOBS.move_to_end(key)
         if cached:
             return {**cached[1], 'refreshing': True, 'chart_notice': cached[1].get('chart_notice', '') + ' 최신 자료 갱신 중.'}

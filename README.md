@@ -1,103 +1,20 @@
-## 2026-11-09 17:15 live verification
-Automatic article save at17:15:04 KST:37 source rows, no parse omissions;35 overlap the current Top100. All35 dated stock-memo dialogs were opened in a live Chrome tab and displayed exact saved reason text. Collector note store35/35. Actual Hero4 memo read-back0/35:all35 correctly queued while Hero4 is running (waiting_for_hero4_exit). No Hero4 termination or code changes. This is not a claim of completed Hero4 memo writeback. [Machine-readable evidence](review/REASON_LIVE_VERIFICATION_20261109.json). Earlier installer links and source sections remain below.
+# 키움 수집기 전체 소스 · 2026-11-16
 
-## Recommended: easier LG Gram installer — no separate Python install (2026-11-08)
+현재 작업 폴더의 수집기 소스, 모든 탭의 웹 화면, 실행/설치 스크립트, 필수 이미지와 검토용 테스트를 저장한 스냅샷입니다. 여러 AI가 같은 **전체 커밋 SHA**를 기준으로 검토하세요.
 
-[Download EASY ZIP](https://github.com/jil0314-bit/kiwoom-collector-review/raw/refs/heads/main/downloads/LG_Collector_Easy_20261108.zip) · [Three-step Korean guide](downloads/LG_EASY_INSTALL.txt) · [Verification/limitations](review/LG_EASY_INSTALL_VALIDATION_20261108.md).
+- [교차검증 안내·검사 결과·미확인 범위](review/CROSS_REVIEW_20261116.md)
+- [파일별 SHA-256 및 Git blob 해시](PUBLICATION_MANIFEST.json)
+- [공동 검토 원칙](AGENTS.md) · [수집기 탭 원칙](collector/AGENTS.md)
+- [수집기 설명](collector/README.md) · [수급 계약](collector/INVESTOR_FLOWS_SPEC.md)
 
-Unzip -> double-click 1_처음설치.cmd -> enter Kiwoom credentials. Public IP registration still requires the user; the setup form links the official portal. CPython3.14.10 and Pillow13 are included in a private runtime; no manual Python or pip download on target PC. 208 tests, all219 package-file hashes, relocated isolated-runtime HTTP/import checks and .NET/Python DPAPI compatibility passed. Source fe3ffd0 ->0a6863e. Actual LG installation/authentication and physical0600 remain unverified. Earlier ZIPs and sections below are historical; use the EASY ZIP above for new installations.
+이번 소스에는 월봉과 180/240/360/480 이동평균, 공통 차트 도구·십자선·수치 표시·드래그 선택, 확대 시계, 방송 추천·관찰 종목, 거래량 급증 보관 오류 격리, 상승률 장중 저장 및 수급 스케줄 개선이 포함됩니다. 지우개는 도구 선택 후 도형을 클릭해 지우는 방식을 유지합니다.
 
-## LG Gram independent installer (2026-11-08)
+실행 진입점은 `OPEN_COLLECTOR.cmd` → `collector/start.vbs` → 예약 작업 → `collector/app.py`입니다. Windows와 Python, Pillow 및 사용자별 키움 인증/예약 작업 설정이 필요합니다. 방송 OCR의 선택 의존성은 `collector/requirements-board-ocr.txt`를 확인하세요. 이 저장 작업에서 실행 중인 수집기나 매매 로직을 수정하지 않았습니다.
 
-[Download installation ZIP](https://github.com/jil0314-bit/kiwoom-collector-review/raw/refs/heads/main/downloads/LG_Collector_20261108.zip) · [Easy Korean steps](downloads/LG_INSTALL.txt) · [Verification and limitations](review/LG_INSTALL_VALIDATION_20261108.md).
+인증 파일·API 키·전체 계좌번호·개인 메모·실제 수집 데이터·로그·캡처·런타임·임시 파일·백업은 새 업로드에서 제외했습니다. 테스트 코드는 교차검증용입니다. `collector/release_manifest.json`은 이번 검토본의 해시로 갱신했으며 새 설치 ZIP을 만든 것은 아닙니다. 기존 `downloads/`와 과거 `review/` 문서는 역사적 자료입니다. **기존 설치 ZIP에는 이번 수정이 포함되어 있지 않습니다.**
 
-Source checkpoint ed763e3 -> d5cb4ae. Clean per-folder Python environment, target-user DPAPI credentials, explicit optional Hero4 profile, and an installer that refuses to overwrite another installation. New notebook Hero4 file-memo writeback stays disabled until account0311/profile verification. Existing office fallback paths remain. Python208 tests passed in existing and separate Pillow13 environments; ZIP60 runtime/install essentials passed hashes and isolated HTTP/import checks. No tests, runtime data, credentials or old versions in ZIP. Target LG laptop installation, Kiwoom authentication and physical0600 transitions remain unverified. Earlier sections below describe older snapshots.
+다른 AI에게 아래 요청과 이 페이지의 고정 커밋 링크를 전달하세요.
 
-## Latest requested YouTube channel registration (2026-11-08)
+> 커밋 SHA를 고정하고 AGENTS.md, collector/AGENTS.md, review/CROSS_REVIEW_20261116.md를 읽은 뒤 수집기 전체 실행 흐름을 교차검증해 주세요. 수집·재시도·날짜별 저장·기존 자료 보존·탭별 차트·영웅문 조회 연동을 확인하고, 지적마다 파일과 줄, 발생 조건, 근거, 영향, 최소 수정안, 검증 방법을 제시해 주세요. 확인 사실·추론·미확인을 구분하고 실제 계좌 주문이나 원본 데이터 변경은 하지 마세요.
 
-Source checkpoint a964073 -> c1c4cd2. Six requested channels already existed; verified 기적의투자 was added (32 ->33 enabled sources). All seven identities were checked against live official channel metadata and feeds. Configuration is hot-loaded; the running worker checked the added source successfully. Its latest feed video is dated11/4, outside the current3-day discovery window. Recommendations28 tests passed. See [verification and precise background-collection conditions](review/REQUESTED_YOUTUBE_CHANNELS_20261108.md). The volume-top and amount-top pages remain page-triggered exceptions; this registration does not change their behavior. Earlier sections describe earlier snapshots.
-
-## Latest investor amount TOP50 fix (2026-11-08)
-
-Source checkpoint 01d2095 -> fix 2049c1b. KOSPI/KOSDAQ and foreign/institutional lists now collect up to50 positive net-buy amounts without volume/quantity filters. Intraday KRX provisional ka10065 and dated integrated ka10058 have explicit provenance. All four 2026-11-06 lists were re-collected, top amounts cross-checked with ka10059, 200 displayed rows matched saved data and CSV. All201 Python tests passed. See [scope, observed unit correction, verification and limitations](review/INVESTOR_AMOUNT_TOP50_20261108.md). Older historical files retain their original coverage; next trading-day live updating is unverified. Sections below describe earlier snapshots.
-
-## Latest recommendation-screen fix (2026-11-08)
-
-Local source checkpoint d4753e4 -> fix 4b7001f. Recommendation extraction, trading, orders and 0600 routes are unchanged. Default all-record display now distinguishes mentions from recommendations; latest confirmed recommendations are one click away. Optional profiles no longer block saved records. See [scope, live UI evidence, limitations and tests](review/RECOMMENDATION_VISIBILITY_20261108.md). YouTube caption acquisition failures remain unresolved and are explicitly visible. Earlier sections below describe earlier snapshots.
-
-# 최신 0311 신뢰·시작·누락 복구 수정 (2026-11-08)
-
-최신 전체 소스 86개는 원본과 바이트가 일치합니다. [변경 파일 22개·검증·한계](review/RELIABILITY_FIX_20261108.md), [파일 해시](PUBLICATION_MANIFEST.json)를 먼저 읽으세요.
-
-- 로컬 수정 전 커밋: f912e18f438ec624887ce750a4b8be976fc44da3
-- 로컬 수정 후 커밋: 1554973edf410e397400f9c6bf96a4d8f9f7708a
-- Python 199개, 공통 재시도, 기존 사유 표시 8개, JS 11개 및 PS 문법 검사 통과.
-- 계좌 끝자리 0311만 연결합니다. 계좌 표시 1곳·같은 경로 업데이트 허용·이 작업 하나의 72시간 제한 해제는 사용자가 명시 승인했습니다.
-- 인가 대상 0600이 없어 실물 차트 전환은 미확인입니다. 이전 화면 전수검사와 이번 모의 연동 검사를 구분하세요.
-
-## 이전 11/08 공개 기록
-
-# 키움 수집기 최신 전체 소스 · 2026-11-08
-
-사무실 실행본의 수집기 관련 소스·화면·실행 스크립트·필수 이미지·테스트 84개를 원본 바이트 그대로 저장했습니다. 이 저장소의 동일한 **전체 커밋 SHA**를 여러 AI에 전달해 교차검증하세요. 기존 실행 PC의 원본 파일은 업로드 과정에서 수정하지 않았습니다.
-
-- [최신 검증 결과와 재현 방법](review/VALIDATION_20261108.md)
-- [파일별 SHA-256 및 Git blob 목록](PUBLICATION_MANIFEST.json)
-- [날짜별 실제 화면 전수검사](review/UI_VERIFICATION_20261108.md)
-- [기계 판독용 화면 검사 결과](review/ui-audit-20261108.json)
-- [수집기 사용법](collector/README.md) · [검토 규칙](AGENTS.md) · [화면 공통 규칙](collector/AGENTS.md)
-
-인증정보·개인 메모·관심종목 데이터·실행 로그·캡처·백업·이전 ZIP·브라우저 프로필은 포함하지 않습니다. 실행 코드 안의 기존 PC 경로와 실행 조건은 원본 그대로이므로 다른 PC에서는 설정 확인이 필요합니다. Windows, Python 3.10 이상, Pillow, Node.js(화면 테스트), 기존 키움 인증 설정이 필요합니다.
-
-내일 2026-11-09 17:15 Asia/Seoul 실제 자동 수집 및 화면 검증은 예약된 **미실행 항목**입니다. 현재 결과를 내일 자동 실행 성공으로 해석하지 마세요.
-
-## 다른 AI에게 전달할 검토 요청
-
-> 이 커밋의 전체 SHA를 기록한 뒤 AGENTS.md, collector/AGENTS.md, review/VALIDATION_20261108.md를 읽고 전체 실행 흐름을 검토하세요. 특히 app.py → reasons_tick/collect_summary → reasons.fetch_distributor_summary/save_infostock → /api/notes → web/notes.js의 날짜·종목 연결, 17:15 시작·실패 재시도·최근 7일 보충·늦은 화면 응답·날짜별 중복 제거·개인 메모 보존을 확인하세요. 각 지적에 파일·줄·발생 조건·근거·영향·최소 수정안·검증 방법을 제시하고 확인하지 못한 실제 키움 동작은 UNKNOWN으로 남겨주세요. 요청 범위를 넘는 매매·주문·0600·디자인 변경은 제안과 실행을 구분하세요.
-
-## 이전 공개본 기록
-
-아래 내용은 과거 검증 이력입니다. 최신 기준과 검증 범위는 위 링크를 우선합니다.
-
-# 키움 수집기 · AI 공동 교차검증
-
-상승률·분봉 수집기의 현재 코드와 **외국인·기관 순매수 일별 수집 기능**입니다. 여러 AI가 같은 커밋을 기준으로 검토하도록 공개합니다. 주문 API는 사용하지 않습니다.
-
-## 먼저 읽기
-
-1. [AI 검토 규칙](AGENTS.md)
-2. [수급 수집 기준과 검증 범위](collector/INVESTOR_FLOWS_SPEC.md)
-3. [기존 수집기 사용법](collector/README.md)
-4. [신규 로직](collector/investor_flows.py) / [회귀 테스트](collector/test_investor_flows.py)
-
-## 사용
-
-원래 PC의 수집기 바로가기와 실행 경로를 유지합니다. 화면 상단 **외국인·기관**을 누르면 날짜 선택, 외국인/기관 순매수 상위 목록, 종목 검색, CSV 내려받기가 있습니다. 기존 수집기가 켜진 평일에 자동으로 동작하며, PC가 꺼져 있던 날짜를 자동 소급 수집하지 않습니다.
-
-날짜별 화면·CSV는 외국인·기관 각각 코스닥 20종목, 코스피 20종목을 **1위→20위**로 표시합니다. 별도로 저장한 **2026-01-01~08-17 시장별 기간 합산 TOP 30**은 날짜 선택 목록 맨 마지막에서 선택합니다. 일별 상위 목록을 더한 값이 아니라 종목별 기간 순매수액으로 계산하며, 조회 범위와 원본 기준일 미제공을 화면에 표시합니다. 계산 방법과 조회 한계는 [수급 수집 기준](collector/INVESTOR_FLOWS_SPEC.md)에 있습니다.
-
-새 PC에서는 별도로 Python 3.10 이상, Pillow, 기존 키움 REST 등록과 사용자 인증 설정이 필요합니다. 저장소에는 인증정보와 개인 자료가 없습니다. 실행 시작은 `collector/start.vbs`입니다. 인증자료를 GitHub에 올리지 마세요.
-
-## 다른 AI에게 전달할 요청
-
-> 검토할 커밋 SHA를 고정하고 AGENTS.md, INVESTOR_FLOWS_SPEC.md, collector/README.md를 먼저 읽어 주세요. app.py → investor_flows.tick/start/refresh → Kiwoom.request 경로와 일별 저장·연속조회·숫자 부호·단위·누락값·실패 보존·휴장·재시작·중복 실행을 교차검증해 주세요. 각 문제에 파일·줄·발생 조건·근거·최소 수정안·검증 방법을 적고, 확인하지 못한 실제 Kiwoom 수신은 UNKNOWN으로 남겨 주세요. 사용자의 별도 승인 전에는 코드를 수정하거나 실계좌 주문을 실행하지 마세요.
-
-공개 읽기는 로그인 없이 가능합니다. Issue/PR 작성에는 해당 AI의 GitHub 계정/도구 연결이 필요합니다. 모든 AI 제품이 외부 URL을 읽는다고 보장하지 않습니다.
-
-자동매매 로직 자체의 별도 검토 저장소: [kiwoom-paper-trading-review](https://github.com/jil0314-bit/kiwoom-paper-trading-review). 이 수집기 변경은 그 매매 로직을 수정하지 않습니다.
-
-## 이번 검증
-
-- Python 문법 검사, JavaScript 문법 검사 통과.
-- 일별 TOP 20 역순, 기간 TOP 30 계산·단위·부호, 기간·해시 검증 및 HTTP/CSV를 포함한 관련 오프라인 테스트 **26개 통과**.
-- 임시 데이터 폴더와 별도 포트에서 새 화면 표시 및 브라우저 JavaScript 오류 없음 확인.
-- 2026-10-18에 과거일 `ka90009` 수신과 40거래일 파일 저장·해시를 확인했습니다. 응답 원본 날짜는 UNKNOWN이며, 영웅문 화면 일치와 다음 거래일 자동 저장은 미확인입니다.
-
-개인 데이터, 메모, 관심종목 프로필, 인증정보, 로그, 기존 Git 이력, 백업, ZIP, 브라우저 프로필은 공개본에서 제외했습니다. 실제 적용 결과는 사용자에게 별도로 보고하며, 로컬 테스트를 실제 키움 연결 성공으로 표현하지 않습니다.
-
-외국인·기관 화면에도 종목 선택 차트를 제공합니다. 클릭·위아래 키로 종목을 선택하고 일봉·주봉·분봉, 기준일/현재 차트를 전환할 수 있습니다. 영웅문 0600 연동 대상은 차트 위에서 선택합니다. 관련 오프라인 검사 67개와 합성 자료 화면 연동을 확인했으며 실제 HTS 화면 전환은 0600 창 부재로 미확인입니다.
-
-2026-10-19 복구: 시장별 수급 목록이 20개 미만이어도 제공된 정상 자료를 저장하고 실제 개수를 표시합니다. 영웅문 원문 날짜·수집 상태를 표시하고 잘못된 날짜 저장을 차단하며, 동일 원본에서 빠진 저장 자료를 복구합니다. 관련 회귀검사 및 전체 오프라인 검사 110개 통과. 오늘 기사 확보 여부와 실제 API 저장은 별도로 검증합니다.
-
-2026-10-20 상승 사유 메모 수정: 개인 메모 뒤에 자동 사유를 별도 추가하고 해당 날짜 자동 블록만 갱신합니다. 영웅문 대기 작업은 잠금을 처리 중에만 잡아 새 사유 전달을 막지 않습니다. 자동 생성한 미확인 대기 사유는 확인 사유로 갱신합니다. 실행 중 HTS 파일 쓰기 금지는 유지합니다. 기사 자동 열기와 실제 HTS 반영은 별도 검증 대상입니다.
-
+이 스냅샷의 검증은 오류가 영구히 발생하지 않는다는 보장이 아닙니다. 실제 외부 API 응답, 물리적 0600 표시와 다른 PC 설치는 별도 검증 대상입니다.

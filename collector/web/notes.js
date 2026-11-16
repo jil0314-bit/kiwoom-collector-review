@@ -46,6 +46,7 @@ function memoEvidenceEntries(symbol,reasons=dayReasons,day=notesDay){
   else if(reasons.infostock?.missing_codes?.includes(symbol))entries.push({day,text:'기사 원문 파싱 재확인 중',source:'인포스탁',url:reasons.infostock.source||''});
   else if(reviewed)entries.push({day,text:reviewed.reason,source:reviewed.source||'확인 자료',url:reviewed.url||''});
   for(const n of reasons.news?.items?.[symbol]||[])entries.push({day,text:n.title,source:'관련 뉴스 · '+(n.office||'뉴스'),url:n.url||''});
+  for(const d of reasons.disclosures?.items?.[symbol]||[])entries.push({day,text:d.title,source:'공시',url:d.url||''});
   for(const h of reasons.history?.[symbol]||[])entries.push({day:h.day,text:h.reason,source:h.source,url:h.url||''});
   entries.push(...heroMemoEntries(hero4Memos[symbol]));
   entries.sort((a,b)=>(b.day||'').localeCompare(a.day||''));
@@ -136,10 +137,20 @@ $('memo-reload').onclick=async()=>{
     memoTarget={...target,revision:note.revision||'',savedText:note.text||''};$('memo-text').value=note.text||'';$('memo-status').textContent='저장된 메모를 다시 읽었습니다.';$('memo-dialog').showModal();$('memo-text').focus();
   }catch(e){toast(e.message)}
 };
-$('reason-paste').onclick=()=>{const day=choice.split('|')[0];if(!day)return toast('날짜를 먼저 선택하세요.');$('reason-date').textContent=day+' 자료에 입력';$('reason-status').textContent=dayReasons.infostock?'이미 입력됨 · '+Object.keys(dayReasons.infostock.items).length+'종목 ('+(dayReasons.infostock.source==='hero4'?'영웅문 자동':'붙여넣기')+' '+dayReasons.infostock.saved_at.slice(11,16)+') · 다시 넣으면 교체됩니다.':'';$('reason-text').value='';$('reason-dialog').showModal();$('reason-text').focus()};
+let reasonInputDay='';
+$('reason-paste').onclick=()=>{
+  const day=choice.split('|')[0];if(!day)return toast('날짜를 먼저 선택하세요.');
+  reasonInputDay=day;
+  const stock=currentStocks().find(s=>s.code===code);
+  $('reason-date').textContent='저장 날짜: '+day+' · 기사 속 여러 종목에 일괄 입력';
+  $('reason-chart-stock').textContent=stock?'현재 차트 (참고): '+stock.name+' ('+stock.code+') · 이 종목만을 위한 입력창이 아닙니다.':'현재 차트: 선택된 종목 없음 · 기사에서 인식된 종목에 저장합니다.';
+  $('reason-status').textContent=dayReasons.infostock?'이 날짜에 이미 저장된 상승 사유: '+Object.keys(dayReasons.infostock.items).length+'종목 · 기존 자료와 함께 종목별로 반영됩니다.':'';
+  $('reason-text').value='';$('reason-dialog').showModal();$('reason-text').focus();
+};
 $('reason-close').onclick=()=>$('reason-dialog').close();
 $('reason-save').onclick=async()=>{
-  const day=choice.split('|')[0],text=$('reason-text').value;
+  const day=reasonInputDay,text=$('reason-text').value;
+  if(!day)return;
   if(!text.trim())return void($('reason-status').textContent='기사 본문을 붙여넣어 주세요.');
   $('reason-save').disabled=true;$('reason-status').textContent='분석 중…';
   try{const result=await post('/api/reasons',{day,text});if(day===notesDay){dayReasons=result.reasons;decorateNotes()}$('reason-status').textContent=result.count+'종목 사유를 입력했습니다.';$('reason-text').value=''}
@@ -203,8 +214,20 @@ function renderInlineMemo(){
     $('inline-memo-reasons').replaceChildren();$('inline-memo-text').value='';
     $('inline-memo-status').textContent='메모 불러오는 중…';
   }
-  for(const id of ['inline-memo-text','inline-memo-save','inline-memo-reload'])$(id).disabled=!ready;
+  for(const id of ['inline-memo-text','inline-memo-save','inline-memo-reload','inline-memo-refresh'])if($(id))$(id).disabled=!ready;
 }
+if ($('inline-memo-refresh')) $('inline-memo-refresh').onclick=async()=>{
+  const target=inlineMemoTarget;
+  if(!target)return;
+  const button=$('inline-memo-refresh');button.disabled=true;
+  try{
+    const result=await window.collectorRefreshEvidence(target);
+    if(memoKey(target.day,target.code)!==memoKey(inlineMemoTarget?.day,inlineMemoTarget?.code))return;
+    await loadNotes(target.day);
+    $('inline-memo-status').textContent=result.failed.length?result.failed.join('·')+' 조회 실패 · 저장 자료 표시':'뉴스·공시 확인 완료';
+  }catch(error){if(inlineMemoTarget?.code===target.code&&inlineMemoTarget?.day===target.day)$('inline-memo-status').textContent=error.message}
+  finally{renderInlineMemo()}
+};
 $('inline-memo-text').oninput=()=>{keepInlineMemoDraft();$('inline-memo-status').textContent='작성 중 · 저장 버튼을 눌러주세요.'};
 $('inline-memo-save').onclick=async()=>{
   if(!inlineMemoTarget||inlineMemoSaving)return;

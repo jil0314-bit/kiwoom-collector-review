@@ -27,6 +27,9 @@ LOCK = threading.RLock()
 MAX_TEXT = 100000
 NEWS_PER_STOCK = 3
 NEWS_URL = "https://m.stock.naver.com/api/news/stock/{code}?pageSize=50&page=1"
+DISCLOSURE_URL = "https://m.stock.naver.com/api/stock/{code}/disclosure?pageSize=50&page=1"
+EVIDENCE_REQUEST = threading.Lock()
+EVIDENCE_RETRY = {}
 RISING = re.compile(r"특징주|상한가|급등|강세|상승|신고가|껑충|급증|치솟|뛰|↑|수혜|승인|허가|계약|수주|체결|공급|협약|MOU|인수|합병|최대|호실적|흑자|기대")
 ENTRY = re.compile(r"(?:^|(?<=[\t|\n]))[ \t]*(?P<name>[^\t\n|()]*?)[ \t]*(?:\(\s*(?P<code>[0-9A-Z]{6})\s*\))?\s*"
                    r"(?P<price>\d[\d,]*)\s*원\s*\(\s*(?P<rate>[+\-↑↓]?\s*\d+(?:\.\d+)?)\s*%\s*\)", re.M)
@@ -352,6 +355,50 @@ def save_news(data, day, found, failed=0):
     return found
 
 
+def disclosures(code, day):
+    req = urllib.request.Request(DISCLOSURE_URL.format(code=code), headers={'User-Agent': 'Mozilla/5.0'})
+    with urllib.request.urlopen(req, timeout=8) as response:
+        items = json.load(response)
+    return [{'title': clean(row['title']), 'at': row['datetime'][11:16],
+             'office': row.get('author', '공시'),
+             'url': f'https://m.stock.naver.com/domestic/stock/{code}/disclosure'}
+            for row in items if row.get('itemCode') == code and row.get('title')
+            and str(row.get('datetime', ''))[:10] == day]
+
+
+def refresh_stock_evidence(data, day, code, name):
+    """Look up the selected stock's dated evidence without touching personal notes."""
+    key = (day, code)
+    if not EVIDENCE_REQUEST.acquire(blocking=False):
+        raise ValueError('다른 종목의 뉴스·공시를 확인 중입니다. 잠시 후 다시 눌러 주세요.')
+    try:
+        current = time.monotonic()
+        if current < EVIDENCE_RETRY.get(key, 0):
+            return []
+        found, failed = {}, []
+        for category, lookup in (('news', lambda: pick_news(naver(code), day, name)),
+                                 ('disclosures', lambda: disclosures(code, day))):
+            try:
+                found[category] = lookup()
+            except (OSError, ValueError, TypeError, KeyError) as exc:
+                failed.append('뉴스' if category == 'news' else '공시')
+        if found:
+            with LOCK:
+                record = read_day(data, day)
+                for category, entries in found.items():
+                    if entries:
+                        record.setdefault(category, {}).setdefault('items', {})[code] = entries
+                if any(found.values()):
+                    write_day(data, day, record)
+        for old in [entry for entry, until in EVIDENCE_RETRY.items() if until <= current]:
+            del EVIDENCE_RETRY[old]
+        if not failed:
+            EVIDENCE_RETRY[key] = current + 90
+        return failed
+    finally:
+        EVIDENCE_REQUEST.release()
+
+
 class SummaryLinks(HTMLParser):
     """Only named summary links on the public distributor's news list."""
     def __init__(self):
@@ -461,23 +508,30 @@ def fetch_summary(data, day, names, fetch=public_html):
     return {}
 
 
-def recent_history(data, day):
+def recent_history(data, day, stock_code=None):
     """Dated evidence at the top of collector memos; personal note files stay intact."""
     result = {}
     for file in sorted((data / 'reasons').glob('????-??-??.json'), reverse=True):
         if file.stem >= day:
             continue
-        record = read_day(data, file.stem)
-        codes = set(record.get('infostock', {}).get('items', {})) | set(record.get('news', {}).get('items', {}))
+        try:
+            record = read_day(data, file.stem)
+        except (OSError, ValueError):
+            continue
+        codes = {stock_code} if stock_code else (set(record.get('infostock', {}).get('items', {})) | set(record.get('news', {}).get('items', {})) | set(record.get('reviewed', {}).get('items', {})))
         for code in codes:
             entries = result.setdefault(code, [])
             if len(entries) >= 5:
                 continue
             info = record.get('infostock', {}).get('items', {}).get(code)
+            reviewed = record.get('reviewed', {}).get('items', {}).get(code)
             news = record.get('news', {}).get('items', {}).get(code, [])
-            if info or news:
-                entries.append({'day': file.stem, 'reason': info['reason'] if info else news[0]['title'],
-                                'source': '인포스탁' if info else news[0].get('office', '뉴스'),
+            if info or reviewed or news:
+                entries.append({'day': file.stem, 'reason': info['reason'] if info else reviewed['reason'] if reviewed else news[0]['title'],
+                                'kind': 'reason' if info or reviewed else 'news',
+                                'source': '인포스탁' if info else reviewed.get('source', '검토된 사유') if reviewed else news[0].get('office', '뉴스'),
                                 'url': (info.get('source') or record.get('infostock', {}).get('source', ''))
-                                       if info else news[0].get('url', '')})
+                                       if info else reviewed.get('url', '') if reviewed else news[0].get('url', '')})
+        if stock_code and len(result.get(stock_code, [])) >= 5:
+            break
     return result

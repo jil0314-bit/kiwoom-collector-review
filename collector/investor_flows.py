@@ -14,6 +14,8 @@ from pathlib import Path
 from kiwoom import DataError, Kiwoom, KST, code_of
 
 INTERVAL = 600
+FIRST_INTRADAY_RETRY = 120
+INTRADAY_EMPTY = "장중 양수 순매수 목록 제공 대기 · 이전 자료 유지"
 FINAL_TIME = "20:05"
 FINAL_MAX_ATTEMPTS = 5
 LOCK = threading.RLock()
@@ -287,7 +289,7 @@ def fetch_amount_rankings(api, day, market, intraday=False):
             raise DataError('투자자 금액 연속조회 한도 초과')
         ordered = sorted((r for r in records.values() if r['net_amount_10m_krw'] > 0),
                          key=lambda r:(-r['net_amount_10m_krw'],r['code']))[:TOP_LIMIT]
-        if not ordered:
+        if not ordered and not intraday:
             raise DataError('시장별 양수 순매수 목록 없음: 이전 자료 유지')
         for rank, record in enumerate(ordered, 1):
             record['rank'] = rank
@@ -316,6 +318,8 @@ def refresh(data, day, api=None, clock=None, historical=False):
         market_rankings, market_raw = fetch_amount_rankings(api, day, market, intraday)
         markets[market] = {"name": label, "rankings": market_rankings}
         raw.setdefault("markets", {})[market] = market_raw
+    if intraday and not any(rows for market in markets.values() for rows in market["rankings"].values()):
+        raise DataError(INTRADAY_EMPTY)
     finished = clock()
     if finished.date().isoformat() != current.date().isoformat():
         raise DataError("외국인·기관 조회 도중 날짜 변경: 이전 자료 유지")
@@ -345,6 +349,13 @@ def refresh(data, day, api=None, clock=None, historical=False):
                                if len(rows) < MIN_TARGET]}}
     doc["sha256"] = digest(doc)
     with LOCK:
+        if intraday:
+            previous = read_day(data, day)
+            if previous and not previous.get("provisional"):
+                raise DataError("일별 수급 저장본 유지 · 장중 잠정 자료로 교체하지 않습니다.")
+            if previous and any(not rows and display_rows(previous, key, market)
+                                for market, entry in markets.items() for key, rows in entry["rankings"].items()):
+                raise DataError("기존 장중 수급 목록 일부 미제공 · 같은 날짜의 이전 자료 유지")
         write(root(data) / (day + ".json"), doc)
     return doc
 
@@ -388,7 +399,12 @@ def due(data, current, manual=False):
         retry_interval = 900 if attempts < 3 else 1800
         return not (doc and doc.get("after_close_refresh")) and (
             attempts < FINAL_MAX_ATTEMPTS and current.timestamp() - journal.get("last_final_epoch", 0) >= retry_interval)
-    return hhmm < "20:00" and current.timestamp() - last >= INTERVAL
+    interval = INTERVAL
+    if hhmm < "16:00":
+        error = load(root(data) / "last_error.json") or {}
+        if error.get("day") == day and error.get("message") == INTRADAY_EMPTY and not read_day(data, day):
+            interval = FIRST_INTRADAY_RETRY
+    return hhmm < "20:00" and current.timestamp() - last >= interval
 
 
 def start(data, coordinator, manual=False, current=None):

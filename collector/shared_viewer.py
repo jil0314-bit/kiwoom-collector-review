@@ -8,7 +8,6 @@ import re
 import threading
 import time
 from pathlib import Path
-from http.server import ThreadingHTTPServer
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import app
@@ -34,10 +33,20 @@ def cached_history(data, day, code, subfolder, count=None, ttl=300):
     return json.loads(path.read_text(encoding='utf-8'))
 
 
-def cached_minute(data, day, code, name=None, ttl=300):
-    saved = cached_history(data, day, code, 'watchlist_history')
-    return {'day': day, 'stock': {'code': code, 'name': PROFILES.get('names', {}).get(code, code)},
-            'bars': saved['bars'], 'fetched_at': saved['fetched_at']}, saved['raw']
+def cached_minute(data, day, code, name=None, ttl=300, history_interval=0, allow_previous_session=False, history=False):
+    directory = f'chart_minute_history_{history_interval}'
+    if history_interval and (data / directory / day / (code + '.json')).is_file():
+        saved = cached_history(data, day, code, directory)
+    else:
+        saved = cached_history(data, day, code, 'watchlist_history')
+    actual_day = saved['bars'][-1]['ts'][:10]
+    record = {'day': actual_day, 'stock': {'code': code, 'name': PROFILES.get('names', {}).get(code, code)},
+              'bars': saved['bars'], 'fetched_at': saved['fetched_at']}
+    if actual_day != day and allow_previous_session:
+        record['requested_day'] = day
+    elif actual_day != day:
+        raise DataError('해당 날짜 08:00~20:00 분봉 없음')
+    return record, saved['raw']
 
 
 def quotes(codes):
@@ -81,6 +90,7 @@ class Handler(app.Handler):
             body = text.encode('utf-8')
         if isinstance(body, bytes) and mime.startswith('text/html'):
             text = body.decode('utf-8')
+            text = re.sub(r'<body\b', '<body data-shared-viewer="1"', text, count=1)
             notice = '<div class="shared-notice">동기화 조회용 · 현재가는 저장 당시 가격입니다. 마지막 공유: ' + STATE['published_at'] + ' · 새 수집·공용 메모 편집은 원본 PC에서 합니다.</div>'
             text = re.sub(r'(<body[^>]*>)', r'\1' + notice, text, count=1)
             text = re.sub(r'(<option[^>]*value="live"[^>]*)(>)', r'\1 disabled\2', text)
@@ -146,7 +156,7 @@ def main():
     # No Kiwoom credentials are required or read by this viewer.
     app.credentials = lambda: (_ for _ in ()).throw(DataError('공유 자료 조회 모드'))
     kiwoom.credentials = app.credentials
-    server = ThreadingHTTPServer(('127.0.0.1', app.PORT), Handler)
+    server = app.CollectorHTTPServer(('127.0.0.1', app.PORT), Handler)
 
     def sync():
         while True:

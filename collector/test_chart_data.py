@@ -82,7 +82,8 @@ class ChartTests(unittest.TestCase):
         with patch.object(chart_data, 'CLIENT') as api, patch.object(chart_data, 'watchlist_minute', return_value=(rec, {})) as fetch:
             api.quote.return_value = {'price': 100, 'rate': 1.0}
             result = chart_data.load_live(Path('unused'), '2026-10-02', '005930', 'minute5', '삼성전자')
-        self.assertEqual(fetch.call_args.kwargs, {'ttl': 15})
+        self.assertEqual(fetch.call_args.kwargs, {'ttl': 15, 'allow_previous_session': True,
+                                                'history_interval': 5, 'history': False})
         self.assertEqual(result['frame'], 'minute5')
         self.assertTrue(result['live'])
         self.assertEqual(result['bars'][0]['close'], 100)
@@ -138,6 +139,93 @@ class ChartTests(unittest.TestCase):
         second=chart_data.averages(bars,(5,120,240))
         self.assertEqual(first[:249],second[:249])
 
+    def test_extended_minute_fetch_continues_past_session_and_keeps_archive_shape(self):
+        def page_for(items, cursor=''):
+            return ({'stk_cd': '005930_AL', 'stk_min_pole_chart_qry': items},
+                    {'cont-yn': 'Y' if cursor else 'N', 'next-key': cursor})
+        current = raw('20261113090000', 106)
+        earlier = [raw('20261112090100', 104), raw('20261112090000', 103)]
+        older = [raw('20261111090100', 102), raw('20261111090000', 101)]
+        stub = Stub([page_for([current, *earlier], 'next'), page_for(older, 'unused')])
+        bars, origin = stub.minute_bars('005930', '2026-11-13', earlier_bars=2, interval=5)
+        self.assertEqual(len(stub.calls), 2)
+        self.assertEqual([b['ts'][:10] for b in bars], ['2026-11-13'])
+        record = {'day': '2026-11-13', 'bars': bars}
+        self.assertEqual(len(chart_data.minute_view(record, origin, 'minute5')['bars']), 1)
+        extended = chart_data.minute_view(record, origin, 'minute5', True)
+        self.assertEqual([b['ts'][:10] for b in extended['bars']], ['2026-11-11', '2026-11-12', '2026-11-13'])
+
+    def test_weekend_watchlist_chart_uses_latest_session_without_relabeling(self):
+        day = '2026-11-14'
+        previous = [raw('20261113195900', 104), raw('20261113195800', 103),
+                    raw('20261112195900', 102)]
+        page = ({'stk_cd': '005930_AL', 'stk_min_pole_chart_qry': previous}, {'cont-yn': 'N'})
+        with self.assertRaisesRegex(DataError, '분봉 없음'):
+            Stub([page]).minute_bars('005930', day)
+        with tempfile.TemporaryDirectory() as folder, patch.object(chart_data,'CLIENT',Stub([page])):
+            data = Path(folder)
+            result = chart_data.load(data, day, '005930', 'minute', source='watchlist')
+            self.assertEqual(result['requested_day'], day)
+            self.assertEqual(result['day'], '2026-11-13')
+            self.assertEqual(len(result['bars']), 2)
+            self.assertIn('2026-11-13 최근 거래', result['chart_notice'])
+            import chart_service
+            seeded = chart_service.seed(data, day, '005930', 'minute', 'watchlist', None, False)
+            self.assertEqual(seeded['bars'], result['bars'])
+            self.assertEqual(seeded['requested_day'], day)
+
+    def test_previous_session_never_accepts_future_minutes(self):
+        page = ({'stk_cd': '005930_AL', 'stk_min_pole_chart_qry': [raw('20261116100000', 104)]},
+                {'cont-yn': 'N'})
+        with self.assertRaisesRegex(DataError, '요청일 이후 분봉 반환'):
+            Stub([page]).minute_bars('005930', '2026-11-14', allow_previous_session=True)
+
+    def test_weekend_fetch_continues_until_the_previous_session_is_complete(self):
+        def page_for(items, cursor):
+            return ({'stk_cd': '005930_AL', 'stk_min_pole_chart_qry': items},
+                    {'cont-yn': 'Y', 'next-key': cursor})
+        stub = Stub([page_for([raw('20261113195900', 104)], 'more'),
+                     page_for([raw('20261113080000', 103), raw('20261112195900', 102)], 'unused')])
+        bars, _ = stub.minute_bars('005930', '2026-11-14', allow_previous_session=True)
+        self.assertEqual(len(stub.calls), 2)
+        self.assertEqual([b['ts'] for b in bars], ['2026-11-13 08:00:00', '2026-11-13 19:59:00'])
+
+    def test_invalid_cache_is_rebuilt_from_valid_chart_data(self):
+        day = '2026-11-13'
+        bars = [parse_bar(raw('20261113195900', 104))]
+        with tempfile.TemporaryDirectory() as folder, patch.object(chart_data, 'CLIENT') as client:
+            data = Path(folder)
+            path = data / 'chart_minute_history_1' / day / '005930.json'
+            path.parent.mkdir(parents=True)
+            path.write_text('{"bars":[]}', encoding='utf-8')
+            client.minute_bars.return_value = bars, {}
+            loaded = chart_data.load(data, day, '005930', 'minute', source='watchlist')
+            self.assertEqual(loaded['bars'][0]['close'], 104)
+            self.assertEqual(chart_data.read_cache(path, day)['bars'], bars)
+
+    def test_extended_daily_cache_and_weekly_display_use_up_to_480(self):
+        history = [{'ts': (datetime(2014,1,6)+timedelta(days=i)).date().isoformat(),
+                    'open':100,'high':102,'low':98,'close':100,'volume':10}
+                   for i in range(3200) if i%7<5]
+        day = history[-1]['ts']
+        with tempfile.TemporaryDirectory() as d, patch.object(chart_data,'CLIENT') as api:
+            data = Path(d)
+            path = data/'chart_history'/day/'005930.json'
+            path.parent.mkdir(parents=True)
+            app.save(path, {'fetched_at': '2026-11-14T21:00:00+09:00', 'bars':history[-300:]})
+            api.daily_bars.return_value = (history[-959:], {'pages':[]})
+            result = chart_data.load(data, day, '005930', 'day', source='watchlist', history=True)
+            self.assertEqual(len(result['bars']), 480)
+            self.assertEqual(result['bars'][0]['ma120'], 100)
+            self.assertEqual(result['bars'][0]['ma480'], 100)
+            self.assertEqual(api.daily_bars.call_args.kwargs['count'], 959)
+            self.assertEqual(chart_data.load(data,day,'005930','day',source='watchlist',history=True)['bars'], result['bars'])
+            self.assertEqual(api.daily_bars.call_count, 1)
+        self.assertLess(len(chart_data.weekly_record({'day':day}, history, '2026-11-14T21:00:00+09:00', True)['bars']), 480)
+        self.assertEqual(len(chart_data.weekly_record({'day':day}, history[0:1] + [
+            {**history[0], 'ts':(datetime(2014,1,13)+timedelta(weeks=i)).date().isoformat()} for i in range(500)
+        ], '2026-11-14T21:00:00+09:00', True)['bars']), 480)
+
     def test_daily_pagination_and_future_rejected(self):
         def day(date, close):
             return {**raw('',close),'dt':date}
@@ -148,6 +236,47 @@ class ChartTests(unittest.TestCase):
         self.assertEqual(client.calls[0][1],{'stk_cd':'005930_AL','base_dt':'20260922','upd_stkpc_tp':'0'})
         with self.assertRaises(DataError):
             Stub([page([day('20260923',103)])]).daily_bars('005930','2026-09-22')
+
+    def test_monthly_history_paginates_and_uses_only_daily_bars_through_selected_date(self):
+        selected = '2026-09-04'
+        months = [{**raw('', 100+i), 'dt': f'{1986+i//12:04d}{i%12+1:02d}03'}
+                  for i in range(8, 488)]
+        months.reverse()
+        client = Stub([
+            page([{**raw('', 600), 'dt': '20260904'}, {**raw('', 580), 'dt': '20260901'}]),
+            ({'stk_mth_pole_chart_qry': months[:240]}, {'cont-yn': 'Y', 'next-key': 'next'}),
+            ({'stk_mth_pole_chart_qry': months[240:]}, {'cont-yn': 'N'}),
+        ])
+        with tempfile.TemporaryDirectory() as d, patch.object(chart_data, 'CLIENT', client):
+            result = chart_data.load(Path(d), selected, '005930', 'month', source='watchlist')
+        self.assertEqual(client.calls[1][0], 'ka10083')
+        self.assertEqual(client.calls[1][1]['base_dt'], '20260831')
+        self.assertEqual(client.calls[2][2], 'next')
+        last = result['bars'][-1]
+        self.assertEqual([last[key] for key in ('ts', 'end_ts', 'open', 'high', 'low', 'close', 'volume')],
+                         ['2026-09-01', selected, 580, 602, 578, 600, 20])
+        closes = sorted(int(item['cur_prc']) for item in months) + [600]
+        for period in (180, 240, 360, 480):
+            self.assertEqual(last[f'ma{period}'], sum(closes[-period:]) / period)
+        self.assertTrue(render(result).startswith(b'\x89PNG'))
+
+    def test_default_minute_ranges_load_previous_sessions_for_long_averages(self):
+        selected = '2026-09-22'
+        for interval, frame in [(1, 'minute'), (3, 'minute3'), (5, 'minute5')]:
+            sessions = [datetime(2026, 9, day, 9) for day in (11, 14, 15, 16, 17, 18, 21)]
+            times = [start + timedelta(minutes=i*interval) for start in sessions for i in range(78)][-479:]
+            items = [raw(t.strftime('%Y%m%d%H%M%S'), 100+i) for i, t in enumerate(times)]
+            today = raw('20260922090000', 579)
+            bars = [parse_bar(today)]
+            origin = {'pages': [{'stk_min_pole_chart_qry': [*items, today]}]}
+            with self.subTest(frame=frame), tempfile.TemporaryDirectory() as d, patch.object(chart_data, 'CLIENT') as api:
+                api.minute_bars.return_value = bars, origin
+                result = chart_data.load(Path(d), selected, '005930', frame, source='watchlist')
+                self.assertEqual(api.minute_bars.call_args.kwargs['earlier_bars'], 479)
+                self.assertEqual(api.minute_bars.call_args.kwargs['interval'], interval)
+                self.assertEqual(len(result['bars']), 1)
+                for period in (180, 240, 360, 480):
+                    self.assertEqual(result['bars'][0][f'ma{period}'], (579 + 580 - period) / 2)
 
     def test_daily_warmup_cache_and_archive_unchanged(self):
         with tempfile.TemporaryDirectory() as d:
@@ -195,7 +324,7 @@ class ChartTests(unittest.TestCase):
                 result=chart_data.load(data,day,code,'minute',source='watchlist',name='삼성전자')
                 self.assertEqual(result['bars'][0]['close'],100)
                 self.assertEqual(result['source'],'watchlist')
-                self.assertTrue((data/'watchlist_history'/day/(code+'.json')).is_file())
+                self.assertTrue((data/'chart_minute_history_1'/day/(code+'.json')).is_file())
                 self.assertFalse((data/day).exists())
 
     def test_current_quotes_batch_preserves_signed_rate(self):

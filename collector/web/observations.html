@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>관찰종목 · 시장흐름 기록실</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/rank-chart.css">
+  <link rel="stylesheet" href="/observations.css">
+  <script src="/stock-tools.js" defer></script><script src="/chart-fast.js" defer></script>
+  <script src="/rank-chart.js" defer></script>
+  <script src="/observations.js" defer></script>
+  <script src="/hero-reconnect.js" defer></script>
+<link rel="stylesheet" href="/stock-tools.css"></head>
+<body class="collector-page" data-page="watch" data-chart-source="observations">
+<header class="collector-header"><div class="brand"><span class="brand-mark" aria-hidden="true">M</span><strong>시장흐름 기록실</strong></div><nav class="collector-nav" aria-label="수집기 선택"><a href="/">상승률 상위</a><a href="/volume">거래량 급증</a><a href="/volume-top">당일 거래량 상위</a><a href="/amount-top">당일 거래대금 상위</a><a href="/themes">상승테마</a><a href="/investors">외국인·기관</a><a href="/recommendations">방송·유튜브 추천</a><a href="/observations" class="active" aria-current="page">관찰종목</a></nav><div class="collector-header-status"><span class="tag">키움 조회 전용</span><time id="clock" aria-label="한국 시각"></time></div></header>
+<main>
+  <section class="intro collector-intro">
+    <div class="intro-copy"><h1>관찰종목</h1><p>각 탭에서 담은 종목을 최근 등록 순으로 봅니다.</p></div>
+    <div class="actions"><div class="intro-stat"><span>표시 / 전체</span><strong id="observation-count">확인 중</strong></div></div>
+  </section>
+  <div class="observation-filters">
+    <label>등록일 <select id="observation-day"><option value="">전체 날짜</option></select></label>
+    <label>종목 검색 <input id="observation-search" type="search" placeholder="종목명 또는 코드"></label>
+    
+  </div>
+  <p id="observation-status" role="status"></p>
+  <section class="rank-workspace">
+    <article class="rank-list observation-list" aria-label="등록한 종목">
+      <table><thead><tr><th scope="col">종목 / 시총·테마</th><th scope="col">등록일</th><th scope="col">관리</th></tr></thead><tbody id="rows"></tbody></table>
+      <p id="observation-empty">목록을 불러오는 중입니다.</p>
+    </article>
+    <article class="rank-chart" aria-label="선택 종목 차트">
+      <h2 id="rank-title" class="selected-stock-title">종목을 선택하세요</h2>
+      <div data-chart-toolbar="rank"></div>
+      <p id="rank-hero-status" class="rank-chart-notice" role="status"></p>
+      <p id="rank-notice" class="rank-chart-notice" role="status"></p><div id="rank-legend" class="chart-legend"></div><small id="rank-count" role="status"></small><canvas id="rank-canvas" height="440" aria-label="선택 종목 캔들 차트"></canvas>
+      <details class="bar-details"><summary>봉 상세정보 · 시가·고가·저가·종가·거래량</summary><p id="rank-details" class="rank-chart-details"></p></details><details id="stock-tools" class="stock-memo-panel">
+  <summary>상승 사유·뉴스·공시 / 개인 메모</summary>
+  <div class="stock-memo-content">
+    <strong id="stock-memo-heading">종목 선택</strong>
+    <div id="stock-memo-evidence" class="stock-memo-evidence"></div>
+    <label for="stock-memo-text">내 의견·관찰 포인트</label>
+    <textarea id="stock-memo-text" rows="3" maxlength="20000" disabled></textarea>
+    <div class="stock-memo-actions"><button type="button" id="stock-memo-save" disabled>메모 저장</button><button type="button" id="stock-memo-refresh" class="secondary" disabled>뉴스·공시 확인</button><span id="stock-memo-feedback" role="status"></span></div>
+  </div>
+</details>
+      
+    </article>
+  </section>
+</main>
+</body>
+</html>

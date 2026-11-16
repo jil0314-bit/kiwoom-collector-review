@@ -1,13 +1,13 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let token = '', enabled = true, shared = false, record = null, loading = false, flowBasis = '';
-let flowPick = null, flowChart = null, flowVersion = 0, flowAbort = null, flowContext = '', flowHover = -1;
-let flowZoom = null, flowDrag = null, flowChartGeometry = null;
+let flowPick = null, flowChart = null, flowVersion = 0, flowAbort = null, flowContext = '';
+let flowChartLoading = false;
+let flowZoom = null, flowRangeBeforeZoom = null, flowChartGeometry = null;
 let flowHeroVersion = 0, flowHeroQueue = Promise.resolve(), flowHeroTimer;
 let stockProfiles = {}, profileVersion = 0;
 const profileLabel = p => p?.themes?.length ? '테마 · '+p.themes.slice(0,2).join(' · ')+(p.themes.length>2?' 외 '+(p.themes.length-2):'') : p?.groups?.length ? '관심그룹 · '+p.groups.slice(0,2).join(' · ')+(p.groups.length>2?' 외 '+(p.groups.length-2):'') : p?.industry ? '테마 미확인 · 업종 '+p.industry : '테마 미확인';
-const marketCapText = (p,day) => p?.market_cap>0 ? '시총 '+Number(p.market_cap).toLocaleString('ko-KR')+'억'+(p.cap_day&&p.cap_day!==day?' · '+p.cap_day+' 기준':'') : '시총 확인중';
-const flowColors = {5:'#d28a16',10:'#9a54d8',20:'#109e9b',30:'#ef6487',60:'#3778e6',120:'#e57927',240:'#546380'};
+const marketCapText = (p,day) => p?.market_cap>0 ? '시총 '+formatWon(p.market_cap,1e8)+(p.cap_day&&p.cap_day!==day?' · '+p.cap_day+' 기준':'') : '시총 확인중';
 function flowRows(key) {
   const query = $('search').value.trim().toLowerCase(), period = record?.kind === 'period';
   return (record?.markets?.[$('market').value]?.rankings[key] || [])
@@ -16,7 +16,7 @@ function flowRows(key) {
 }
 function flowItems() {return ['foreign','institution'].flatMap(key => flowRows(key).map(row => ({key,...row})));}
 function resetFlow() {
-  flowPick = null; flowChart = null; flowHover = -1; resetFlowZoom(); ++flowVersion; ++flowHeroVersion;
+  flowPick = null; window.collectorStockTools?.(null); flowChart = null; resetFlowZoom(); flowChartLoading=false; ++flowVersion; ++flowHeroVersion;
   clearTimeout(flowHeroTimer); flowAbort?.abort();
   $('flow-chart-name').textContent = '목록에서 종목을 선택하세요'; $('flow-chart-code').textContent = '종목 선택';
   $('flow-chart-status').textContent = ''; $('flow-hero-status').textContent = ''; paintFlow();
@@ -46,24 +46,33 @@ function render() {
       tr.setAttribute('aria-selected', String(flowPick?.code === row.code && flowPick?.key === key));
       tr.addEventListener('click', () => chooseFlow({key,...row}, true));
       tr.addEventListener('keydown', e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault();chooseFlow({key,...row}, true);}});
-      for (const value of [row.rank, row.name, row.net_amount_10m_krw]) {
+      for (const [index, value] of [row.rank, row.name, row.net_amount_10m_krw].entries()) {
         const td = document.createElement('td');
         td.textContent = value === null || value === undefined ? 'UNKNOWN' : typeof value === 'number' ? value.toLocaleString('ko-KR') : value;
+        if (index === 1) {
+          const label = document.createElement('span');
+          label.className = 'stock-name-text'; label.textContent = row.name; td.replaceChildren(label);
+        } else if (index === 2 && typeof value === 'number') {
+          td.textContent = formatWon(value,1e7);
+          td.className = value < 0 ? 'negative' : value > 0 ? 'positive' : '';
+        }
+        if (index === 2) td.classList.add('money-value');
         tr.append(td);
       }
       const profile=stockProfiles[row.code]||{};
-      const code = document.createElement('small'); code.textContent = row.code; tr.children[1].append(code);
-      const category=document.createElement('small');category.textContent=profileLabel(profile);tr.children[1].append(category);
-      const cap=document.createElement('small');cap.textContent=marketCapText(profile,record?.kind==='period'?record.period_end:record?.day);tr.children[1].append(cap);
-      for (const cell of [tr.children[2]]) {
-        const n = Number(cell.textContent.replaceAll(',',''));
-        if (Number.isFinite(n)) cell.className = n < 0 ? 'negative' : n > 0 ? 'positive' : '';
+      const code = document.createElement('small'); code.textContent = '• '+row.code; tr.children[1].append(code);
+      const category=document.createElement('small');category.textContent='• '+profileLabel(profile);tr.children[1].append(category);
+      if (profile.themes?.length || !profile.groups?.length) {
+        const group=document.createElement('small');group.textContent='• 관심그룹 · '+(profile.groups?.join(' · ')||'미확인');tr.children[1].append(group);
       }
+      const cap=document.createElement('small');cap.className='stock-money';cap.textContent='• '+marketCapText(profile,record?.kind==='period'?record.period_end:record?.day);tr.children[1].append(cap);
       body.append(tr);
     }
     if (!body.children.length) {
       const tr = document.createElement('tr'), td = document.createElement('td'); td.colSpan = 3;
-      td.textContent = rows.length ? '검색 결과 없음' : '저장 자료 없음 · 당일 수집 성공 후 표시됩니다.'; tr.append(td); body.append(tr);
+      td.textContent = rows.length ? '검색 결과 없음' : record?.provisional
+        ? '장중 잠정 · 양수 순매수 목록 제공 대기' : '저장 자료 없음 · 당일 수집 성공 후 표시됩니다.';
+      tr.append(td); body.append(tr);
     }
   }
   if (focusCode) document.querySelector(`tr[data-code="${focusCode}"][data-investor="${focusKey}"]`)?.focus({preventScroll:true});
@@ -99,12 +108,14 @@ async function loadDay() {
     api('/api/stock-profiles?day='+encodeURIComponent(profileDay)+'&codes='+encodeURIComponent(codes.join(','))).then(data=>{if(version===profileVersion&&$('day').value===day){stockProfiles=data.profiles||{};render()}}).catch(()=>{});
   }
 }
+let followLatestDate = true;
 async function poll() {
   if (loading) return;
   loading = true;
   try {
     const status = await api('/api/investors/status');
     token = status.token; enabled = status.enabled; shared = Boolean(status.shared_viewer);
+    $('flow-chart-source').querySelector('[value=live]').disabled = shared;
     $('monitor').textContent = enabled ? '자동 수집 중지' : '자동 수집 시작';
     $('collect').disabled = shared || status.state.busy; $('monitor').disabled = shared;
     $('progress').textContent = shared ? '동기화 저장 자료 조회 · 새 수집은 원본 PC에서 합니다.' : `${enabled ? '자동 수집 켜짐' : '자동 수집 꺼짐'} · ${status.state.message}` + (status.last_error ? '\n최근 실패: '+status.last_error.message : '');
@@ -114,9 +125,11 @@ async function poll() {
       const o = document.createElement('option'); o.value='period:'+period.start+'_'+period.end;
       o.textContent=`기간 합산 ${period.start}~${period.end} · TOP 30`; opts.push(o);
     }
+    const endDay = option => option.value.startsWith('period:') ? option.value.split('_')[1] : option.value;
+    opts.sort((a,b) => endDay(b).localeCompare(endDay(a)));
     if (!opts.length) {const o=document.createElement('option');o.value='';o.textContent='저장 자료 없음';opts.push(o);}
     $('day').replaceChildren(...opts);
-    if (opts.some(o => o.value === old)) $('day').value = old;
+    if (!followLatestDate && opts.some(o => o.value === old)) $('day').value = old;
     await loadDay();
   } catch (error) { $('progress').textContent = error.message; }
   finally {loading = false;}
@@ -129,7 +142,10 @@ async function action(path, body) {
     if (messages[result.state]) $('progress').textContent = messages[result.state];
   } catch (error) {$('progress').textContent = error.message;}
 }
-$('day').addEventListener('change', () => loadDay().catch(e => {$('progress').textContent=e.message;}));
+$('day').addEventListener('change', () => {
+  followLatestDate = $('day').selectedIndex === 0;
+  loadDay().catch(e => {$('progress').textContent=e.message;});
+});
 $('search').addEventListener('input', render);
 $('market').addEventListener('change', () => {resetFlow();render();});
 $('collect').addEventListener('click', () => action('/api/investors/collect', {}));
@@ -137,7 +153,7 @@ $('monitor').addEventListener('click', () => action('/api/investors/monitor', {e
 poll(); setInterval(poll, 10000);
 
 function chooseFlow(stock, send) {
-  flowPick = stock; flowHover = -1; resetFlowZoom();
+  flowPick = stock; window.collectorStockTools?.({day:record.period_end||record.day,code:stock.code,name:stock.name,source:'investor',market:$('market').value,start:record.period_start}); resetFlowZoom();
   $('flow-chart-name').textContent = stock.name; $('flow-chart-code').textContent = stock.code+' · '+$('market').selectedOptions[0].textContent;
   render(); loadFlowChart();
   if (send) {
@@ -152,23 +168,26 @@ function stepFlow(direction) {
   const next = items[at < 0 ? (direction > 0 ? 0 : items.length-1) : Math.max(0,Math.min(items.length-1,at+direction))];
   if (next && (next.code !== flowPick?.code || next.key !== flowPick?.key)) chooseFlow(next, true);
 }
-async function loadFlowChart(background=false) {
+async function loadFlowChart(background=false,reload=false) {
   if (!flowPick || !record) return;
-  if (background && flowDrag) {setTimeout(()=>{if(flowPick&&!document.hidden)loadFlowChart(true);},500);return;}
+  if (background && flowInspection.dragging()) {setTimeout(()=>{if(flowPick&&!document.hidden)loadFlowChart(true);},500);return;}
   const version = ++flowVersion, stock = flowPick;
+  flowChartLoading = true;
   flowAbort?.abort(); flowAbort = new AbortController();
   const q = new URLSearchParams({day:record.period_end || record.day,code:stock.code,source:'investor',market:$('market').value,
     frame:$('flow-frame').value,live:$('flow-chart-source').value === 'live' && !shared ? '1' : '0',fast:'1',async:'1'});
+  if(Number(flowRangeBeforeZoom??$('flow-range').value)>=360)q.set('history','1');
   if (record.kind === 'period') {q.set('start',record.period_start);q.set('end',record.period_end);}
   if (!background) {flowChart=null;paintFlow();$('flow-chart-status').textContent='차트 조회 중…';}
   try {
     for (let attempt=0;attempt<180;attempt++) {
-      const response = await collectorChartFetch('/api/chart?'+q,{signal:flowAbort.signal}), data = await response.json();
+      const response = await collectorChartFetch('/api/chart?'+q,{signal:flowAbort.signal,cache:reload?'reload':'default'}), data = await response.json();
       if (version !== flowVersion) return;
       if (!response.ok) throw new Error(data.error || '차트 조회 실패');
       if (data.pending) {await new Promise(resolve => setTimeout(resolve,500));if (version!==flowVersion)return;continue;}
-      if (background && flowDrag) {setTimeout(()=>{if(version===flowVersion&&!document.hidden)loadFlowChart(true);},500);return;}
-      flowChart=data; flowHover=-1; paintFlow();
+      if (background && flowInspection.dragging()) {setTimeout(()=>{if(version===flowVersion&&!document.hidden)loadFlowChart(true);},500);return;}
+      if(data.stock?.code!==stock.code||data.frame!==q.get('frame')||!data.bars?.length)throw new Error('선택한 종목의 차트 자료를 확인할 수 없습니다.');
+      flowChart=data; paintFlow();
       $('flow-chart-status').textContent=(data.live?'현재 차트':'선택 날짜·기간 종료일 차트')+' · 마지막 봉 '+(data.bars.at(-1)?.ts || 'UNKNOWN')+' · '+(data.chart_notice || '실제 수신된 봉만 표시합니다.');
       if (data.refreshing) setTimeout(()=>{if(version===flowVersion&&!document.hidden)loadFlowChart(true);},1200);
       return;
@@ -178,7 +197,7 @@ async function loadFlowChart(background=false) {
     if (version !== flowVersion || error.name === 'AbortError') return;
     if (!background) flowChart=null;
     $('flow-chart-status').textContent=(background?'현재 조회 실패 · 이전 차트 유지 · ':'')+error.message;paintFlow();
-  }
+  } finally { if(version===flowVersion) flowChartLoading=false; }
 }
 async function loadFlowTargets() {
   try {
@@ -200,49 +219,49 @@ function linkFlowHero(symbol) {
     } catch(error) {if(version===flowHeroVersion)$('flow-hero-status').textContent=error.message;}
   });},80);
 }
+const flowButtons=bindChartExports(()=>({record:flowChart,bars:flowChartGeometry?.bars||[],canvas:$('flow-chart')}),()=>loadFlowChart(true,true),paintFlow);
+const flowInspection = bindChartInspection($('flow-chart'), () => flowChartGeometry, paintFlow, zoomFlow, clearFlowZoom);
 function paintFlow() {
-  const canvas=$('flow-chart'), ctx=canvas.getContext('2d'), w=canvas.clientWidth || 600,h=380,dpr=devicePixelRatio || 1;
+  const canvas=$('flow-chart'), ctx=canvas.getContext('2d'), w=canvas.clientWidth || 600,h=canvas.clientHeight||500,dpr=devicePixelRatio || 1;
   canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
   const all=flowChart?.bars || [], limit=$('flow-range').value;
   const bars=flowZoom?all.filter(b=>b.ts>=flowZoom.start&&b.ts<=flowZoom.end):limit==='all'?all:all.slice(-Number(limit));
   flowChartGeometry=null;
+  flowButtons(!!flowPick,!!bars.length);
+  $('zoom-reset').disabled=!flowZoom;
   $('flow-legend').replaceChildren();
-  if (!bars.length) {ctx.fillStyle='#777';ctx.font='14px sans-serif';ctx.fillText(flowPick?'차트 자료를 확인하고 있습니다.':'목록에서 종목을 선택하세요.',20,50);$('flow-chart-detail').textContent='실제 수신된 봉만 표시합니다.';return;}
-  const ma=Object.keys(flowColors).map(Number).filter(n=>bars.some(b=>Number.isFinite(b['ma'+n])));
-  for (const n of ma) {const el=document.createElement('span');el.textContent=n+'선';el.style.color=flowColors[n];$('flow-legend').append(el);}
-  const left=12,right=w-78,top=20,bottom=270,volTop=292,volBottom=345,step=(right-left)/bars.length;
-  flowChartGeometry={bars,left,right,top,volBottom,step,w,h};
-  const values=bars.flatMap(b=>[b.low,b.high,...ma.map(n=>b['ma'+n]).filter(Number.isFinite)]);
-  let lo=Math.min(...values), hi=Math.max(...values);const pad=(hi-lo)*.06 || Math.max(1,hi*.01);lo-=pad;hi+=pad;
-  const y=v=>bottom-(v-lo)/(hi-lo)*(bottom-top),x=i=>left+(i+.5)*step;
-  ctx.font='11px sans-serif';ctx.textAlign='left';
-  for(let i=0;i<=4;i++){const value=lo+(hi-lo)*i/4,py=y(value);ctx.strokeStyle='#eceaf3';ctx.beginPath();ctx.moveTo(left,py);ctx.lineTo(right,py);ctx.stroke();ctx.fillStyle='#697386';ctx.fillText(Math.round(value).toLocaleString('ko-KR'),right+7,py+4);}
-  const maxVolume=Math.max(1,...bars.map(b=>b.volume));
-  bars.forEach((b,i)=>{const px=x(i),color=b.close>=b.open?'#d94b64':'#3778e6';ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px,y(b.high));ctx.lineTo(px,y(b.low));ctx.stroke();const bw=Math.max(1,Math.min(10,step*.65));ctx.fillRect(px-bw/2,Math.min(y(b.open),y(b.close)),bw,Math.max(1,Math.abs(y(b.open)-y(b.close))));ctx.globalAlpha=.5;ctx.fillRect(px-bw/2,volBottom-b.volume/maxVolume*(volBottom-volTop),bw,b.volume/maxVolume*(volBottom-volTop));ctx.globalAlpha=1;});
-  for(const n of ma){ctx.beginPath();ctx.strokeStyle=flowColors[n];ctx.lineWidth=[20,60].includes(n)?3:1;let connected=false;bars.forEach((b,i)=>{if(!Number.isFinite(b['ma'+n])){connected=false;return;}if(connected)ctx.lineTo(x(i),y(b['ma'+n]));else ctx.moveTo(x(i),y(b['ma'+n]));connected=true;});ctx.stroke();}
-  ctx.fillStyle='#697386';ctx.textAlign='left';ctx.fillText(bars[0].ts.slice(0,16),left,370);ctx.textAlign='right';ctx.fillText(bars.at(-1).ts.slice(0,16),right,370);
-  if(flowDrag){const a=Math.min(flowDrag.start,flowDrag.end),b=Math.max(flowDrag.start,flowDrag.end);ctx.fillStyle='#80008026';ctx.fillRect(left+a*step,top,(b-a+1)*step,volBottom-top);ctx.strokeStyle='#800080';ctx.strokeRect(left+a*step,top,(b-a+1)*step,volBottom-top);}
-  const index=flowHover>=0?Math.min(flowHover,bars.length-1):bars.length-1,b=bars[index];
-  if(flowHover>=0){ctx.strokeStyle='#8892a6';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x(index),top);ctx.lineTo(x(index),volBottom);ctx.stroke();ctx.setLineDash([]);}
-  $('flow-chart-detail').textContent=b.ts+' · 시가 '+b.open.toLocaleString('ko-KR')+' · 고가 '+b.high.toLocaleString('ko-KR')+' · 저가 '+b.low.toLocaleString('ko-KR')+' · 종가 '+b.close.toLocaleString('ko-KR')+' · 거래량 '+b.volume.toLocaleString('ko-KR');
+  if (!bars.length) {flowInspection.paint(ctx, null);ctx.fillStyle='#777';ctx.font='14px sans-serif';ctx.fillText(flowPick?'차트 자료를 확인하고 있습니다.':'목록에서 종목을 선택하세요.',20,50);$('flow-chart-detail').textContent='실제 수신된 봉만 표시합니다.';return;}
+  const ma=chartPeriods(flowChart.frame);
+  drawChartLegend($('flow-legend'),ma);
+  flowChartGeometry=paintCandles(ctx,w,h,bars,ma);
+  const b = flowInspection.paint(ctx, flowChartGeometry, flowChart) || bars.at(-1);
+  $('flow-chart-detail').textContent=chartRangeStatus(bars.length,limit)+' · '+b.ts+' · 시가 '+b.open.toLocaleString('ko-KR')+' · 고가 '+b.high.toLocaleString('ko-KR')+' · 저가 '+b.low.toLocaleString('ko-KR')+' · 종가 '+b.close.toLocaleString('ko-KR')+' · 거래량 '+b.volume.toLocaleString('ko-KR');
 }
 $('flow-prev').addEventListener('click',()=>stepFlow(-1));$('flow-next').addEventListener('click',()=>stepFlow(1));
-function resetFlowZoom(){flowZoom=null;flowDrag=null;const custom=$('flow-range').querySelector('option[value="custom"]');if(custom)custom.disabled=true;if($('flow-range').value==='custom')$('flow-range').value='180';}
-function flowPoint(e,clamp=false){const g=flowChartGeometry;if(!g)return null;const rect=$('flow-chart').getBoundingClientRect(),x=(e.clientX-rect.left)*g.w/rect.width,y=(e.clientY-rect.top)*g.h/rect.height;if(!clamp&&(x<g.left||x>g.right||y<g.top||y>g.volBottom))return null;return {index:Math.max(0,Math.min(g.bars.length-1,Math.floor((x-g.left)/g.step))),x};}
+function zoomFlow(start, end) {
+  const range = $('flow-range');
+  if (range.value !== 'custom') flowRangeBeforeZoom = range.value;
+  flowZoom = {start, end};
+  range.querySelector('option[value="custom"]').disabled = false;
+  range.value = 'custom';
+  paintFlow();
+}
+function resetFlowZoom() {
+  const range = $('flow-range');
+  flowInspection.clear();
+  if (range.value === 'custom') range.value = flowRangeBeforeZoom ?? 'all';
+  range.querySelector('option[value="custom"]').disabled = true;
+  flowRangeBeforeZoom = flowZoom = null;
+}
 for (const id of ['flow-frame','flow-chart-source']) $(id).addEventListener('change',()=>{resetFlowZoom();loadFlowChart();});
-$('flow-range').addEventListener('change',()=>{resetFlowZoom();flowHover=-1;paintFlow();});
+$('flow-range').addEventListener('change',()=>{resetFlowZoom();paintFlow();if(flowPick)loadFlowChart(true);});
 $('hero-target').addEventListener('change',()=>{localStorage.setItem('collector-hero-chart',$('hero-target').value);if(flowPick)linkFlowHero(flowPick.code);});
 document.addEventListener('keydown',e=>{
   if(!['ArrowUp','ArrowDown'].includes(e.key)||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.isComposing||e.target.closest('input,select,textarea,dialog,[contenteditable="true"]'))return;
   e.preventDefault();stepFlow(e.key==='ArrowDown'?1:-1);
 });
-$('flow-chart').addEventListener('pointermove',e=>{const p=flowPoint(e,!!flowDrag);if(!p)return;if(flowDrag){if(flowDrag.pointerId===e.pointerId)flowDrag.end=p.index;}else flowHover=p.index;paintFlow();});
-$('flow-chart').addEventListener('pointerleave',()=>{if(!flowDrag){flowHover=-1;paintFlow();}});
-$('flow-chart').addEventListener('pointerdown',e=>{if(e.button!==0||!flowChartGeometry||flowChartGeometry.bars.length<3)return;const p=flowPoint(e);if(!p)return;flowDrag={start:p.index,end:p.index,x:p.x,pointerId:e.pointerId,bars:flowChartGeometry.bars};$('flow-chart').setPointerCapture(e.pointerId);e.preventDefault();paintFlow();});
-$('flow-chart').addEventListener('pointerup',e=>{if(!flowDrag||flowDrag.pointerId!==e.pointerId)return;const p=flowPoint(e,true),d=flowDrag;flowDrag=null;if($('flow-chart').hasPointerCapture(e.pointerId))$('flow-chart').releasePointerCapture(e.pointerId);if(p&&Math.abs(p.x-d.x)>=6&&Math.abs(p.index-d.start)>=2){const a=Math.min(d.start,p.index),b=Math.max(d.start,p.index);flowZoom={start:d.bars[a].ts,end:d.bars[b].ts};$('flow-range').querySelector('option[value="custom"]').disabled=false;$('flow-range').value='custom';}paintFlow();});
-$('flow-chart').addEventListener('pointercancel',()=>{flowDrag=null;paintFlow();});
-$('flow-chart').addEventListener('lostpointercapture',()=>{if(flowDrag){flowDrag=null;paintFlow();}});
-$('flow-chart').addEventListener('dblclick',()=>{resetFlowZoom();flowHover=-1;paintFlow();});
+function clearFlowZoom() { resetFlowZoom(); paintFlow(); }
+$('zoom-reset').onclick = clearFlowZoom;
 new ResizeObserver(paintFlow).observe($('flow-chart').parentElement);
 loadFlowTargets();setInterval(loadFlowTargets,30000);
-setInterval(()=>{if(flowPick&&!document.hidden&&$('flow-chart-source').value==='live')loadFlowChart(true);},15000);
+setInterval(()=>{if(flowPick&&!flowChartLoading&&!document.hidden&&$('flow-chart-source').value==='live')loadFlowChart(true);},15000);

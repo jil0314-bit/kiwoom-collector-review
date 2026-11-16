@@ -273,7 +273,9 @@ class FlowTests(unittest.TestCase):
                 with patch.object(app.archive,'metadata',return_value={'stocks':[{'code':'005930','name':'대기 종목','status':'pending'}]}):
                     url=f'http://127.0.0.1:{port}/api/chart?source=ranking-current&code=005930&frame=day&day={DAY}&live=1'
                     with urllib.request.urlopen(url) as r:self.assertEqual(r.status,200)
-                    self.assertEqual(load.call_args.kwargs,{'source':'watchlist','name':'대기 종목','live':True})
+                    self.assertEqual(load.call_args.kwargs,{'source':'watchlist','name':'대기 종목','live':True,'history':False})
+                    with urllib.request.urlopen(url+'&history=1') as r:self.assertEqual(r.status,200)
+                    self.assertTrue(load.call_args.kwargs['history'])
                     load.reset_mock()
                     with self.assertRaises(urllib.error.HTTPError):urllib.request.urlopen(url.replace('005930','999999'))
                     load.assert_not_called()
@@ -311,6 +313,32 @@ class FlowTests(unittest.TestCase):
         with patch.object(flows,'fetch_amount_rankings',side_effect=DataError('failed')):
             with self.assertRaises(DataError):self.save()
         self.assertEqual(flows.read_day(self.data,DAY),doc)
+
+    def test_intraday_accepts_first_partial_but_never_erases_saved_lists(self):
+        class EmptyMarket(FakeAPI):
+            def request(self, api, body, cursor):
+                if api == 'ka10065' and body['mrkt_tp'] == '001' and body['orgn_tp'] == '9000':
+                    return {'opmr_invsr_trde_upper': []}, {}
+                return super().request(api, body, cursor)
+        partial = self.save(EmptyMarket())
+        self.assertEqual(partial['markets']['001']['rankings']['foreign'], [])
+        self.assertTrue(partial['markets']['001']['rankings']['institution'])
+        complete = self.save()
+        with self.assertRaisesRegex(DataError, '일부 미제공'):
+            self.save(EmptyMarket())
+        self.assertEqual(flows.read_day(self.data, DAY), complete)
+
+    def test_empty_first_intraday_result_retries_early_without_saving(self):
+        class EmptyAPI(FakeAPI):
+            def request(self, api, body, cursor):
+                return {'opmr_invsr_trde_upper': []}, {}
+        with self.assertRaisesRegex(DataError, '제공 대기'):
+            self.save(EmptyAPI())
+        self.assertIsNone(flows.read_day(self.data, DAY))
+        flows.write(flows.root(self.data) / 'schedule.json', {'day': DAY, 'last_start_epoch': NOW.timestamp()})
+        flows.write(flows.root(self.data) / 'last_error.json', {'day': DAY, 'message': flows.INTRADAY_EMPTY})
+        self.assertFalse(flows.due(self.data, NOW + timedelta(seconds=119)))
+        self.assertTrue(flows.due(self.data, NOW + timedelta(seconds=120)))
 
     def test_scheduler_default_pause_weekend_and_interval(self):
         self.assertTrue(flows.enabled(self.data))

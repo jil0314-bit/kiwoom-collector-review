@@ -1,3 +1,41 @@
 .rank-workspace{display:grid;grid-template-columns:minmax(430px,.9fr) minmax(0,1.3fr);gap:18px;align-items:start}.rank-list{max-height:780px;overflow:auto}.rank-list table{width:100%;font-size:12px}.rank-list th{white-space:nowrap}.rank-list td{text-align:right}.rank-list td:nth-child(2),.rank-list td:nth-child(3){text-align:left}.rank-list tr.selected{background:#ece6ff}.rank-stock{border:0;background:transparent;color:var(--ink);padding:6px 2px;font-size:13px;text-align:left;white-space:nowrap}.rank-chart{min-width:0;padding:18px;position:sticky;top:8px}.rank-chart h2{margin:0 0 6px}.rank-chart-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.rank-chart canvas{display:block;width:100%;height:440px;background:white;margin-top:12px;touch-action:pan-y}.rank-chart-details{min-height:58px;font-size:13px;font-variant-numeric:tabular-nums}.rank-chart-notice{font-size:12px;color:var(--muted)}.rank-chart a[aria-disabled=true]{pointer-events:none;opacity:.45}@media(max-width:1100px){.rank-workspace{grid-template-columns:1fr}.rank-chart{position:static;grid-row:1}.rank-list{max-height:520px}}
 
 .rank-profile{display:block;white-space:normal;max-width:180px;font-size:11px;color:var(--muted);text-align:left}
+
+.absolute-rank-workspace{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
+.absolute-rank-list{min-width:0}
+.absolute-rank-list table{width:100%;min-width:0;table-layout:fixed}
+.absolute-rank-list th,.absolute-rank-list td{
+  padding:8px clamp(4px,.55vw,9px);text-align:right;vertical-align:top;
+  white-space:normal;overflow-wrap:anywhere;
+}
+.absolute-rank-list th{font-size:.79rem;line-height:1.25}
+.absolute-rank-list th span{display:block;font-size:.69rem;font-weight:400}
+.absolute-rank-list th:nth-child(2),.absolute-rank-list td:nth-child(2){text-align:left}
+.absolute-rank-list .rank-number{width:7%}
+.absolute-rank-list .rank-name{width:24%}
+.absolute-rank-list .rank-price{width:13%}
+.absolute-rank-list .rank-rate{width:10%}
+.absolute-rank-list .rank-volume{width:16%}
+.absolute-rank-list .rank-turnover{width:12%}
+.absolute-rank-list .rank-amount{width:18%}
+.absolute-rank-list .rank-stock{white-space:normal;overflow-wrap:anywhere;max-width:100%}
+.absolute-rank-list .rank-volume-note{display:block;font-size:.69rem;color:var(--muted)}
+.absolute-rank-list td[data-column].money-value{min-width:0}
+@media(max-width:1100px){.absolute-rank-workspace{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:580px){
+  .absolute-rank-list table,.absolute-rank-list tbody{display:block}
+  .absolute-rank-list colgroup{display:none}
+  .absolute-rank-list thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+  .absolute-rank-list tbody tr{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 8px;
+    padding:9px 10px;border-bottom:1px solid #edf0f6;
+  }
+  .absolute-rank-list tbody td{min-width:0;padding:3px 0;border:0;text-align:left}
+  .absolute-rank-list td[data-column="rank"]{grid-column:1;align-self:center;font-weight:700}
+  .absolute-rank-list td[data-column="name"]{grid-column:2/4}
+  .absolute-rank-list td[data-column="volume"]{grid-column:1}
+  .absolute-rank-list td[data-label]::before{
+    content:attr(data-label);display:block;font-size:.69rem;font-weight:600;color:var(--muted);
+  }
+}

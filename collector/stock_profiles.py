@@ -16,6 +16,7 @@ import volume_top
 import amount_top
 import watchlists
 import recommendations
+import observations
 from kiwoom import DataError, Kiwoom, KST, code_of
 
 LOCK = threading.Lock()
@@ -50,6 +51,10 @@ def collect(data, day):
         _add(stocks, row)
     for module in (volume_top, amount_top, recommendations):
         for row in module.read(data, day).get('stocks', []):
+            _add(stocks, row)
+    today = datetime.now(KST).date().isoformat()
+    for row in observations.read(data):
+        if day == today or day == row['source_day']:
             _add(stocks, row)
     thematic = themes.read_day(data, day) or {}
     for group in thematic.get("themes", []) + thematic.get("custom", []):

@@ -24,6 +24,7 @@ BAR_GUARD = threading.Lock()
 STATE = {"busy": False, "bars_busy": False, "message": "08:00부터 자동 조회", "done": 0, "total": 0}
 LAST_START = 0.0
 LAST_BAR_PASS = 0.0
+LAST_PRUNE_DAY = None
 BAR_RETRY_INTERVAL = 60
 INTERVAL = 60
 BODY = {"mrkt_tp": "000", "sort_tp": "2", "tm_tp": "2", "trde_qty_tp": "0",
@@ -169,8 +170,11 @@ def prune(data, current):
     # Only this category's dated folders/caches can be removed; never data/YYYY-MM-DD.
     base = root(data)
     expired = cutoff(current).isoformat()
+    deferred = 0
     with LOCK:
-        for parent in (base, base / "cache" / "watchlist_history", base / "cache" / "chart_history", base / "cache" / "weekly_history"):
+        for parent in (base, *(base / "cache" / name for name in (
+                "watchlist_history", "chart_history", "weekly_history", "monthly_history",
+                "chart_minute_history_1", "chart_minute_history_3", "chart_minute_history_5"))):
             if parent.resolve() != parent:
                 raise ValueError("거래량 보관 경로 연결 차단")
             for path in parent.glob("????-??-??"):
@@ -185,7 +189,11 @@ def prune(data, current):
                         attrs = p.lstat()
                         if p.is_symlink() or getattr(attrs, "st_file_attributes", 0) & stat.FILE_ATTRIBUTE_REPARSE_POINT:
                             raise ValueError("연결 파일 삭제 차단")
-                shutil.rmtree(target)
+                try:
+                    shutil.rmtree(target)
+                except OSError:
+                    deferred += 1
+    return deferred
 
 
 def commit_rank(data, day, stocks, raw, at):
@@ -303,9 +311,9 @@ def start(data, manual=False, current=None):
     LAST_START = current.timestamp()
     STATE["busy"] = True
     def worker():
+        global LAST_PRUNE_DAY
         try:
             day = current.date().isoformat()
-            prune(data, current.date())
             STATE["message"] = "거래량 급증률·시총 조회 중"
             stocks, raw = ranking(day)
             if datetime.now(KST).date().isoformat() != day:
@@ -313,6 +321,15 @@ def start(data, manual=False, current=None):
             at = raw["observed_at"]
             commit_rank(data, day, stocks, raw, at)
             threading.Thread(target=collect_bars, args=(data, day), daemon=True).start()
+            if LAST_PRUNE_DAY != day:
+                LAST_PRUNE_DAY = day
+                try:
+                    deferred = prune(data, current.date())
+                    STATE["retention_warning"] = f"만료 폴더 {deferred}개 정리 보류" if deferred else ""
+                except (OSError, ValueError):
+                    STATE["retention_warning"] = "만료 폴더 정리 보류 · 경로 또는 권한 확인 필요"
+            with LOCK:
+                write(root(data) / "last_error.json", None)
         except Exception as exc:
             STATE["message"] = str(exc) if isinstance(exc, DataError) else "거래량 수집·저장 실패"
             with LOCK:
@@ -320,7 +337,12 @@ def start(data, manual=False, current=None):
         finally:
             STATE["busy"] = False
             RANK_GUARD.release()
-    threading.Thread(target=worker, daemon=True).start()
+    try:
+        threading.Thread(target=worker, daemon=True).start()
+    except Exception:
+        STATE["busy"] = False
+        RANK_GUARD.release()
+        raise
     return "started"
 
 
@@ -351,22 +373,20 @@ def tick(data, current=None):
             threading.Thread(target=collect_bars, args=(data, current.date().isoformat()), daemon=True).start()
 
 
-def chart(data, day, code, frame, live):
+def chart(data, day, code, frame, live, history=False):
     m = metadata(data, day)
     stock = next((s for s in m.get("tracked", []) if s["code"] == code), None)
     if not stock:
         raise DataError("선택한 거래량 급증 날짜에 없는 종목")
     cache = root(data) / "cache"
-    if live or frame in ("day", "week"):
-        return chart_data.load(cache, day, code, frame, source="watchlist", name=stock["name"], live=live)
+    if live or frame in ("day", "week", "month"):
+        return chart_data.load(cache, day, code, frame, source="watchlist", name=stock["name"], live=live, history=history)
     with LOCK:
         folder = archive.day_root(root(data), day)
         record = read(folder / f"{code}.json")
         if not record:
             raise DataError("이 종목의 저장 분봉은 아직 수집되지 않았습니다.")
         raw = json.loads(gzip.decompress((folder / f"{code}.raw.json.gz").read_bytes()))
-    if frame == "minute":
-        return chart_data.minute_record(record, raw)
-    if frame in ("minute3", "minute5"):
-        return chart_data.grouped_record(record, raw, int(frame[-1]))
+    if frame in ("minute", "minute3", "minute5"):
+        return chart_data.archived_minutes(cache, day, code, frame, record, raw, history)
     raise DataError("차트 종류 오류")

@@ -14,6 +14,7 @@ from pathlib import Path
 KST = timezone(timedelta(hours=9))
 HOST = "https://api.kiwoom.com"
 ROUTES = {"ka10030": "/api/dostk/rkinfo", "ka10023": "/api/dostk/rkinfo", "ka10027": "/api/dostk/rkinfo", "ka10080": "/api/dostk/chart", "ka10081": "/api/dostk/chart",
+          "ka10083": "/api/dostk/chart",
           "ka90001": "/api/dostk/thme", "ka90002": "/api/dostk/thme", "ka10095": "/api/dostk/stkinfo",
           "ka10058": "/api/dostk/stkinfo", "ka10065": "/api/dostk/rkinfo", "ka90009": "/api/dostk/rkinfo", "ka10099": "/api/dostk/stkinfo"}
 
@@ -136,19 +137,21 @@ def parse_bar(row):
 
 
 class Kiwoom:
-    def __init__(self, interval=1.1, transport=None):
+    def __init__(self, interval=1.1, transport=None, *, timeout=30, attempts=5):
         self.interval = interval
         self.shared = transport is None
         self.transport = transport or self._http
         self.token = ""
         self.expires = datetime.min.replace(tzinfo=KST)
         self.last_request = 0.0
+        self.timeout = timeout
+        self.attempts = attempts
 
     def _http(self, path, body, headers):
         req = urllib.request.Request(HOST + path, json.dumps(body).encode(),
                                      {"Content-Type": "application/json;charset=UTF-8", **headers})
         try:
-            with urllib.request.urlopen(req, timeout=30) as response:
+            with urllib.request.urlopen(req, timeout=self.timeout) as response:
                 return json.loads(response.read()), dict(response.headers)
         except urllib.error.HTTPError as exc:
             if exc.code == 429:
@@ -160,7 +163,7 @@ class Kiwoom:
             raise ConnectionError("키움 통신 실패 또는 응답 형식 오류") from None
 
     def _send(self, path, body, headers):
-        for attempt in range(5):
+        for attempt in range(self.attempts):
             if self.shared:
                 global _RATE_LAST
                 with _RATE_LOCK:
@@ -180,8 +183,8 @@ class Kiwoom:
                     raise DataError(f"키움 응답 오류 코드 {rc[:12]}")
                 return data, {k.lower(): v for k, v in response_headers.items()}
             except ConnectionError as exc:
-                if attempt == 4:
-                    raise DataError("API 통신·호출 제한: 5회 재시도 실패") from None
+                if attempt == self.attempts - 1:
+                    raise DataError(f"API 통신·호출 제한: {self.attempts}회 조회 실패") from None
                 time.sleep(max(min(20, 2 ** (attempt + 1)),
                                exc.retry_after if isinstance(exc, RateLimitError) else 0))
 
@@ -303,49 +306,78 @@ class Kiwoom:
 
     def daily_bars(self, code, day, count=300):
         """Daily chart history only; never changes the minute collection path."""
+        return self._dated_bars(code, day, count, "ka10081", "stk_dt_pole_chart_qry", "일봉")
+
+    def monthly_bars(self, code, day, count):
+        # The native monthly response can include the whole month of base_dt.
+        # Request it through the previous month and rebuild this month as of day.
+        month_start = day[:7] + "-01"
+        previous_month_end = (datetime.fromisoformat(month_start) - timedelta(days=1)).date().isoformat()
+        daily, daily_raw = self.daily_bars(code, day, count=32)
+        current = [bar for bar in daily if bar["ts"] >= month_start]
+        bars, monthly_raw = self._dated_bars(
+            code, previous_month_end, count, "ka10083", "stk_mth_pole_chart_qry", "월봉",
+            allow_empty=bool(current),
+        )
+        bars = [{**bar, "ts": bar["ts"][:7] + "-01"} for bar in bars]
+        if len({bar["ts"] for bar in bars}) != len(bars):
+            raise DataError("월봉 월별 응답 중복")
+        if current:
+            bars.append({
+                "ts": month_start, "end_ts": current[-1]["ts"],
+                "open": current[0]["open"], "high": max(bar["high"] for bar in current),
+                "low": min(bar["low"] for bar in current), "close": current[-1]["close"],
+                "volume": sum(bar["volume"] for bar in current),
+            })
+        return bars, {"monthly": monthly_raw, "daily": daily_raw, "actual_day": daily[-1]["ts"]}
+
+    def _dated_bars(self, code, day, count, api, field, label, *, allow_empty=False):
         code = code_of(code)
         datetime.strptime(day, "%Y-%m-%d")
         body = {"stk_cd": code + "_AL", "base_dt": day.replace("-", ""), "upd_stkpc_tp": "0"}
         cursor, seen, rows, pages = "", set(), {}, []
         for _ in range(20):
-            data, hdr = self.request("ka10081", body, cursor)
+            data, hdr = self.request(api, body, cursor)
             if code_of(data.get("stk_cd", code)) != code:
-                raise DataError("일봉 요청·응답 종목코드 불일치")
-            items = data.get("stk_dt_pole_chart_qry")
+                raise DataError(f"{label} 요청·응답 종목코드 불일치")
+            items = data.get(field)
             if not isinstance(items, list):
-                raise DataError("일봉 목록 누락")
+                raise DataError(f"{label} 목록 누락")
             parsed = []
             for item in items:
                 bar = parse_bar({**item, "cntr_tm": str(item.get("dt", "")) + "000000"})
                 bar["ts"] = bar["ts"][:10]
                 if bar["ts"] > day:
-                    raise DataError("기준일 이후 일봉 반환")
+                    raise DataError(f"기준일 이후 {label} 반환")
                 parsed.append(bar)
                 if bar["ts"] in rows and rows[bar["ts"]] != bar:
-                    raise DataError("일봉 연속조회 값 충돌")
+                    raise DataError(f"{label} 연속조회 값 충돌")
                 rows[bar["ts"]] = bar
             if parsed != sorted(parsed, key=lambda b: b["ts"], reverse=True):
-                raise DataError("일봉 응답 날짜 정렬 오류")
+                raise DataError(f"{label} 응답 날짜 정렬 오류")
             pages.append(data)
             if len(rows) >= count or hdr.get("cont-yn") != "Y":
                 break
             cursor = str(hdr.get("next-key", ""))
             if not parsed or not cursor or cursor in seen:
-                raise DataError("일봉 연속조회 데이터·키 누락 또는 반복")
+                raise DataError(f"{label} 연속조회 데이터·키 누락 또는 반복")
             seen.add(cursor)
         else:
-            raise DataError("일봉 연속조회 한도 초과")
-        if not rows:
-            raise DataError("조회 가능한 일봉이 없습니다.")
+            raise DataError(f"{label} 연속조회 한도 초과")
+        if not rows and not allow_empty:
+            raise DataError(f"조회 가능한 {label}이 없습니다.")
         return sorted(rows.values(), key=lambda b: b["ts"]), {"request": body, "pages": pages}
 
-    def minute_bars(self, code, day, *, on_page=None):
+    def minute_bars(self, code, day, *, on_page=None, earlier_bars=0, interval=1, allow_previous_session=False):
         code = code_of(code)
         datetime.strptime(day, "%Y-%m-%d")
         body = {"stk_cd": code + "_AL", "tic_scope": "1", "upd_stkpc_tp": "0",
                 "base_dt": day.replace("-", "")}
         cursor, seen, rows, pages = "", set(), {}, []
         cutoff = day + " 08:00:00"
+        earlier = set()
+        has_session = False
+        previous_day = None
         for page in range(40):
             data, hdr = self.request("ka10080", body, cursor)
             if code_of(data.get("stk_cd", code)) != code:
@@ -362,10 +394,25 @@ class Kiwoom:
                 if previous and previous != bar:
                     raise DataError("연속조회 중 같은 시각의 분봉 값 충돌")
                 rows[bar["ts"]] = bar
+                if allow_previous_session and previous_day is None:
+                    ts = bar["ts"]
+                    if ts[:10] < day and "08:00:00" <= ts[11:] <= "20:00:00":
+                        previous_day = ts[:10]
+                if earlier_bars:
+                    ts = bar["ts"]
+                    if ts[:10] < day:
+                        minute = int(ts[14:16])
+                        earlier.add((ts[:13], minute // interval))
+                    elif cutoff <= ts <= day + " 20:00:00":
+                        has_session = True
             if on_page:
                 on_page(page + 1)
             # Include earlier history from the last page for causal MAs.
-            if (parsed and parsed[-1]["ts"] < cutoff) or hdr.get("cont-yn") != "Y":
+            reached_cutoff = parsed and parsed[-1]["ts"] < cutoff
+            need_history = (has_session or allow_previous_session) and len(earlier) < earlier_bars
+            need_previous = allow_previous_session and not has_session and (
+                previous_day is None or (parsed and parsed[-1]["ts"] >= previous_day + " 08:00:00"))
+            if hdr.get("cont-yn") != "Y" or (reached_cutoff and not need_history and not need_previous):
                 break
             cursor = str(hdr.get("next-key", ""))
             if not parsed or not cursor or cursor in seen:
@@ -375,11 +422,16 @@ class Kiwoom:
             raise DataError("분봉 40페이지 한도 도달: 미완료")
         ordered = sorted(rows.values(), key=lambda b: b["ts"])
         # Never insert bars for minutes without a returned trade bar.
-        selected = [b for b in ordered if cutoff <= b["ts"] <= day + " 20:00:00"]
-        if not selected:
-            raise DataError("해당 날짜 08:00~20:00 분봉 없음")
         if any(b["ts"][:10] > day for b in ordered):
             raise DataError("요청일 이후 분봉 반환: 기준일 응답 확인 필요")
+        selected = [b for b in ordered if cutoff <= b["ts"] <= day + " 20:00:00"]
+        if not selected and allow_previous_session:
+            previous = [b for b in ordered if b["ts"][:10] < day and "08:00:00" <= b["ts"][11:] <= "20:00:00"]
+            if previous:
+                actual_day = previous[-1]["ts"][:10]
+                selected = [b for b in previous if b["ts"][:10] == actual_day]
+        if not selected:
+            raise DataError("해당 날짜 08:00~20:00 분봉 없음")
         closes = [b["close"] for b in ordered]
         for i, bar in enumerate(ordered):
             for n in (5, 10, 20, 60):

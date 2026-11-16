@@ -25,6 +25,7 @@ import investor_flows
 import stock_sectors
 import stock_profiles
 import recommendations
+import observations
 from window import open_dashboard
 
 ROOT = Path(__file__).resolve().parent
@@ -85,11 +86,15 @@ def safe_error(exc):
     return str(exc) if isinstance(exc, DataError) else "저장 또는 처리 오류: 파일 권한·디스크 상태를 확인하세요."
 
 
-def require_complete_ranking(stocks, expected=100):
-    # An exhausted ranking with fewer eligible stocks is valid source data,
-    # but it is not a complete Top 100 replacement for an existing snapshot.
-    if len(stocks) < expected:
-        raise DataError(f"상승률 조건 부합 {len(stocks)}/{expected}종목: 상위 100 완전본 미달. 기존 저장본 유지, 다음 갱신 때 재확인합니다.")
+def check_ranking_coverage(day, kind, stocks, expected):
+    if not stocks:
+        raise DataError("상승률 조건에 맞는 종목 없음 · 기존 자료 유지")
+    if len(stocks) >= expected:
+        return
+    with archive.LOCK:
+        previous = archive.metadata(archive.active(DATA, day))
+    if kind != "preview" or previous.get("kind") == "final" or len(stocks) < len(previous.get("stocks", [])):
+        raise DataError(f"상승률 조건 부합 {len(stocks)}/{expected}종목 · 기존 저장본 유지, 다음 갱신 때 재확인합니다.")
 
 
 def collect(day, kind=None, api=None):
@@ -115,12 +120,14 @@ def build_snapshot(day, kind, folder, revision, api=None):
     STATE.update(message="상승률 순위 조회 중", done=0, total=0)
     ranking_at = stamp()
     stocks, raw_rank = api.ranking()
-    require_complete_ranking(stocks, getattr(api, 'expected_count', 100))
+    expected = getattr(api, 'expected_count', 100)
+    check_ranking_coverage(day, kind, stocks, expected)
     # Date-stamped bars corroborate that an undated ranking is not simply stale.
     first_bars, first_raw = api.minute_bars(stocks[0]["code"], day)
     if now().date().isoformat() != day:
         raise DataError("수집 도중 날짜가 바뀌었습니다. 기존 자료를 유지합니다.")
     meta = {"day": day, "kind": kind, "revision": revision, "ranking_at": ranking_at,
+            "ranking_target": expected,
             "market": "KRX+NXT 통합", "filter": "ETF·ETN 제외 / 양의 상승률",
             "session": "08:00~20:00 KST", "status": "running", "attempts": 0,
             "stocks": [{**s, "status": "pending"} for s in stocks],
@@ -163,6 +170,8 @@ def build_snapshot(day, kind, folder, revision, api=None):
         raise DataError(f"{count}/{len(meta['stocks'])}종목 수신: 새 자료 교체 보류, 기존 자료 유지. 실패 종목: {', '.join(failed)}")
     pending = archive.publish(DATA, day, folder, save)
     message = f"{count}/{len(meta['stocks'])}종목 최신 자료로 교체 · {ranking_at[11:19]} 기준"
+    if count < expected:
+        message += f" · 조건 부합 {count}/{expected}종목"
     if pending:
         message += " · 일부 이전 파일 삭제 보류"
     STATE.update(done=len(meta["stocks"]), message=message)
@@ -209,7 +218,9 @@ def start(day, kind=None, source="manual"):
         except Exception as exc:
             STATE.update(message=safe_error(exc))
             save(DATA / "last_error.json", {"at": stamp(), "day": day, "kind": kind, "message": safe_error(exc)})
+            update_themes(day, verify_session=True)
         else:
+            save(DATA / "last_error.json", None)
             update_themes(day)
         finally:
             with CONTROL:
@@ -222,11 +233,21 @@ def start(day, kind=None, source="manual"):
     return "started"
 
 
-def update_themes(day):
+def update_themes(day, verify_session=False):
     # Theme failures must never affect the committed minute snapshot.
     import themes
     try:
+        if now().date().isoformat() != day:
+            return
+        if verify_session:
+            with archive.LOCK:
+                committed = archive.metadata(archive.active(DATA, day))
+            if not committed.get("stocks") and not themes.read_day(DATA, day):
+                bars, _ = Kiwoom().daily_bars("005930", day, count=3)
+                if not any(bar.get("ts") == day and bar.get("volume", 0) > 0 for bar in bars):
+                    raise DataError("당일 거래 확인 대기 · 이전 테마 자료 유지")
         themes.refresh(DATA, day)
+        save(DATA / "themes" / "last_error.json", None)
     except Exception as exc:
         save(DATA / "themes" / "last_error.json", {"at": stamp(), "day": day, "message": safe_error(exc)})
 
@@ -384,6 +405,24 @@ def day_names(day):
     return names
 
 
+def stock_memo(day, code):
+    import notes
+    import reasons
+    record = reasons.read_day(DATA, day)
+    infostock = record.get('infostock', {})
+    info = infostock.get('items', {}).get(code)
+    reviewed = record.get('reviewed', {}).get('items', {}).get(code)
+    reason = ({**info, 'url': info.get('source') or infostock.get('source')}
+              if info else reviewed)
+    return {
+        'note': notes.read_day(DATA, day).get(code, {}),
+        'reason': reason,
+        'history': reasons.recent_history(DATA, day, code).get(code, []),
+        'news': record.get('news', {}).get('items', {}).get(code, []),
+        'disclosures': record.get('disclosures', {}).get('items', {}).get(code, []),
+    }
+
+
 def collect_news(day, slot):
     import reasons
     try:
@@ -441,13 +480,37 @@ def idle_now(current=None):
     return hhmm < "08:00" or hhmm >= "22:00"
 
 
+def ranking_and_investor_tick(current):
+    def rise():
+        try:
+            scheduler_tick(current)
+        except Exception as exc:
+            STATE["message"] = safe_error(exc)
+
+    def investors():
+        try:
+            investor_flows.tick(DATA, GUARD, current=current)
+        except Exception:
+            investor_flows.STATE["message"] = "외국인·기관 자동 수집 확인 필요"
+
+    # Both jobs acquire GUARD. A due intraday flow lookup needs a turn even
+    # when every rise refresh lasts longer than the three-minute interval.
+    if current.strftime("%H:%M") < "20:05":
+        investors()
+        rise()
+    else:
+        rise()
+        investors()
+
+
 def scheduler():
     while True:
         try:
             recommendations.tick(DATA)
         except Exception:
             recommendations.STATE["message"] = "공개 추천 자동수집 확인 필요"
-        if idle_now():
+        current = now()
+        if idle_now(current):
             # Hero4 can open a past article outside market hours, including weekends.
             try:
                 import reasons
@@ -456,10 +519,7 @@ def scheduler():
                 save(DATA / 'reasons' / 'watch_error.json', {'at': stamp(), 'message': str(exc)[:300]})
             time.sleep(IDLE_SLEEP)
             continue
-        try:
-            scheduler_tick()
-        except Exception as exc:
-            STATE["message"] = safe_error(exc)
+        ranking_and_investor_tick(current)
         try:
             reasons_tick()
         except Exception as exc:
@@ -472,10 +532,6 @@ def scheduler():
             volume_surge.tick(DATA)
         except Exception:
             volume_surge.STATE["message"] = "거래량 자동 수집 확인 필요"
-        try:
-            investor_flows.tick(DATA, GUARD)
-        except Exception:
-            investor_flows.STATE["message"] = "외국인·기관 자동 수집 확인 필요"
         try:
             stock_sectors.tick(DATA)
         except Exception:
@@ -498,6 +554,11 @@ def catalog():
             row.update(kind="latest", phase=m.get("kind"))
             result.append(row)
     return result
+
+
+class CollectorHTTPServer(ThreadingHTTPServer):
+    # Browsers open several connections together for page assets and JSON requests.
+    request_queue_size = 64
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -527,6 +588,10 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         q = parse_qs(parsed.query)
         try:
+            if parsed.path == '/api/observations':
+                return self.respond({'stocks': observations.read(DATA), 'day': now().date().isoformat(), 'token': TOKEN})
+            if parsed.path == '/api/stock-memo':
+                return self.respond(stock_memo(q['day'][0], code_of(q['code'][0])))
             if parsed.path in ('/api/recommendations', '/api/recommendations.csv'):
                 available = recommendations.days(DATA)
                 day = q.get('day', available[:1] or [recommendations.today()])[0]
@@ -680,6 +745,11 @@ class Handler(BaseHTTPRequestHandler):
                     if not stock:
                         return self.respond({'error': '선택 날짜의 추천·언급 목록에 없는 종목입니다.'}, 404)
                     name, source = stock['name'], 'watchlist'
+                elif source == 'observations':
+                    stock = next((s for s in observations.read(DATA) if s['code'] == code and s['source_day'] == day), None)
+                    if not stock:
+                        return self.respond({'error': '관찰 목록에 없는 종목입니다.'}, 404)
+                    name, source = stock['name'], 'watchlist'
                 elif source in ('volume-top', 'amount-top'):
                     module = amount_top if source == 'amount-top' else volume_top
                     saved = module.read(DATA, day)
@@ -700,17 +770,19 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond({"error": "차트 출처 오류"}, 400)
                 try:
                     live = q.get("live", ["0"])[0] == "1"
+                    history = q.get("history", ["0"])[0] == "1"
                     revision = q.get("rev", [None])[0]
                     def load_chart():
                         if source == "volume":
-                            return volume_surge.chart(DATA, day, code, frame, live)
-                        return chart_data.load(DATA, day, code, frame, revision, source=source, name=name, live=live)
+                            return volume_surge.chart(DATA, day, code, frame, live, history=history)
+                        return chart_data.load(DATA, day, code, frame, revision, source=source, name=name, live=live, history=history)
                     if parsed.path == "/api/chart" and q.get("fast", ["0"])[0] == "1":
                         import chart_service
-                        key = (str(DATA), day, code, frame, source, name, live, None if live else revision)
+                        key = (str(DATA), day, code, frame, source, live, None if live else revision, history)
                         result = chart_service.get(key, load_chart,
-                            lambda: chart_service.seed(DATA, day, code, frame, source, name, live, revision), 15 if live else 300,
-                            wait=q.get("async", ["0"])[0] != "1", prefetch=q.get("prefetch", ["0"])[0] == "1")
+                            lambda: chart_service.seed(DATA, day, code, frame, source, name, live, revision, history), 15 if live else 300,
+                            wait=q.get("async", ["0"])[0] != "1", prefetch=q.get("prefetch", ["0"])[0] == "1",
+                            reload=q.get("reload", ["0"])[0] == "1")
                     else:
                         result = load_chart()
                 except (DataError, OSError) as exc:
@@ -740,6 +812,11 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(payload, mime="text/csv; charset=utf-8", filename=f"{day}_{code}.csv")
                 return self.respond(payload)
             investor_files = {"/investors": ("investors.html", "text/html"),
+                              "/observations": ("observations.html", "text/html"),
+                              "/observations.js": ("observations.js", "text/javascript"),
+                              "/observations.css": ("observations.css", "text/css"),
+                              "/stock-tools.js": ("stock-tools.js", "text/javascript"),
+                              "/stock-tools.css": ("stock-tools.css", "text/css"),
                               "/recommendations": ("recommendations.html", "text/html"),
                               "/recommendations.js": ("recommendations.js", "text/javascript"),
                               "/recommendations.css": ("recommendations.css", "text/css"),
@@ -773,6 +850,32 @@ class Handler(BaseHTTPRequestHandler):
             if length < 0 or length > (400000 if self.path == "/api/reasons" else 128000 if self.path in ("/api/notes", "/api/theme-edits") else 2048):
                 raise ValueError()
             body = json.loads(self.rfile.read(length))
+            if self.path == '/api/stock-memo/refresh':
+                import reasons
+                day, code = body['day'], code_of(body['code'])
+                archive.day_root(DATA, day)
+                name = day_names(day).get(code) or str(body.get('name') or code)[:100]
+                try:
+                    failed = reasons.refresh_stock_evidence(DATA, day, code, name)
+                except ValueError as exc:
+                    return self.respond({'error': str(exc)}, 409)
+                except OSError:
+                    return self.respond({'error': '뉴스·공시 저장에 실패했습니다.'}, 503)
+                return self.respond({**stock_memo(day, code), 'failed': failed})
+            if self.path == '/api/observations':
+                if not isinstance(body, dict) or not isinstance(body.get('code'), str):
+                    raise ValueError()
+                try:
+                    if body.get('action') == 'add' and isinstance(body.get('day'), str):
+                        stock, created = observations.add(DATA, body['code'], body['day'], body.get('source', 'ranking'), body)
+                        return self.respond({'stock': stock, 'created': created}, 201 if created else 200)
+                    if body.get('action') == 'remove':
+                        return self.respond({'stocks': observations.remove(DATA, body['code'])})
+                except LookupError as exc:
+                    return self.respond({'error': str(exc)}, 409)
+                except OSError:
+                    return self.respond({'error': '관찰종목 저장 파일을 확인해 주세요.'}, 503)
+                raise ValueError()
             if self.path in ('/api/recommendations/collect', '/api/recommendations/monitor'):
                 if self.path.endswith('/monitor'):
                     recommendations.set_enabled(DATA, body.get('enabled'))
@@ -879,7 +982,7 @@ def main():
         if args.open:
             open_dashboard(f"http://127.0.0.1:{PORT}")
         return
-    server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
+    server = CollectorHTTPServer(("127.0.0.1", PORT), Handler)
     threading.Thread(target=scheduler, daemon=True).start()
     if args.open:
         open_dashboard(f"http://127.0.0.1:{PORT}")

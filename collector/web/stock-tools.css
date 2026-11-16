@@ -1,0 +1,424 @@
+/* Keep the palette consistent across all eight tabs. */
+.collector-nav a[href="/"]{--tab-color:#a61e35;--tab-light:#fff0f2;--tab-size:.95rem}
+.collector-nav a[href="/volume"]{--tab-color:#9b400e;--tab-light:#fff0e2;--tab-size:.91rem}
+.collector-nav a[href="/volume-top"]{--tab-color:#755300;--tab-light:#fff2b8;--tab-size:.88rem}
+.collector-nav a[href="/amount-top"]{--tab-color:#166344;--tab-light:#e3f7ed;--tab-size:.88rem}
+.collector-nav a[href="/themes"]{--tab-color:#1356a2;--tab-light:#e5f1ff;--tab-size:.86rem}
+.collector-nav a[href="/investors"]{--tab-color:#383f91;--tab-light:#eaeaff;--tab-size:.86rem}
+.collector-nav a[href="/recommendations"],.collector-nav a[href="/observations"]{--tab-color:#674398;--tab-light:#f2e9ff;--tab-size:.84rem}
+body > header .collector-nav[aria-label] a[href]{color:var(--tab-color);background:var(--tab-light);font-size:var(--tab-size);padding:7px 11px;border-radius:10px;border:1px solid transparent;box-shadow:none}
+body > header .collector-nav[aria-label] a[href]:hover,body > header .collector-nav[aria-label] a[aria-current="page"]{color:#fff;background:var(--tab-color);border-color:#fff}
+body > header .collector-nav a[href="/observations"]{margin-inline-start:3px;border-radius:999px;outline:1px solid #c5a7ed;outline-offset:-1px}
+.stock-name-text,button.rank-stock,body h2.selected-stock-title{display:inline-block;max-width:100%;width:fit-content;background:#ffe465;color:#251b00;border:1px solid #e8bf36;border-radius:5px;padding:1px 5px;font-weight:750}
+.stock-name-text{overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+button.rank-stock{padding:3px 7px}
+body h2.selected-stock-title{padding:3px 8px;overflow-wrap:anywhere}
+.ranking-modern .chart-head h2.selected-stock-title{color:#251b00}
+.ranking-modern .workspace{grid-template-columns:408px minmax(0,1fr);align-items:stretch}
+.ranking-modern .workspace>aside{display:flex;flex-direction:column}
+.ranking-modern .workspace>aside>:not(.stocks){flex-shrink:0}
+.ranking-modern .stocks{height:0;min-height:620px;flex:1 1 auto}
+.ranking-modern .stock{height:auto;min-height:108px;max-height:none;padding:6px 12px;grid-template-columns:24px minmax(0,1fr) 96px;gap:10px}
+.ranking-modern .stock .rank{font-size:13px}
+.ranking-modern .stock .name{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto;row-gap:3px}
+.ranking-modern .stock .stock-name-text{grid-column:1;grid-row:1;font-size:16px;line-height:22px;padding:2px 6px;white-space:normal;overflow-wrap:anywhere}
+.ranking-modern .stock .stock-metadata,.ranking-modern .stock .stock-group{font-size:13px;line-height:19px;white-space:normal;overflow-wrap:anywhere}
+.ranking-modern .stock .stock-metadata{grid-column:1/-1;grid-row:2}
+.ranking-modern .stock .stock-group{grid-column:1;grid-row:3}
+.ranking-modern .stock .stock-themes{grid-column:1;grid-row:4;flex-wrap:wrap;gap:4px;line-height:18px;min-height:0;overflow:visible}
+.ranking-modern .stock .stock-themes .theme-badge{font-size:12px;line-height:18px;padding:1px 5px;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+.ranking-modern .stock .rate{font-size:14px;line-height:21px;padding:5px 4px}
+.ranking-modern .aside-head{padding:14px;gap:9px}
+.ranking-modern .aside-head select,.ranking-modern .aside-head input,.ranking-modern .aside-head .secondary{height:40px;font-size:13px;padding:7px 8px}
+.ranking-modern .list-head{padding:9px 14px;font-size:13px}
+.ranking-modern .list-guide{padding:7px 14px;font-size:12px}
+@media(min-width:901px) and (max-width:1250px){.ranking-modern .workspace{grid-template-columns:380px minmax(0,1fr)}}
+@media(max-width:900px){.ranking-modern .workspace{display:flex;flex-direction:column}.ranking-modern .workspace>aside,.ranking-modern .workspace>article{width:100%}.ranking-modern .stocks{flex:none;height:620px;min-height:0}}
+@media(max-width:480px){.ranking-modern .stock{grid-template-columns:20px minmax(0,1fr) 84px;gap:7px;padding-inline:10px}.ranking-modern .stock .rate{font-size:13px}.ranking-modern .aside-head{grid-template-columns:minmax(0,1fr)}.ranking-modern .aside-heading{grid-column:1}}
+#observe-stock{background:#166344;border-color:#166344;color:#fff;border-radius:999px;font-weight:750}
+.stock-tool-feedback{color:var(--muted);font-size:.78rem;max-width:100%;overflow-wrap:anywhere}
+.chart-mode .stock-tool-feedback{color:var(--muted)}
+.stock-memo-panel{margin:12px 14px;padding:8px 11px;border:1px solid #bcccf1;border-radius:11px;background:#f7f9ff;color:#1f2c49}
+.stock-memo-panel summary{cursor:pointer;font-size:.875rem;font-weight:750}
+.stock-memo-content{display:grid;gap:7px;margin-top:8px;font-size:.82rem}
+.stock-memo-content textarea{width:100%;min-height:54px;resize:vertical;padding:7px;border:1px solid #abbcda;border-radius:7px;font:inherit}
+.stock-memo-evidence{max-height:130px;overflow:auto;display:grid;gap:5px}
+.stock-memo-evidence>div{display:flex;align-items:baseline;gap:6px;overflow-wrap:anywhere}
+.evidence-label{flex:none;border-radius:999px;padding:1px 7px;font-size:.72rem;font-weight:700;background:#fce3e8;color:#9c223b}
+.evidence-label.news{background:#e4efff;color:#1356a2}.evidence-label.disclosure{background:#e6f4ec;color:#166344}
+.stock-memo-actions{display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center}
+.stock-memo-actions button{padding:4px 9px;font-size:.78rem}
+.money-value,.flow-panel td.money-value{font-size:1rem;font-weight:750;font-variant-numeric:tabular-nums}
+.stock-money,.flow-panel td small.stock-money,#rows small.stock-money,.th-leaders .stock-money{font-size:1.12em;font-weight:750;font-variant-numeric:tabular-nums}
+.ranking-modern .stock .stock-metadata .stock-money{font-size:13px}
+.rank-list td.money-value{white-space:normal;min-width:8.5rem}
+.collector-chart-toolbar{display:grid;gap:8px;margin:8px 0;padding:10px 12px;border:1px solid #c8d7e9;border-radius:10px;background:#f3f7fc}
+[data-chart-toolbar="classic"]{margin:8px 14px}
+.collector-chart-selects,.collector-chart-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px 10px;min-width:0}
+.collector-chart-selects label{display:flex;align-items:center;gap:5px;font-size:.78rem;color:#334155}
+.collector-chart-selects select,.collector-chart-actions button,.chart-exports summary{box-sizing:border-box;min-height:32px;padding:4px 8px;font-size:.78rem}
+.collector-chart-legend{margin:8px 14px}
+.chart-exports{position:relative}
+.chart-exports summary{display:list-item;cursor:pointer;border:1px solid #9ab4d7;border-radius:8px;background:#fff;color:#174e99;line-height:22px}
+.chart-exports>div{position:absolute;z-index:5;top:100%;right:0;display:grid;gap:4px;padding:6px;border:1px solid #c8d7e9;border-radius:8px;background:#fff;white-space:nowrap}
+.chart-exports:not([open])>div{display:none}
+.chart-drawing-layout{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:start;min-width:0}
+.chart-drawing-layout:has(>.chart-wrap){margin-inline-end:14px}
+.chart-drawing-layout>.chart-wrap{margin-inline-end:0;min-width:0}
+.chart-drawing-tools{display:flex;flex-direction:column;gap:3px;padding:4px;border:1px solid #c8d7e9;border-radius:8px;background:#f3f7fc}
+.collector-page .rank-chart{padding:12px}
+.collector-page .rank-chart :is(#rank-canvas,.chart-drawing-tools){margin-top:6px}
+.collector-page .rank-chart :is(#rank-notice,#rank-hero-status){margin-block:5px}
+.collector-page .rank-chart :is(#rank-notice,#rank-hero-status,#rank-count):empty{display:none}
+.chart-drawing-tools button{display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid transparent;border-radius:5px;background:transparent;color:#234d79;box-shadow:none;font:700 19px/1 "Malgun Gothic",sans-serif}
+.chart-drawing-tools button:hover:not(:disabled){background:#e0ebf9}
+.chart-drawing-tools button[aria-pressed="true"]{background:#d6e7fb;color:#164e93;border-color:#719ac7}
+.chart-drawing-tools button:focus-visible{outline:2px solid #1557a4;outline-offset:1px}
+.chart-drawing-tools button:disabled{opacity:.45}
+.chart-drawing-layout :is(#chart,#flow-chart,#rank-canvas)[data-chart-drawing]:where(:not([data-chart-drawing="select"])){cursor:crosshair;touch-action:none}
+.chart-drawing-layout :is(#chart,#flow-chart,#rank-canvas)[data-chart-drawing="eraser"]{cursor:cell}
+.chart-drawing-layout :is(#chart,#flow-chart,#rank-canvas)[data-chart-drawing="text"]{cursor:text}
+.chart-drawing-dialog{box-sizing:border-box;width:min(380px,calc(100% - 28px));padding:16px;border:1px solid #c8d7e9;border-radius:10px;color:#1f2c49;background:#fff}
+.chart-drawing-dialog::backdrop{background:#142d4a55}
+.chart-drawing-dialog label,.chart-drawing-dialog textarea{display:block;width:100%}
+.chart-drawing-dialog textarea{box-sizing:border-box;margin:6px 0 12px;padding:8px;resize:vertical;font:inherit}
+.chart-drawing-dialog form>div{display:flex;justify-content:flex-end;gap:6px}
+@media(max-width:560px){
+  .chart-drawing-layout,.chart-drawing-layout:has(>.chart-wrap){grid-template-columns:minmax(0,1fr);margin-inline:0}
+  .chart-drawing-layout>.chart-wrap{margin-inline:0}
+  .chart-drawing-layout .chart-drawing-tools,.collector-page .rank-chart .chart-drawing-tools{grid-row:1;flex-direction:row;flex-wrap:wrap;justify-content:center;margin:0}
+}
+/* Match the canvas bitmap to its CSS height in every chart renderer. */
+.collector-page .chart-wrap,.collector-page canvas#chart,.collector-page .rank-chart canvas,.collector-page #flow-chart{height:580px}
+.ranking-modern .inline-memo{margin-block:17px}
+.ranking-modern .inline-memo-head{padding:10px 13px}
+.ranking-modern .inline-memo-reasons{max-height:268px;padding:10px 13px}
+.ranking-modern #inline-memo-text{min-height:116px;padding:8px}
+.ranking-modern .inline-memo-footer{padding:10px 13px}
+@media(max-width:540px){.collector-page .chart-wrap,.collector-page canvas#chart,.collector-page .rank-chart canvas,.collector-page #flow-chart{height:480px}}
+.chart-exports summary:focus-visible{outline:2px solid #155bd7}
+.collector-chart-toolbar+canvas{margin-top:8px}
+.chart-legend{display:flex;gap:6px 12px;flex-wrap:wrap;margin:8px 0;color:#334155;font-size:.75rem}
+@media(max-width:540px){body > header .collector-nav[aria-label] a[href]{padding:5px 7px;font-size:.76rem}.stock-memo-panel{margin-inline:5px}}
+
+/* One page shell, with the active section choosing an accent. */
+.collector-page {
+  --page-color:#6940bc;
+  --page-light:#f0ebfb;
+  --plum:#441877;
+  --violet:#6834bd;
+  --line:#dcd1f0;
+  --accent:#6533b3;
+  --ink:#251a3d;
+  --muted:#5c5272;
+  background:#f8f5ff;
+  color:var(--ink);
+  font-family:"Malgun Gothic","Apple SD Gothic Neo",Inter,sans-serif;
+}
+.collector-page[data-page="rise"]{--page-color:#aa2547;--page-light:#ffedf3}
+.collector-page[data-page="surge"]{--page-color:#a24715;--page-light:#fff1e7}
+.collector-page[data-page="shares"]{--page-color:#82530a;--page-light:#fff4d6}
+.collector-page[data-page="value"]{--page-color:#12644c;--page-light:#e8f8f2}
+.collector-page[data-page="themes"]{--page-color:#2360ab;--page-light:#e9f3ff}
+.collector-page[data-page="investors"]{--page-color:#4446a7;--page-light:#ededff}
+.collector-page[data-page="broadcast"]{--page-color:#7029a3;--page-light:#f5eaff}
+.collector-page[data-page="watch"]{--page-color:#5c2ba8;--page-light:#f2ebff}
+
+body.collector-page > header.collector-header{
+  display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;
+  padding:12px clamp(12px,2vw,30px);
+  background:linear-gradient(104deg,#251142,#461779 58%,#592484);
+  border:0;border-bottom:2px solid #a578f5;box-shadow:0 4px 18px #35195926;
+}
+body.collector-page > header.collector-header .brand{
+  display:flex;align-items:center;gap:9px;min-width:0;color:#fff;
+}
+body.collector-page > header.collector-header .brand strong{
+  color:#fff;font-size:1.12rem;white-space:nowrap;
+}
+body.collector-page > header.collector-header .brand-mark{
+  width:34px;height:34px;border-radius:10px;color:#fff;
+  background:linear-gradient(140deg,#8660e6,#b557e3);
+  border:1px solid #d2acf9;box-shadow:none;
+}
+body.collector-page > header.collector-header .collector-nav{
+  gap:5px;padding:4px;border-radius:12px;border:1px solid #e5cfff42;background:#ffffff0e;
+}
+body.collector-page > header.collector-header .collector-nav a[href]{
+  border-radius:7px;margin:0;outline:0;
+}
+body.collector-page > header.collector-header .collector-nav a[href]:is(:hover,[aria-current="page"]){
+  background:var(--tab-color);color:#fff;border-color:#fff;
+}
+.collector-header-status{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-left:auto;color:#fff}
+body.collector-page > header.collector-header .tag{
+  display:inline-block;margin:0;border:1px solid #dbc4f377;background:#ffffff15;color:#fff;padding:4px 9px;
+}
+body.collector-page > header.collector-header #clock{
+  display:grid;justify-items:end;gap:2px;margin-left:0;color:#fff;
+  font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;
+}
+.collector-clock-digits{font-size:clamp(1.75rem,3vw,2.75rem);font-weight:800;line-height:1}
+.collector-clock-date{font-size:.72rem;line-height:1.3;color:#eadffb}
+@media(max-width:1530px){
+  body.collector-page > header.collector-header .collector-nav{order:1;max-width:100%}
+}
+body.collector-page > main{width:100%;max-width:1720px;margin:0 auto;padding:18px clamp(10px,2vw,30px) 28px}
+.collector-page .collector-intro{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+  gap:14px 24px;min-height:104px;padding:16px clamp(14px,2vw,24px);margin:0 0 14px;
+  border:1px solid #a57be7;border-radius:16px;
+  background:radial-gradient(ellipse at 80% 0%,#bd68e96b,transparent 68%),linear-gradient(109deg,#49137e,#6125a8 58%,#6f31ba);
+  box-shadow:0 5px 16px #582b921f;color:#fff;
+}
+.collector-page .collector-intro h1{
+  color:#fff;margin:0 0 5px;font-size:clamp(1.25rem,2vw,1.85rem);
+  letter-spacing:-.04em;line-height:1.25;text-shadow:none;
+}
+.collector-page .collector-intro p{
+  color:#f7efff;margin:0;max-width:800px;font-size:.82rem;line-height:1.6;
+}
+.collector-page .collector-intro .actions{
+  display:flex;flex-flow:row wrap;justify-content:flex-end;align-items:center;gap:7px;width:auto;
+}
+.collector-intro .actions > :is(button,.button,.intro-toggle,.intro-stat){
+  min-width:0;flex:0 1 auto;border-radius:9px;padding:6px 10px;font-size:.8rem;
+}
+.collector-page .collector-intro .actions > :is(button,.button,.intro-toggle){
+  min-height:36px;background:#fff;color:#4c2081;border:1px solid #fff;box-shadow:none;
+}
+.collector-page .collector-intro .actions > :is(.secondary,.intro-toggle){
+  background:#ffffff16;color:#fff;border-color:#e5d0ff80;
+}
+.collector-page .collector-intro .actions > [hidden]{display:none}
+.collector-intro .actions .intro-toggle{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.collector-intro .intro-toggle input{accent-color:#a76ef5}
+.collector-intro .intro-stat{border:1px solid #e5d0ff66;background:#ffffff16;color:#fff}
+.collector-intro .intro-stat span{display:block;font-size:.68rem;color:#fff0ff}
+.collector-intro .intro-stat strong{display:block;margin-top:1px;font-size:.9rem;white-space:nowrap}
+
+.collector-page .workspace > :is(aside,article),.collector-page :is(.rank-list,.rank-chart,.flow-chart-panel,.flow-panel){
+  border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:0 4px 16px #4b237a0c;
+}
+.collector-page .workspace > aside{overflow:hidden}
+.collector-page :is(.chart-head,.flow-chart-title){
+  background:linear-gradient(105deg,#f4edff,#fff);
+  border:0;border-bottom:1px solid var(--line);padding:10px 14px;gap:8px;
+}
+.collector-page .chart-head .eyebrow,.collector-page #flow-chart-code{color:#542f8b}
+.collector-page :is(.aside-head,.inline-memo-head){
+  background:linear-gradient(110deg,#57248e,#743ac1);border-color:#9161cc;color:#fff;
+}
+.collector-page .aside-head :is(label,.aside-heading){color:#fff}
+.collector-page .aside-heading span{background:#ffffff1c;color:#fff;border-color:#e5d0ff75}
+.collector-page .aside-head .reason-paste{background:#fff;border-color:#fff;color:#4c2081}
+.collector-page :is(.list-head,.rank-list th,.flow-panel th,.table-scroll th){
+  background:var(--page-light);border-color:var(--line);color:var(--page-color);
+}
+.collector-page .stock{border-color:var(--line)}
+.collector-page .stock:is(:hover,.active){background:var(--page-light);box-shadow:inset 3px 0 var(--page-color)}
+.collector-page .stock .stock-name-text{color:#251b00}
+.collector-page .stocks{scrollbar-color:#a686d0 #f5efff}
+.collector-page .rank-list #rows tr.selected,.collector-page .flow-panel tr.selected{background:#ede2fb}
+.collector-page .collector-chart-toolbar{
+  background:#f5effc;border-color:#d9c8ef;
+}
+.collector-page .collector-chart-toolbar :is(select,.secondary,summary){
+  background:#fff;color:#4b2e76;border-color:#c9b2e4;
+}
+.collector-page .stock-memo-panel{background:#faf5ff;border-color:#ddccf3;color:#3d275e}
+.collector-page .volume-summary{background:linear-gradient(110deg,#f8edff,#f0eafa);border-color:var(--line)}
+.collector-page .rec-overview{background:#faf5ff;border-color:var(--line)}
+.collector-page .cards{gap:9px;margin-bottom:12px}
+.collector-page .cards > div:nth-child(n){
+  min-height:0;padding:9px 12px;border:1px solid var(--line);border-radius:11px;
+  background:linear-gradient(120deg,#fff,#f4eaff);color:var(--ink);box-shadow:none;
+}
+.collector-page .cards > div:nth-child(n) :is(strong,em,span,small){color:var(--ink)}
+.collector-page .cards > div:nth-child(n) strong{font-size:1.1rem;margin:2px 0}
+@media(max-width:1050px){
+  body.collector-page > header.collector-header .collector-nav{justify-content:flex-start}
+  .collector-page .collector-intro{grid-template-columns:minmax(0,1fr)}
+  .collector-page .collector-intro .actions{justify-content:flex-start}
+}
+@media(max-width:540px){
+  .collector-header-status{gap:4px;flex-direction:column-reverse;align-items:flex-end}
+  body.collector-page > header.collector-header .brand strong{font-size:1rem}
+}
+
+/* Shared compact date navigation and expandable chart detail, all archive pages. */
+.collector-dates{margin:10px 0 14px;padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:#faf7ff}
+.collector-date-tabs{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px;padding:0;margin:0 0 6px;overflow:visible}
+.collector-date-tabs .collector-date{min-width:0;min-height:32px;padding:5px 3px;border-radius:8px;border:1px solid #d9c9ef;background:#fff;color:#563383;font-size:12px;line-height:1.4;font-variant-numeric:tabular-nums}
+.collector-date-tabs .collector-date.active{background:linear-gradient(115deg,#783ac1,#534ac2);color:#fff;border-color:#6c3ab6;font-weight:750}
+.collector-date-tabs .collector-date:disabled{background:#f0edf4;color:#867c92;opacity:.65;text-decoration:line-through}
+.collector-date-more{font-size:12px;color:#66517e}
+.collector-date-more summary{cursor:pointer}.collector-date-more select{margin-top:6px;font-size:13px}
+.collector-page .bar-details{margin:10px 14px;border:1px solid #d5c3ee;border-radius:10px;overflow:hidden}
+.collector-page .bar-details>summary{padding:8px 12px;cursor:pointer;background:#faf7ff;color:#563383;font-size:13px;font-weight:650}
+.collector-page .bar-details .coverage{margin:10px 14px;padding:8px 10px}
+.collector-page .bar-details .values>div{padding:10px}.collector-page .bar-details .values strong{font-size:1.05rem}
+.collector-page .bar-details .rank-chart-details,.collector-page .bar-details #flow-chart-detail{margin:10px 14px;min-height:0}
+.collector-page .stock-memo-panel{margin:10px 14px;padding:6px 9px}.collector-page .stock-memo-content{gap:5px;margin-top:6px}
+.collector-page .stock-memo-content textarea{min-height:46px;padding:6px}.collector-page .stock-memo-evidence{max-height:110px}
+/* Volume surge keeps its source-specific metrics but shares the compact list shell. */
+.collector-page[data-page="surge"] .workspace{grid-template-columns:370px minmax(0,1fr);align-items:stretch}
+.collector-page[data-page="surge"] .workspace>aside{display:flex;flex-direction:column}
+.collector-page[data-page="surge"] .workspace>aside>:not(.stocks){flex-shrink:0}
+.collector-page[data-page="surge"] .stocks{height:0;min-height:1100px;flex:1 1 auto}
+.collector-page[data-page="surge"] .stock{min-height:100px;padding:8px 12px;gap:8px;grid-template-columns:22px minmax(0,1fr) 86px}
+.collector-page[data-page="surge"] .stock .name{line-height:1.35}.collector-page[data-page="surge"] .stock small{font-size:12px;line-height:1.4;margin-top:3px}
+.collector-page[data-page="surge"] .stock .rate{font-size:13px;padding:3px}
+.collector-page[data-page="surge"] .aside-head{padding:12px;gap:8px}
+.collector-page[data-page="surge"] .aside-head :is(select,input,button){padding:6px 8px;font-size:13px}
+.collector-page[data-page="surge"] .volume-summary{padding:9px;margin:9px 0;gap:7px}.collector-page[data-page="surge"] .volume-summary div{padding:5px}.collector-page[data-page="surge"] .volume-summary span{margin-bottom:4px}
+/* Give the chart the space recovered from wide ranking tables. */
+.collector-page .absolute-rank-workspace{grid-template-columns:minmax(0,.96fr) minmax(0,1.24fr)}
+.collector-page .absolute-rank-list td,.collector-page .absolute-rank-list th{padding-block:6px;line-height:1.45}
+.collector-page .absolute-rank-list .rank-profile{line-height:1.35;margin-top:2px}
+.collector-page[data-page="themes"] .th-workspace{grid-template-columns:320px minmax(0,1fr)}
+.collector-page[data-page="themes"] .th-card{padding:12px;gap:7px}.collector-page[data-page="themes"] .th-list .th-grid{padding:10px;gap:9px;height:1000px}
+.collector-page[data-page="themes"] .th-leaders li{gap:5px;padding:6px 5px;grid-template-columns:minmax(0,1fr) auto 63px}
+.collector-page[data-page="themes"] .th-bottom{margin-top:14px;gap:11px}.collector-page[data-page="themes"] .th-panel{padding:12px}
+.collector-page .th-timeline li{grid-template-columns:88px minmax(0,1fr) auto;padding-block:5px}
+.timeline-collected{display:block;font-size:11px;font-weight:400;color:#776687}
+/* Investor controls retain all provenance and market choices with less whitespace. */
+.collector-page[data-page="investors"] .notice{padding-bottom:6px;line-height:1.45}
+.collector-page[data-page="investors"] .flow-controls{margin:8px 0 6px;gap:6px 10px}
+.collector-page[data-page="investors"] .flow-controls :is(select,input){padding:5px 8px}
+.collector-page[data-page="investors"] :is(#progress,#basis){margin:5px 0;font-size:12px;line-height:1.5}
+.collector-page[data-page="investors"] .investor-workspace{grid-template-columns:minmax(340px,.7fr) minmax(0,1.45fr);margin-top:10px;gap:14px}
+.collector-page[data-page="investors"] .flow-panel{padding:9px}.collector-page[data-page="investors"] .flow-panel h2{margin-bottom:8px}
+.collector-page[data-page="investors"] .flow-panels{gap:10px}
+.collector-page[data-page="investors"] .flow-panel table{min-width:0;table-layout:fixed}
+.collector-page[data-page="investors"] .flow-panel :is(th,td){padding:6px;white-space:normal;overflow-wrap:anywhere}
+.collector-page[data-page="investors"] .flow-panel :is(th,td):first-child{width:12%}
+.collector-page[data-page="investors"] .flow-panel :is(th,td):nth-child(2){width:53%;min-width:0}
+.collector-page[data-page="investors"] .flow-chart-panel{padding:12px}
+.collector-page[data-page="watch"] .rank-workspace{grid-template-columns:minmax(320px,.65fr) minmax(0,1.55fr)}
+.collector-page[data-page="watch"] .observation-list table{min-width:0;table-layout:fixed}
+.collector-page[data-page="watch"] .observation-list td{padding:8px 9px;white-space:normal;line-height:1.35}
+.collector-page[data-page="watch"] .observation-list th:first-child{width:57%}
+.collector-page[data-page="watch"] .observation-list th:last-child{width:14%}
+.collector-page[data-page="watch"] .observation-list .rank-profile{margin-top:2px;line-height:1.3}
+@media(max-width:1100px){
+ .collector-page .absolute-rank-workspace,.collector-page[data-page="investors"] .investor-workspace,.collector-page[data-page="watch"] .rank-workspace{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:900px){
+ .collector-page[data-page="surge"] .workspace,.collector-page[data-page="themes"] .th-workspace{display:flex;flex-direction:column}
+ .collector-page[data-page="surge"] .workspace>*,.collector-page[data-page="themes"] .th-workspace>*{width:100%}
+ .collector-page[data-page="surge"] .stocks{height:620px;min-height:0;flex:none}
+}
+@media(max-width:600px){.collector-date-tabs{grid-template-columns:repeat(5,minmax(0,1fr))}.collector-dates{padding:7px}.collector-page[data-page="themes"] .th-bottom{grid-template-columns:1fr}}
+
+@media(min-width:901px){
+ .collector-page[data-page="surge"] .workspace>article{display:flex;flex-direction:column}
+ .collector-page[data-page="surge"] .workspace>article>:is(.chart-wrap,.chart-drawing-layout){flex:1 0 580px;height:auto;min-height:580px}
+ .collector-page[data-page="surge"] .chart-drawing-layout>.chart-wrap{height:auto;min-height:580px;align-self:stretch}
+ .collector-page[data-page="surge"] .chart-wrap canvas#chart{position:absolute;inset:0;height:100%}
+ .ranking-modern .stocks{min-height:1100px}
+}
+
+/* Fill unused list space without changing stock selection or chart data. */
+.collector-page .collector-dates{border:2px solid #8050b8}
+.collector-page .collector-date-tabs .collector-date{border:2px solid #9764c7;font-weight:650}
+.collector-page .collector-date-tabs .collector-date:disabled{border-color:#baa7cc;opacity:.75}
+.collector-page .collector-date-tabs .collector-date.active{border-color:#45216f;box-shadow:0 0 0 1px #45216f}
+.collector-page .rank-list.chart-height-list{max-height:none;min-height:0}
+.collector-page .absolute-rank-list td{padding-block:5px;line-height:1.3}
+.collector-page .absolute-rank-list .rank-profile{line-height:1.22;margin-top:1px}
+.collector-page[data-page="investors"] .flow-panels.chart-height-list{grid-template-rows:repeat(2,minmax(0,1fr));min-height:0}
+.collector-page[data-page="investors"] .chart-height-list .flow-panel{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.collector-page[data-page="investors"] .chart-height-list .flow-scroll{flex:1;min-height:0;max-height:none}
+.collector-page[data-page="investors"] .flow-panel td{padding-block:5px;line-height:1.4}
+.collector-page[data-page="investors"] .flow-panel td small{line-height:1.4}
+.collector-page .th-list.chart-height-list{display:flex;flex-direction:column}
+.collector-page[data-page="themes"] .th-list.chart-height-list .th-grid{flex:1;min-height:0;height:0}
+.collector-page .theme-chart-timeline{margin:10px 14px;padding:10px 12px;border:1px solid #c2a8df;border-radius:10px}
+.collector-page .theme-chart-timeline h2{font-size:14px;margin:0 0 4px}
+.collector-page .theme-chart-timeline .th-panel-help{font-size:11px;margin:3px 0 8px}
+.collector-page .theme-chart-timeline .th-timeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px 12px;max-height:240px}
+.collector-page .theme-chart-timeline .th-timeline li{grid-template-columns:78px minmax(0,1fr);font-size:12px}
+.collector-page .theme-chart-timeline .th-chip{grid-column:2;justify-self:start}
+.collector-page .theme-mini-help{position:relative;flex:none;margin-left:auto;padding:5px 8px;font-size:12px;border:1px solid #b69bd6;border-radius:8px;background:#fff;color:#50306f}
+.collector-page .theme-mini-help summary{cursor:pointer}
+.collector-page .theme-mini-help[open]{flex-basis:100%;margin-left:0}
+.collector-page .theme-mini-help .th-guide{font-size:12px}
+.collector-page .flow-guide,.collector-page .list-guide{display:none}
+.collector-page .chart-help{font-size:0;line-height:0;margin-block:5px}
+.collector-page #zoom-status{font-size:12px;line-height:1.4}
+.collector-page .chart-wrap,.collector-page canvas#chart,.collector-page .rank-chart canvas,.collector-page #flow-chart{height:620px}
+.collector-page[data-page="broadcast"] #rec-detail{font-size:13px;line-height:1.5;margin-top:8px;padding-top:8px}
+.collector-page[data-page="broadcast"] #rec-detail p{margin:6px 0}
+.collector-page[data-page="broadcast"] .rec-full-evidence{margin:6px 0;padding:5px 8px;background:#f7f4fb;border-radius:7px}
+.collector-page[data-page="broadcast"] .rec-full-evidence summary{cursor:pointer;font-weight:650}
+.collector-page[data-page="broadcast"] #rec-note{display:none}
+.collector-page[data-page="investors"] #stock-tools[open]{border:2px solid #aa83cf;background:#fcfaff}
+.collector-page[data-page="investors"] #stock-memo-text{min-height:72px}
+@media(max-width:1100px){.collector-page .theme-chart-timeline .th-timeline{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){
+ .collector-page .theme-chart-timeline .th-timeline{grid-template-columns:minmax(0,1fr)}
+ .collector-page .chart-wrap,.collector-page canvas#chart,.collector-page .rank-chart canvas,.collector-page #flow-chart{height:480px}
+}
+
+.collector-page label[hidden]{display:none!important}
+
+.collector-page .collector-date-tabs .collector-date{font-size:14px;font-weight:800;color:#38165e;min-height:36px;letter-spacing:.1px}
+.collector-page .collector-date-tabs .collector-date.active{color:#fff}
+.collector-page .collector-date-tabs .collector-date:disabled{color:#70637e;opacity:.85;text-decoration:none}
+.collector-page .collector-date-more summary{color:#47246d;font-weight:750}
+@media(max-width:600px){.collector-page .collector-date-tabs .collector-date{font-size:12px;letter-spacing:0}}
+
+/* Focused width/alignment and summary-density refinement. */
+.collector-page #reason-date{font-size:16px;font-weight:800;color:#542483}
+.collector-page .reason-target-guide{padding:12px 16px;margin:10px 0;border:2px solid #8051bb;border-radius:12px;background:#f6f0ff;color:#32194f;font-size:14px;line-height:1.6}
+.collector-page .reason-target-guide>strong{font-size:16px}
+.collector-page .reason-target-guide p{margin:6px 0}
+.collector-page #reason-chart-stock{display:inline-block;padding:4px 8px;border:1px solid #ddb535;border-radius:6px;background:#fff1a8;color:#382b00;font-weight:700}
+@media(min-width:1101px){
+ .collector-page .absolute-rank-workspace{grid-template-columns:minmax(0,.864fr) minmax(0,1.336fr)}
+ .collector-page[data-page="broadcast"] .rank-workspace{grid-template-columns:minmax(0,.85fr) minmax(0,1.25fr)}
+}
+@media(min-width:581px){
+ .collector-page .absolute-rank-list :is(th,td):nth-child(n+3){text-align:right}
+ .collector-page .absolute-rank-list :is(th,td):first-child{text-align:center;padding-inline:4px}
+ .collector-page .absolute-rank-list th:first-child{white-space:nowrap;padding-inline:2px}
+ .collector-page .absolute-rank-list :is(th,td):nth-child(2){text-align:left}
+ .collector-page .absolute-rank-list td[data-column="price"]{white-space:nowrap}
+ .collector-page .absolute-rank-list .rank-number{width:5%}
+ .collector-page .absolute-rank-list .rank-name{width:22%}
+ .collector-page .absolute-rank-list .rank-price{width:20%}
+ .collector-page .absolute-rank-list :is(th,td):nth-child(3){padding-inline:3px}
+ .collector-page .absolute-rank-list .rank-volume{width:14%}
+ .collector-page .absolute-rank-list .rank-amount{width:17%}
+ .collector-page .absolute-rank-list th:nth-child(6){padding-inline:3px;word-break:keep-all}
+}
+@media(min-width:581px) and (max-width:1400px){.collector-page .absolute-rank-workspace{grid-template-columns:minmax(0,1fr)}}
+.collector-page[data-page="broadcast"] #rec-status{margin:6px 0;font-size:12px;line-height:1.45}
+.collector-page[data-page="broadcast"] main>p.muted{margin:6px 0;font-size:13px;line-height:1.45}
+.collector-page[data-page="broadcast"] .rec-overview{margin:10px 0;padding:10px 14px}
+.collector-page[data-page="broadcast"] #rec-summary{padding:8px 12px;font-size:13px}
+.collector-page[data-page="broadcast"] #rec-health{margin:5px 0;font-size:12px;line-height:1.45}
+.collector-page[data-page="broadcast"] .rec-shortcuts{gap:7px}
+.collector-page[data-page="broadcast"] .rec-shortcuts button{padding:6px 10px;font-size:13px}
+.collector-page[data-page="broadcast"] .rec-filters{margin:10px 0;padding:8px 10px;gap:9px}
+.collector-page[data-page="broadcast"] .rec-filters label{padding:4px 6px;font-size:13px}
+.collector-page[data-page="broadcast"] .rec-filters :is(select,input){padding:6px 8px;font-size:13px}
+.collector-page[data-page="surge"] .cards{gap:9px;margin-bottom:9px}
+.collector-page[data-page="surge"] .cards>div:nth-child(n){display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:2px 8px;padding:6px 10px}
+.collector-page[data-page="surge"] .cards>div:nth-child(n)>span{font-size:12px}
+.collector-page[data-page="surge"] .cards>div:nth-child(n)>strong{font-size:16px;text-align:right;margin:0;min-height:0;line-height:1.4}
+.collector-page[data-page="surge"] .cards #auth{display:block;font-size:16px;min-height:0;line-height:1.4}
+.collector-page[data-page="surge"] .cards>div:nth-child(n)>em{grid-column:1/-1;font-size:11px;line-height:1.35}
+.collector-page[data-page="surge"] .cards strong small{font-size:11px}
+.collector-page[data-page="surge"] .aside-head{padding:10px;gap:6px}
+.collector-page[data-page="surge"] .aside-head :is(select,input){padding:5px 8px}
+.collector-page[data-page="surge"] #reason-paste{display:none}
+.collector-page[data-page="surge"] .chart-head{padding:6px 21px}
+.collector-page[data-page="surge"] .chart-head h2{margin-top:3px;font-size:1.5rem}
+.collector-page[data-page="surge"] .volume-summary{padding:5px;margin:7px 0;gap:4px;line-height:1.4}
+.collector-page[data-page="surge"] .volume-summary div{padding:4px}
+.collector-page[data-page="surge"] .volume-summary span{margin-bottom:3px;font-size:12px}
+.collector-page[data-page="surge"] .volume-summary strong{font-size:15px;line-height:1.4}
+.collector-page[data-page="surge"] .volume-summary p{font-size:11px;line-height:1.45}
+@media(max-width:600px){.collector-page[data-page="surge"] .cards>div:nth-child(n){grid-template-columns:minmax(0,1fr)}.collector-page[data-page="surge"] .cards>div:nth-child(n)>strong{text-align:left}}

@@ -13,3 +13,10 @@
 *token*.json
 *credential*.json
 
+
+**/.venv/
+**/.runtime/
+**/.speech-runtime/
+**/.broadcast-ocr-runtime/
+*.backup*
+*.dpapi

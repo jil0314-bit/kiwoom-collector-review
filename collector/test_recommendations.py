@@ -32,16 +32,16 @@ class RecommendationsTest(unittest.TestCase):
         self.assertEqual(row['published_at'][:10], '2026-10-31')
 
     def test_unknown_date_remains_unknown(self):
-        row = self.parse('삼성전자', broadcast_date=None)[0]
+        row = self.parse('오늘의 추천\n삼성전자', broadcast_date=None)[0]
         self.assertIsNone(row['recommended_date'])
         self.assertEqual(row['date_basis'], '미확인')
 
     def test_explicit_recommendation_clock(self):
-        row = self.parse('삼성전자\n추천 시각: 9:05')[0]
+        row = self.parse('오늘의 추천\n삼성전자\n추천 시각: 9:05')[0]
         self.assertEqual(row['recommended_time'], '09:05')
-        row = self.parse('삼성전자\n추천일시: 2026-10-30 09:05')[0]
+        row = self.parse('오늘의 추천\n삼성전자\n추천일시: 2026-10-30 09:05')[0]
         self.assertEqual(row['recommended_time'], '09:05')
-        row = self.parse('삼성전자\n방송 시각: 20:40')[0]
+        row = self.parse('오늘의 추천\n삼성전자\n방송 시각: 20:40')[0]
         self.assertIsNone(row['recommended_time'])
 
     def test_consultation_and_review_override_new_keyword(self):
@@ -49,7 +49,7 @@ class RecommendationsTest(unittest.TestCase):
         self.assertEqual(self.parse('신규추천\n삼성전자\n지난 추천 수익률 달성')[0]['classification'], 'review')
 
     def test_negation_and_interest(self):
-        self.assertEqual(self.parse('삼성전자 매수 추천하지 않습니다')[0]['classification'], 'mention')
+        self.assertEqual(self.parse('삼성전자 매수 추천하지 않습니다'), [])
         self.assertEqual(self.parse('김민수 PICK\n삼성전자')[0]['classification'], 'interest')
 
     def test_multi_stock_heading_has_no_shared_prices(self):
@@ -57,7 +57,7 @@ class RecommendationsTest(unittest.TestCase):
         self.assertTrue(all(x['target_price'] is None for x in rows))
 
     def test_name_boundaries_and_ranges(self):
-        rows = self.parse('삼성전자우 목표가 7.5만원')
+        rows = self.parse('오늘의 추천\n삼성전자우 목표가 7.5만원')
         self.assertEqual([x['code'] for x in rows], ['005935'])
         self.assertEqual(rows[0]['target_price']['min'], 75000)
         self.assertIsNone(r.price('목표가 10%', '목표가'))
@@ -96,22 +96,60 @@ class RecommendationsTest(unittest.TestCase):
             rows = self.parse('신규추천\n삼성전자')
             r.merge(data, '2026-10-30', rows)
             r.merge(data, '2026-10-30', rows)
-            r.merge(data, '2026-10-30', self.parse('SK하이닉스', url='https://news.mtn.co.kr/article/2'))
+            r.merge(data, '2026-10-30', self.parse('오늘의 추천\nSK하이닉스', url='https://news.mtn.co.kr/article/2'))
             doc = r.read(data, '2026-10-30')
             self.assertEqual(len(doc['records']), 2)
             self.assertEqual(len(doc['stocks']), 2)
             self.assertEqual(r.read(data, '2026-10-31')['records'], [])
 
-    def test_reparse_replaces_stale_classification_in_same_source(self):
+    def test_newly_collected_ranks_first_and_reprocessing_preserves_position(self):
         with tempfile.TemporaryDirectory() as tmp:
             data = Path(tmp)
-            r.merge(data, '2026-10-30', self.parse('신규추천\n삼성전자'))
-            r.merge(data, '2026-10-30', self.parse('삼성전자'))
-            self.assertEqual([x['classification'] for x in r.read(data, '2026-10-30')['records']], ['mention'])
+            earlier = self.parse('신규추천\n삼성전자')[0]
+            earlier.update(collected_at='2026-10-30T13:00:00+09:00', recommended_time='22:00')
+            later = self.parse('신규추천\nSK하이닉스', url='https://news.mtn.co.kr/article/2')[0]
+            later.update(collected_at='2026-10-30T14:00:00+09:00', recommended_time=None)
+            r.merge(data, '2026-10-30', [earlier, later])
+            earlier['collected_at'] = '2026-10-30T16:00:00+09:00'
+            r.merge(data, '2026-10-30', [earlier])
+            rows = r.read(data, '2026-10-30')['records']
+            self.assertEqual([a['code'] for a in rows], ['000660', '005930'])
+            self.assertEqual(rows[1]['first_collected_at'], '2026-10-30T13:00:00+09:00')
+
+    def test_five_manager_board_respects_columns_and_archive_time(self):
+        import broadcast_board as board
+        names = {'195870':'해성디에스', '222800':'심텍', '030530':'원익홀딩스', '101490':'에스앤에스텍',
+                 '437730':'삼현', '000990':'DB하이텍'}
+        experts = ['백인엽', '신광섭', '이가람', '조기준', '한규수']
+        lines = [('매니저 5인의 시각차, 어디에 투자할까?', [('매니저', 300, 50)]),
+                 ('매니저 이름', [(name, 100 + i * 140, 250) for i, name in enumerate(experts)]),
+                 ('대표 관심', [(name, 100 + i * 140, 310) for i, name in enumerate(list(names.values())[:5])]),
+                 ('보조 관심', [('+DB하이텍', 100, 353)])]
+        result = board.read_table(lines, names)
+        self.assertEqual(len(result), 6)
+        rows = board.records(self.meta, board.verified_picks({1220: result}), 1220)
+        self.assertEqual([(a['expert'], a['code']) for a in rows if a['board_pick_role']=='대표 관심'], list(zip(experts, list(names)[:5])))
+        self.assertEqual(rows[1]['board_pick_role'], '보조 관심')
+        self.assertTrue(all(a['buy_price'] is None and a['recommended_time'] is None and a['video_offset_seconds']==1220 for a in rows))
+        self.assertEqual(board.read_table(lines[1:], names), [])
+        fuzzy = [(*result[0][:4], False)]
+        self.assertEqual(board.verified_picks({1220: fuzzy}), [])
+        self.assertEqual(len(board.verified_picks({1220: fuzzy, 1228: fuzzy})), 1)
+
+    def test_legacy_mention_is_hidden_from_archive_stocks_and_csv(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            legacy = self.parse('신규추천\n삼성전자')[0]
+            legacy['classification'] = 'mention'
+            r.save(data / 'recommendations/2026-10-30/index.json', {'records': [legacy], 'stocks': [{'code': '005930', 'name': '삼성전자'}]})
+            doc = r.read(data, '2026-10-30')
+            self.assertEqual(doc['records'], [])
+            self.assertEqual(doc['stocks'], [])
+            self.assertNotIn('005930', r.csv_bytes(doc).decode('utf-8-sig'))
 
     def test_company_in_reason_is_not_an_extra_recommendation(self):
         rows = self.parse('▶▶ 최종 PICK\n삼성전자\n- SK하이닉스와 신규 계약', evidence_type='공개 기사')
-        self.assertEqual(next(x for x in rows if x['code'] == '000660')['classification'], 'mention')
+        self.assertEqual([x['code'] for x in rows], ['005930'])
 
     def test_nonpublic_video_has_no_metadata_records(self):
         with patch.object(r, 'captions', side_effect=r.PublicUnavailable('회원 영상')):
@@ -134,8 +172,33 @@ class RecommendationsTest(unittest.TestCase):
         with patch.object(r, 'captions', side_effect=ValueError('자막 없음')), patch.object(r.watchlists, 'names', return_value=self.names):
             records, warning = r.document(item)
         self.assertEqual(warning, '자막 없음')
-        self.assertEqual(records[0]['classification'], 'mention')
-        self.assertIsNone(records[0]['target_price'])
+        self.assertEqual(records, [])
+
+    def test_registered_youtube_uses_public_script_after_empty_caption(self):
+        item = {**self.meta, 'kind': 'youtube', 'title': '신규추천'}
+        public_script = [{'offset': 1, 'text': '오늘의 추천'}, {'offset': 5, 'text': '삼성전자'}]
+        with patch.object(r, 'captions', side_effect=ValueError('자막 없음')), patch.object(r.watchlists, 'names', return_value=self.names):
+            rows, warning = r.document(item, browser_fallback=lambda url: public_script)
+        self.assertIsNone(warning)
+        self.assertEqual([(a['code'], a['evidence_type']) for a in rows], [('005930', '공개 브라우저 스크립트')])
+
+    def test_named_signal_keeps_pick_and_price_separate_from_mentions(self):
+        lines = [
+            {'offset': 1, 'text': '관심주로는 어떤 걸 볼까요? 오늘 첫'},
+            {'offset': 6, 'text': '번째 종목은 산일 전기 준비해 봤습니다.'},
+            {'offset': 18, 'text': '삼성전자와도 사업 비교가 가능합니다. 신규 수주가 늘었습니다.'},
+            {'offset': 42, 'text': '매수가는 현재가 목표가는 15만 원, 손절가 10만5,000원입니다.'},
+            {'offset': 54, 'text': '오늘 두 번째 시그널 종목은 RF 머틀리얼즈입니다.'},
+            {'offset': 89, 'text': '매수가는 현재가 목표가는 35,000원, 손절가는 2만 원입니다.'},
+        ]
+        names = {**self.names, '062040': '산일전기', '327260': 'RF머트리얼즈'}
+        meta = {**self.meta, 'broadcaster': '매일경제TV', 'title': '[이효근의 주도주 시그널] 산일전기, RF머트리얼즈 / 이효근 MBN골드 매니저',
+                'evidence_type': '공개 브라우저 스크립트'}
+        with patch.object(r.watchlists, 'names', return_value=names):
+            rows = r.transcript_records(lines, meta)
+        self.assertEqual([(x['code'], x['expert'], x['target_price']['min'], x['stop_price']['min']) for x in rows],
+                         [('062040', '이효근', 150000, 105000), ('327260', '이효근', 35000, 20000)])
+        self.assertTrue(all(x['buy_price'] is None and x['buy_price_basis'] == '현재가 (원문)' for x in rows))
 
     def test_html_keeps_inline_name_and_article_boundary(self):
         page = r.Page('<nav>SK하이닉스</nav><article><p>▶<b>삼성전자</b>(005930)</p><p>- 실적 성장</p></article><script>bad</script>')
@@ -146,18 +209,18 @@ class RecommendationsTest(unittest.TestCase):
         import stock_profiles
         with tempfile.TemporaryDirectory() as tmp:
             data = Path(tmp)
-            r.merge(data, '2026-10-30', self.parse('삼성전자'))
+            r.merge(data, '2026-10-30', self.parse('오늘의 추천\n삼성전자'))
             self.assertIn('005930', stock_profiles.collect(data, '2026-10-30')[0])
 
     def test_csv_formula_protection(self):
-        rows = self.parse('삼성전자')
+        rows = self.parse('오늘의 추천\n삼성전자')
         rows[0]['reason'] = '=HYPERLINK("bad")'
         self.assertIn("'=HYPERLINK", r.csv_bytes({'records': rows}).decode('utf-8-sig'))
 
     def test_network_failure_keeps_saved_records_and_records_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
             data = Path(tmp)
-            r.merge(data, '2026-10-30', self.parse('삼성전자'))
+            r.merge(data, '2026-10-30', self.parse('오늘의 추천\n삼성전자'))
             config = {'programs': [{'kind': 'mtn', 'url': 'https://www.mtn.co.kr/program/588', 'name': '표본'}], 'channels': []}
             with patch.object(r, 'sources', return_value=config), patch.object(r, 'fetch', side_effect=OSError('연결 단절')), patch.dict(r.STATE, last_run=r.stamp()):
                 self.assertTrue(r.RUN.acquire(blocking=False))
@@ -177,6 +240,18 @@ class RecommendationsTest(unittest.TestCase):
         content='var ytInitialData = '+json.dumps({'contents':[{'videoRenderer':{'videoId':'abcdefghijk','title':{'runs':[{'text':'공개 회차'}]}}}]})+';'
         rows=r.channel_video_entries(content)
         self.assertEqual(rows[0]['url'],'https://www.youtube.com/watch?v=abcdefghijk')
+        self.assertIsNone(rows[0]['published_at'])
+
+    def test_channel_list_recovers_when_feed_fails(self):
+        def lockup(code, age):
+            return {'lockupViewModel': {'contentId': code, 'contentType': 'LOCKUP_CONTENT_TYPE_VIDEO',
+                'metadata': {'lockupMetadataViewModel': {'title': {'content': '공개 회차'}, 'metadata': {'contentMetadataViewModel': {
+                    'metadataRows': [{'metadataParts': [{'text': {'content': age}}]}]}}}}}}
+        listing = 'var ytInitialData = ' + json.dumps({'contents': [lockup('abcdefghijk', '2시간 전'), lockup('abcdefghijl', '5일 전')]}) + ';'
+        with patch.object(r, 'fetch', side_effect=[OSError('피드 404'), listing]):
+            rows, warning = r.youtube_listing('UC' + 'a' * 22)
+        self.assertIn('공개 동영상 목록', warning)
+        self.assertEqual([row['url'] for row in rows], ['https://www.youtube.com/watch?v=abcdefghijk'])
         self.assertIsNone(rows[0]['published_at'])
 
     def test_mtn_empty_listing_is_warning_not_silent_success(self):

@@ -133,6 +133,34 @@ class Tests(unittest.TestCase):
             self.assertEqual(archive.active(Path(d),DAY),previous)
             self.assertEqual(len(list((Path(d)/DAY).glob('snapshot-*'))),1)
 
+    def test_first_short_intraday_ranking_is_labeled_and_keeps_prior_day(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(app, 'DATA', Path(folder)), patch.object(app, 'now', return_value=AT):
+            api = Fake()
+            api.codes = ['005930']
+            previous = app.DATA / '2026-09-21' / 'final' / 'index.json'
+            app.save(previous, {'day': '2026-09-21', 'status': 'saved'})
+            result = app.collect(DAY, api=api)
+            self.assertEqual((result['saved'], result['ranking_target'], result['kind']), (1, 2, 'preview'))
+            self.assertEqual(app.catalog()[0]['day'], DAY)
+            self.assertTrue(previous.is_file())
+            with patch.object(app, 'now', return_value=AT.replace(hour=20, minute=5)), self.assertRaisesRegex(DataError, '1/2'):
+                app.collect(DAY, api=api)
+            self.assertEqual(archive.metadata(archive.active(app.DATA, DAY))['revision'], result['revision'])
+
+    def test_theme_fallback_requires_current_dated_trade_if_no_snapshot(self):
+        import themes
+        with tempfile.TemporaryDirectory() as folder, patch.object(app, 'DATA', Path(folder)), \
+                patch.object(app, 'now', return_value=AT), patch.object(app, 'Kiwoom') as api, \
+                patch.object(themes, 'refresh') as refresh:
+            api.return_value.daily_bars.return_value = ([{'ts': '2026-09-21', 'volume': 1}], {})
+            app.update_themes(DAY, verify_session=True)
+            refresh.assert_not_called()
+            self.assertIn('당일 거래 확인 대기', app.read(app.DATA / 'themes' / 'last_error.json')['message'])
+            api.return_value.daily_bars.return_value = ([{'ts': DAY, 'volume': 1}], {})
+            app.update_themes(DAY, verify_session=True)
+            refresh.assert_called_once_with(app.DATA, DAY)
+            self.assertIsNone(app.read(app.DATA / 'themes' / 'last_error.json'))
+
     def test_manual_after_20_is_final_and_replaces_intraday(self):
         with tempfile.TemporaryDirectory() as d, patch.object(app,'DATA',Path(d)):
             with patch.object(app,'now',return_value=AT):
@@ -165,6 +193,14 @@ class Tests(unittest.TestCase):
             app.set_monitor(False)
             app.scheduler_tick(AT.replace(hour=20,minute=5))
             start.assert_called_once_with(DAY,source='final')
+
+    def test_due_investors_get_a_turn_intraday_and_rise_starts_first_at_close(self):
+        calls = []
+        with patch.object(app, 'scheduler_tick', side_effect=lambda current: calls.append('rise')), \
+                patch.object(app.investor_flows, 'tick', side_effect=lambda *args, **kwargs: calls.append('investors')):
+            app.ranking_and_investor_tick(AT)
+            app.ranking_and_investor_tick(AT.replace(hour=20, minute=5))
+        self.assertEqual(calls, ['investors', 'rise', 'rise', 'investors'])
 
     def test_final_2001_does_not_skip_2005_final(self):
         with tempfile.TemporaryDirectory() as d, patch.object(app,'DATA',Path(d)), patch.object(app,'STATE',{'busy':False}), patch.object(app,'start') as start:

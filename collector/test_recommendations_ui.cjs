@@ -15,15 +15,15 @@ let pw;try{pw=require('playwright');}catch{pw=require(path.join(path.dirname(pro
   if(u.pathname==='/api/stock-profiles'){await new Promise(r=>setTimeout(r,1500));return route.fulfill({json:{profiles:{}}});}
   if(u.pathname==='/api/recommendations'){
    if(fail)return route.fulfill({status:503,json:{error:'표본 통신 실패'}});
-   const day=u.searchParams.get('day')||'2026-11-08';return route.fulfill({json:{day,days:['2026-11-08','2026-11-06'],records:day==='2026-11-08'?[record('mention','000001')]:[record('new','000002')],enabled:true,state:{message:'표본 수집 완료',busy:false},ledger:{documents:{sample:{status:'확인 필요',message:'공개 자막 응답 없음'}},sources:{},total_documents:1},sources:{programs:[],channels:[]}}});
+   const day=u.searchParams.get('day')||'2026-11-08';return route.fulfill({json:{day,days:['2026-11-08','2026-11-06'],records:day==='2026-11-08'?[record('interest','000001'),record('mention','000003')]:[record('new','000002')],enabled:true,state:{message:'표본 수집 완료',busy:false},ledger:{documents:{sample:{status:'확인 필요',message:'공개 자막 응답 없음'}},sources:{},total_documents:1},sources:{programs:[],channels:[]}}});
   }
   if(u.pathname==='/api/hero-targets')return route.fulfill({json:{targets:[],preferred:'',diagnostic:{state:'ready'}}});
   return route.fulfill({json:{bars:[],token:'test',profiles:{}}});
  });
  await page.goto((process.env.COLLECTOR_TEST_URL||'http://127.0.0.1:8766')+'/recommendations');
  await page.waitForFunction(()=>document.querySelectorAll('#rows tr').length===1,{},{timeout:5000}).catch(async e=>{console.error({errors,status:await page.locator('#rec-status').textContent()});throw e;});
- assert.equal(await page.locator('#rec-kind').inputValue(),'');
- assert.match(await page.locator('#rec-summary').textContent(),/単純|단순 언급 1/);
+ assert.equal(await page.locator('#rec-kind').inputValue(),'focus');
+ assert.match(await page.locator('#rec-summary').textContent(),/관심종목 1.*단순 언급 제외/);
  assert.match(await page.locator('#rec-health').textContent(),/자막 확인 필요 1/);
  assert.equal(await page.locator('.rank-list').evaluate(e=>e.scrollWidth>e.clientWidth),false);
  await page.locator('#rec-kind').selectOption('new');assert.equal(await page.locator('#rows tr').count(),0);
@@ -33,7 +33,7 @@ let pw;try{pw=require('playwright');}catch{pw=require(path.join(path.dirname(pro
  await page.setViewportSize({width:720,height:910});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
  fail=true;await page.locator('#rec-refresh').click();await page.waitForFunction(()=>document.querySelector('#rec-status').textContent.includes('표본 통신 실패'));
  assert.equal(await page.locator('#rows tr').count(),1);assert.equal(errors.length,0,errors.join('\n'));
- console.log('PASS: default all, caption warning, profiles delay, new/date navigation, empty/filter state, responsive overflow, API failure preserves list; no writes');
+ console.log('PASS: default focus, mentions hidden, caption warning, profiles delay, new/date navigation, empty/filter state, responsive overflow, API failure preserves list; no writes');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
 

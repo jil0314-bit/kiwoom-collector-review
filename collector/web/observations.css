@@ -1,0 +1,9 @@
+.observation-filters{display:flex;align-items:center;gap:12px 20px;flex-wrap:wrap;margin:18px 0 8px}
+.observation-filters label{display:flex;align-items:center;gap:8px}
+.observation-filters strong{color:var(--muted);font-size:.875rem}
+.observation-list td,.observation-list td:nth-child(2){text-align:left;vertical-align:top}
+.observation-list .rank-profile{margin-top:3px;max-width:240px}
+.observation-date{white-space:nowrap;font-weight:650}
+.observation-remove{padding:3px 9px;white-space:nowrap}
+#observation-empty{padding:12px 16px;color:var(--muted)}
+#observation-status:not(:empty){margin:8px 0;color:var(--muted)}

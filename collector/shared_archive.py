@@ -17,8 +17,9 @@ import archive
 from kiwoom import KST
 
 ROOT = Path(__file__).resolve().parent
-AUX = ('notes', 'reasons', 'themes', 'chart_history', 'weekly_history',
-       'watchlist_history', 'volume_surge', 'investor_flows')
+AUX = ('notes', 'reasons', 'themes', 'chart_history', 'weekly_history', 'monthly_history',
+       'watchlist_history', 'volume_surge', 'investor_flows',
+       'chart_minute_history_1', 'chart_minute_history_3', 'chart_minute_history_5')
 CODE = ('app.py', 'archive.py', 'kiwoom.py', 'chart.py', 'chart_data.py',
         'notes.py', 'reasons.py', 'themes.py', 'volume_surge.py', 'watchlists.py',
         'hero4memo.py', 'hero_link.py', 'window.py', 'shared_archive.py',

@@ -11,6 +11,26 @@ from kiwoom import DataError
 
 
 class FastChartTests(unittest.TestCase):
+    def test_prefetch_never_starts_a_remote_job(self):
+        called = threading.Event()
+        key = (uuid4().hex,)
+        result = chart_service.get(key, called.set, lambda: None, 15, prefetch=True)
+        self.assertTrue(result['pending'])
+        self.assertFalse(called.wait(.05))
+
+    def test_reload_marks_previous_result_refreshing_until_job_finishes(self):
+        key = (uuid4().hex,)
+        chart_service.get(key, lambda: {'bars': [1]}, lambda: None, 60)
+        release = threading.Event()
+        def fetch():
+            release.wait(2)
+            return {'bars': [2]}
+        try:
+            self.assertTrue(chart_service.get(key, fetch, lambda: None, 60, reload=True)['refreshing'])
+            self.assertTrue(chart_service.get(key, fetch, lambda: None, 60)['refreshing'])
+        finally:
+            release.set()
+
     def test_cold_fast_view_returns_pending_without_blocking(self):
         key = (uuid4().hex,)
         release = threading.Event()

@@ -9,22 +9,79 @@ async function loadRankProfiles(day){
   try{const r=await fetch('/api/stock-profiles?'+new URLSearchParams({day}));if(!r.ok)return;const data=await r.json();rankProfiles=data.profiles||{};rankProfileDay=day;rankProfileAt=Date.now();}catch(error){}
 }
 const rankApi=document.body.dataset.rankApi||'/api/volume-top';
+const rankColumns=[
+  ['rank','순위'],['name','종목명'],['price','현재가'],['rate','등락률(%)'],
+  ['volume','거래량(주)'],['turnover','거래회전율(%)'],['amount_million','거래대금'],
+];
+function stockNameCell(stock, day){
+  const cell=document.createElement('td');
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='rank-stock';
+  button.textContent=stock.name;
+  button.setAttribute('aria-label',stock.name+' 차트 보기');
+  const profile=rankProfiles[stock.code]||{};
+  const groups=profile.groups?.join(' · ')||'미확인';
+  const theme=profile.themes?.length?'테마 · '+profile.themes.join(' · '):
+    profile.groups?.length?'관심테마그룹 · '+groups:'테마 미확인'+(profile.industry?' · 업종 '+profile.industry:'');
+  const cap=profile.market_cap>0?'시총 '+formatWon(profile.market_cap,1e8)+
+    (profile.cap_day && profile.cap_day!==day?' · '+profile.cap_day+' 기준':''):'시총 미확인';
+  cell.append(button);
+  for(const [text, extraClass] of [[stock.code,'stock-code-under'],['관심그룹 · '+groups,''],[theme,''],[cap,'stock-money']]){
+    const detail=document.createElement('small');
+    detail.className='rank-profile'+(extraClass?' '+extraClass:'');
+    detail.textContent='• '+text;
+    if(text===theme)detail.title=detail.textContent;
+    cell.append(detail);
+  }
+  return cell;
+}
+function stockRow(stock, day){
+  const row=document.createElement('tr');
+  row.dataset.code=stock.code;
+  for(const [key,label] of rankColumns){
+    const cell=key==='name'?stockNameCell(stock,day):document.createElement('td');
+    cell.dataset.column=key;
+    if(key!=='name' && key!=='rank')cell.dataset.label=label;
+    if(key==='price' || key==='amount_million'){
+      cell.className='money-value';
+      cell.textContent=key==='price'?fmt(stock.price)+'원':formatWon(stock.amount_million,1e6);
+    }else if(key!=='name'){
+      cell.textContent=fmt(stock[key]);
+      if(key==='volume' && stock.volume_limit_possible){
+        const note=document.createElement('small');
+        note.className='rank-volume-note';
+        note.textContent='상한값 가능';
+        note.title='API 거래량 상한값일 수 있습니다.';
+        cell.append(note);
+      }
+    }
+    row.append(cell);
+  }
+  return row;
+}
 async function refresh(){
   const version=++listVersion;
   const selected=el('day').value;
   const response=await fetch(rankApi+(selected?'?day='+encodeURIComponent(selected):''));
   const data=await response.json();if(version!==listVersion)return;if(!response.ok)throw Error(data.error||'조회 실패');token=data.token;
-  await loadRankProfiles(data.day);if(version!==listVersion)return;
+  if(rankProfileDay!==data.day)rankProfiles={};
   el('day').replaceChildren(...data.days.map(day=>new Option(day,day)));
   if(data.days.includes(selected))el('day').value=selected;
   el('status').textContent=data.state.message+' · '+(data.observed_at||'저장 자료 없음')+' · '+data.stocks.length+'종목';
   const focusCode=document.activeElement?.closest('tr[data-code]')?.dataset.code;
-  el('rows').replaceChildren(...data.stocks.map(stock=>{const row=document.createElement('tr');row.dataset.code=stock.code;
-    for(const key of ['rank','name','code','price','rate','volume','turnover','amount_million']){
-      const cell=document.createElement('td');if(key==='name'){const button=document.createElement('button');button.type='button';button.className='rank-stock';button.textContent=stock.name;button.setAttribute('aria-label',stock.name+' 분봉 차트 보기');cell.append(button);const profile=rankProfiles[stock.code]||{};const theme=document.createElement('small');theme.className='rank-profile';theme.textContent=profile.themes?.length?'테마 · '+profile.themes.join(' · '):profile.groups?.length?'관심테마그룹 · '+profile.groups.join(' · '):'테마 미확인'+(profile.industry?' · 업종 '+profile.industry:'');theme.title=theme.textContent;const cap=document.createElement('small');cap.className='rank-profile';cap.textContent=profile.market_cap>0?'시총 '+fmt(profile.market_cap)+'억'+(profile.cap_day!==data.day?' · '+profile.cap_day+' 기준':''):'시총 미확인';cell.append(theme,cap);}else cell.textContent=key==='code'?stock[key]:fmt(stock[key])+(key==='volume'&&stock.volume_limit_possible?' (API 상한값 가능)':'');row.append(cell);
-    }return row;}));
+  el('rows').replaceChildren(...data.stocks.map(stock=>stockRow(stock,data.day)));
   if(focusCode)el('rows').querySelector('tr[data-code="'+focusCode+'"] button')?.focus({preventScroll:true});
   window.rankUpdate?.(data.day,data.stocks);
+  if(rankProfileDay!==data.day || Date.now()-rankProfileAt>=60000){
+    loadRankProfiles(data.day).then(()=>{
+      if(version!==listVersion || rankProfileDay!==data.day)return;
+      for(const stock of data.stocks){
+        const cell=el('rows').querySelector(`tr[data-code="${stock.code}"] [data-column="name"]`);
+        if(cell)cell.replaceChildren(cell.firstElementChild,...Array.from(stockNameCell(stock,data.day).children).slice(1));
+      }
+    });
+  }
 }
 async function collect(){if(busy)return;busy=true;el('collect').disabled=true;
   try{if(!token)await refresh();const r=await fetch(rankApi+'/collect',{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':token},body:'{}'});if(!r.ok)throw Error('조회 시작 실패');await refresh();}

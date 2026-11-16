@@ -15,6 +15,39 @@ ARTICLE = """<html><head><style>td{font-size:9pt}</style></head><body>
 
 
 class ParseTest(unittest.TestCase):
+    def test_stock_history_preserves_dates_sources_and_notes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            for day, record in {
+                '2026-11-10': {'infostock': {'source': 'https://example.com/10', 'items': {'000001': {'reason': '과거 수주'}, '000002': {'reason': '다른 종목'}}}},
+                '2026-11-11': {'reviewed': {'items': {'000001': {'reason': '검토된 실적', 'source': '검토 기사', 'url': 'https://example.com/11'}}}},
+                '2026-11-12': {'infostock': {'items': {'000001': {'reason': '선택일 자료'}}}},
+                '2026-11-13': {'infostock': {'items': {'000001': {'reason': '미래 자료'}}}},
+            }.items():
+                reasons.write_day(data, day, record)
+            note = data / 'notes' / '2026-11-12' / '000001.json'
+            note.parent.mkdir(parents=True)
+            note.write_text('{"text":"personal"}', encoding='utf-8')
+            before = {p: p.read_bytes() for p in data.rglob('*.json')}
+            result = reasons.recent_history(data, '2026-11-12', '000001')
+            self.assertEqual(set(result), {'000001'})
+            self.assertEqual([r['day'] for r in result['000001']], ['2026-11-11', '2026-11-10'])
+            self.assertEqual(result['000001'][0]['url'], 'https://example.com/11')
+            self.assertEqual(result['000001'][1]['reason'], '과거 수주')
+            self.assertTrue(all(r['kind'] == 'reason' for r in result['000001']))
+            self.assertEqual(before, {p: p.read_bytes() for p in data.rglob('*.json')})
+
+    def test_stock_history_is_bounded_and_survives_damaged_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            for n in range(1, 9):
+                reasons.write_day(data, f'2026-11-{n:02}', {'news': {'items': {'000001': [{'title': str(n), 'url': 'https://example.com'}]}}})
+            reasons.path(data, '2026-11-09').write_text('{', encoding='utf-8')
+            rows = reasons.recent_history(data, '2026-11-10', '000001')['000001']
+            self.assertEqual(len(rows), 5)
+            self.assertEqual(rows[0]['day'], '2026-11-08')
+            self.assertTrue(all(r['kind'] == 'news' for r in rows))
+
     def test_featured_article_keeps_only_risers_and_does_not_replace_existing_reason(self):
         html = """<table><tr><td>제목</td><td>증시요약(5) - 특징 종목(코스닥)</td></tr>
         <tr><td>일시</td><td>2026년 11월 04일 17시 12분</td></tr></table>

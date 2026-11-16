@@ -66,8 +66,12 @@ def verified_pending(incoming):
                 expected = day + ' ' + reason
                 if (line == expected or line.startswith(expected + ' | ') or
                         line.startswith(expected + ' 기사 사유 출처: ')):
-                    result.setdefault(code, []).append(line)
-    return result
+                    # Keep one reason per stock and date. Prefer the version
+                    # carrying source details when the queue has both forms.
+                    by_day = result.setdefault(code, {})
+                    if day not in by_day or len(line) > len(by_day[day]):
+                        by_day[day] = line
+    return {code: list(by_day.values()) for code, by_day in result.items()}
 
 
 def apply_pending(incoming, target):
@@ -112,7 +116,10 @@ def tick(day, prepare_only=False):
     if article and article[0] == day:
         parsed = reasons.parse(article[2], {})
         if parsed:
-            items = reasons.save_infostock(DATA, day, article[2], {}, source='hero4', published=article[1])
+            reasons.save_infostock(DATA, day, article[2], {}, source='hero4', published=article[1])
+            # News.html contains only the last opened article. Queue every
+            # confirmed reason already stored for this date, not just that article.
+            items = reasons.read_day(DATA, day).get('infostock', {}).get('items', {})
     incoming = dated_lines(day, items)
     if incoming:
         # Preserve previously queued lines, even if the later article has fewer rows.
