@@ -1,4 +1,5 @@
 """Chart-only history and causal averages. Source minute archives stay immutable."""
+import safeio
 import gzip
 import hashlib
 import json
@@ -174,7 +175,7 @@ def history_cache(data, day, code, directory, count, ttl=300):
         content = json.dumps(cached, ensure_ascii=False, indent=2).encode("utf-8")
         tmp = path.with_suffix(".tmp")
         tmp.write_bytes(content)
-        os.replace(tmp, path)
+        safeio.replace(tmp, path)
         path.with_suffix(".sha256").write_text(hashlib.sha256(content).hexdigest(), encoding="ascii")
     return cached
 
@@ -203,7 +204,7 @@ def watchlist_minute(data, day, code, name, ttl=300, history_interval=0, allow_p
         content = json.dumps(cached, ensure_ascii=False).encode("utf-8")
         tmp = path.with_suffix(".tmp")
         tmp.write_bytes(content)
-        os.replace(tmp, path)
+        safeio.replace(tmp, path)
         path.with_suffix(".sha256").write_text(hashlib.sha256(content).hexdigest(), encoding="ascii")
     actual_day = cached["bars"][-1]["ts"][:10]
     record = {"day": actual_day, "kind": "preview" if actual_day == current.date().isoformat() else "final",

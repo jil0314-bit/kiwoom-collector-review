@@ -1,4 +1,5 @@
 """Collector-owned observations saved independently of ranking snapshots."""
+import safeio
 import json
 import os
 import threading
@@ -13,6 +14,7 @@ SOURCE_LABELS = {
     'ranking': '상승률 상위', 'watchlist': '상승률 상위', 'volume': '거래량 급증',
     'volume-top': '당일 거래량 상위', 'amount-top': '당일 거래대금 상위',
     'theme': '상승테마', 'investor': '외국인·기관', 'recommendations': '방송·유튜브 추천',
+    'search': '종목 검색',
 }
 
 
@@ -36,7 +38,7 @@ def _save(data, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix('.tmp')
     tmp.write_text(json.dumps({'stocks': rows}, ensure_ascii=False, indent=2), encoding='utf-8')
-    os.replace(tmp, path)
+    safeio.replace(tmp, path)
 
 
 def add(data, code, source_day, source='ranking', context=None):
@@ -60,6 +62,10 @@ def add(data, code, source_day, source='ranking', context=None):
 
 
 def find_stock(data, code, day, source, context):
+    if source == 'search':
+        # 2026-11-16: any listed stock found by the whole-market search may be observed.
+        import stock_search
+        return stock_search.lookup(data, code)
     if source == 'ranking':
         with archive.LOCK:
             rows = archive.metadata(archive.active(data, day)).get('stocks', [])

@@ -1,4 +1,5 @@
 """Verified theme/industry and dated market-cap display for collector lists."""
+import safeio
 import json
 import os
 import re
@@ -85,7 +86,7 @@ def _save_caps(data, items):
     path = _caps_path(data)
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps({"items": items}, ensure_ascii=False, indent=1), encoding="utf-8")
-    os.replace(tmp, path)
+    safeio.replace(tmp, path)
 
 
 def view(data, day, extra=()):
@@ -155,7 +156,7 @@ def view(data, day, extra=()):
         if not dated_path.is_file() or dated_path.read_text(encoding='utf-8') != blob:
             tmp = dated_path.with_suffix('.tmp')
             tmp.write_text(blob, encoding='utf-8')
-            os.replace(tmp, dated_path)
+            safeio.replace(tmp, dated_path)
     with REQUEST_LOCK:
         REQUESTED.update(code for code, profile in profiles.items()
                          if profile["market_cap"] is None or profile["industry"] is None)

@@ -1,4 +1,5 @@
 """Read-only volume-surge collection, isolated from the existing top100 archive."""
+import safeio
 import calendar
 import csv
 import gzip
@@ -49,11 +50,11 @@ def put(path, blob):
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_bytes(blob)
-    os.replace(tmp, path)
+    safeio.replace(tmp, path)
 
 
 def read(path, default=None):
-    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else default
+    return safeio.load_json(path, default)
 
 
 def request(api, body, cursor=""):
@@ -146,7 +147,10 @@ def metadata(data, day):
     with LOCK:
         result = read(archive.day_root(root(data), day) / "index.json", {"day": day, "stocks": [], "tracked": []})
         for stock in result.get("stocks", []) + result.get("tracked", []):
-            stock.update(result.get("bar_status", {}).get(stock["code"], {}))
+            status = result.get("bar_status", {}).get(stock["code"])
+            if status is not None:
+                stock.pop("error", None)
+                stock.update(status)
         return result
 
 
@@ -279,6 +283,7 @@ def collect_bars(data, day):
                                                   after=sum(b["ts"][11:16] > "15:30" for b in bars))
                     write(folder / "index.json", m)
             except Exception as exc:
+                safeio.log_error("volume.bars", exc, root=data, code=code)
                 with LOCK:
                     folder = archive.day_root(root(data), day)
                     m = metadata(data, day)
@@ -331,6 +336,7 @@ def start(data, manual=False, current=None):
             with LOCK:
                 write(root(data) / "last_error.json", None)
         except Exception as exc:
+            safeio.log_error("volume.rank", exc, root=data)
             STATE["message"] = str(exc) if isinstance(exc, DataError) else "거래량 수집·저장 실패"
             with LOCK:
                 write(root(data) / "last_error.json", {"at": datetime.now(KST).isoformat(), "message": STATE["message"]})

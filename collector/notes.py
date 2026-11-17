@@ -1,4 +1,5 @@
 """User notes live outside replaceable market snapshots."""
+import safeio
 import json
 import os
 import threading
@@ -51,7 +52,7 @@ def write(data, day, code, text, revision='', name=''):
         tmp = path.with_suffix('.tmp')
         try:
             tmp.write_text(json.dumps(note, ensure_ascii=False, indent=2), encoding='utf-8')
-            os.replace(tmp, path)
+            safeio.replace(tmp, path)
         finally:
             if tmp.is_file():
                 tmp.unlink()

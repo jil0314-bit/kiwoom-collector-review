@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(!collectorIsCalendarDay(day))continue;
       if(!isDisplayDay(day)){option.remove();continue;}
       const weekday='일월화수목금토'[new Date(day+'T12:00:00Z').getUTCDay()];
-      if(!option.textContent.includes(' ('+weekday+')'))option.textContent=option.textContent.replace(day,day+' ('+weekday+')');
+      if(!option.textContent.includes(' ('+weekday+')'))option.textContent=option.textContent.includes(day)?option.textContent.replace(day,day+' ('+weekday+')'):option.textContent+' ('+weekday+')';
     }
     if(original!==select.value&&select.options.length)queueMicrotask(()=>select.dispatchEvent(new Event('change',{bubbles:true})));
     const options=Array.from(select.options,o=>({value:o.value,day:o.value.slice(0,10),label:o.textContent}));
@@ -177,7 +177,7 @@ if (chartToolbar) {
   chartToolbar.classList.add('collector-chart-toolbar');
   chartToolbar.innerHTML = `
     <div class="collector-chart-selects">
-      <label>기준 <select id="${id.source}"><option value="archive">선택 날짜</option><option value="live">현재 차트 · 15초 갱신</option></select></label>
+      <label>기준 <select id="${id.source}"><option value="archive">선택 날짜</option><option value="live" selected>현재 차트 · 15초 갱신</option></select></label>
       <label>주기 <select id="${id.frame}"><option value="minute">1분봉</option><option value="minute3">3분봉</option><option value="minute5">5분봉</option><option value="day">일봉</option><option value="week">주봉</option><option value="month">월봉</option></select></label>
       <label>표시 <select id="${id.range}"><option value="60">최근 60봉</option><option value="120">최근 120봉</option><option value="240">최근 240봉</option><option value="360">최근 360봉</option><option value="480">최근 480봉</option><option value="${isRank ? '0' : 'all'}" selected>전체</option><option value="custom" disabled>선택 구간</option></select></label>
       <label>영웅문 <select id="${id.hero}"><option value="">0600 자동 선택</option><option value="off">연동 끄기</option></select></label>
@@ -185,7 +185,7 @@ if (chartToolbar) {
     <div class="collector-chart-actions">
       <button id="chart-reload" type="button" class="secondary" disabled>차트 다시 조회</button>
       <button id="zoom-reset" type="button" class="secondary" disabled>확대 초기화</button>
-      ${document.body.dataset.chartSource === 'observations' ? '' : '<button id="observe-stock" type="button" disabled>＋ 관찰종목 담기</button>'}
+      <button id="observe-stock" type="button" disabled>＋ 관찰종목 담기</button>
       <details class="chart-exports"><summary>저장</summary><div>
         <button id="chart-export-csv" type="button" class="secondary" disabled>데이터 CSV</button>
         <button id="chart-export-png" type="button" class="secondary" disabled>이미지 PNG</button>
@@ -198,6 +198,7 @@ if (chartToolbar) {
   }
   if (document.body.dataset.sharedViewer === '1') {
     document.getElementById(id.source).querySelector('[value=live]').disabled = true;
+    document.getElementById(id.source).value = 'archive';  // 공유 보기는 현재 차트를 쓸 수 없으므로 선택 날짜로 둔다
   }
 }
 
@@ -828,6 +829,7 @@ function drawChartLegend(legend, periods) {
       const {created} = await api('/api/observations', {...stock, action:'add'});
       ++listVersion;
       saved.add(stock.code);
+      window.dispatchEvent(new Event('collector-observations-changed'));
       byId('stock-tool-feedback').textContent = `${stock.name} · ${created ? '관찰종목에 담았습니다.' : '이미 관찰 중입니다.'}`;
     } catch (error) {
       byId('stock-tool-feedback').textContent = error.message;

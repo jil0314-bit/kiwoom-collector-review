@@ -26,6 +26,7 @@ import stock_sectors
 import stock_profiles
 import recommendations
 import observations
+import safeio
 from window import open_dashboard
 
 ROOT = Path(__file__).resolve().parent
@@ -37,7 +38,15 @@ GUARD = threading.Lock()
 CONTROL = threading.RLock()
 STATE = {"busy": False, "queued": False, "message": "대기 중", "done": 0, "total": 0}
 INTERVAL = 180
-FINAL_MAX_ATTEMPTS = 5
+FINAL_MAX_ATTEMPTS = 5   # kept for readers of older notes; superseded by FINAL_RETRY_UNTIL
+# --- 2026-11-16 reliability repair -------------------------------------------------
+REST_AFTER_FINISH = 40       # seconds left free for other tabs / the trading dashboard between rise cycles
+STOCK_RETRY_ROUNDS = 2       # extra passes over only the failed stocks
+STOCK_RETRY_PAUSE = 3.0      # seconds before each extra pass
+RETRY_GIVE_UP_ABOVE = 30     # more failures than this is a systemic outage: do not hammer the API
+MISSING_TOLERANCE = 0.10     # publish when at most 10% of the stocks could not be refreshed
+FINAL_RETRY_UNTIL = "21:55"  # the scheduler idles from 22:00
+FINAL_MISSING_RETRIES = 3    # a final with missing stocks is retried this many times in total
 LAST_OPEN = 0.0
 
 
@@ -50,10 +59,7 @@ def stamp():
 
 
 def atomic(path, content):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_bytes(content)
-    os.replace(tmp, path)
+    safeio.write_bytes(path, content)
 
 
 def save(path, obj):
@@ -61,7 +67,7 @@ def save(path, obj):
 
 
 def read(path, fallback=None):
-    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else fallback
+    return safeio.load_json(path, fallback, root=DATA)
 
 
 def location(day, kind):
@@ -83,7 +89,14 @@ def csv_bytes(rows, fields):
 
 
 def safe_error(exc):
-    return str(exc) if isinstance(exc, DataError) else "저장 또는 처리 오류: 파일 권한·디스크 상태를 확인하세요."
+    if isinstance(exc, DataError):
+        return str(exc)
+    # The real cause used to be hidden behind one fixed sentence; show it (no secrets are in these texts).
+    return "처리 오류 · " + safeio.describe(exc)[:160] + " · 상세: data/logs 오류 일지"
+
+
+def note_error(where, exc, **fields):
+    safeio.log_error(where, exc, root=DATA, **fields)
 
 
 def check_ranking_coverage(day, kind, stocks, expected):
@@ -123,7 +136,16 @@ def build_snapshot(day, kind, folder, revision, api=None):
     expected = getattr(api, 'expected_count', 100)
     check_ranking_coverage(day, kind, stocks, expected)
     # Date-stamped bars corroborate that an undated ranking is not simply stale.
-    first_bars, first_raw = api.minute_bars(stocks[0]["code"], day)
+    prefetched, first_error = {}, None
+    for probe in stocks[:3]:
+        try:
+            prefetched[probe["code"]] = api.minute_bars(probe["code"], day)
+            break
+        except DataError as exc:   # one odd stock must not block the day; three in a row is a real problem
+            first_error = exc
+            note_error("rise.probe", exc, code=probe["code"], name=probe["name"])
+    if not prefetched:
+        raise first_error
     if now().date().isoformat() != day:
         raise DataError("수집 도중 날짜가 바뀌었습니다. 기존 자료를 유지합니다.")
     meta = {"day": day, "kind": kind, "revision": revision, "ranking_at": ranking_at,
@@ -135,43 +157,92 @@ def build_snapshot(day, kind, folder, revision, api=None):
     atomic(folder / "ranking.raw.json.gz", gzip.compress(json.dumps(raw_rank, ensure_ascii=False).encode()))
     atomic(folder / "ranking.csv", csv_bytes(stocks, ["rank", "code", "name", "rate", "price"]))
     save(folder / "index.json", meta)
-    prefetched = {stocks[0]["code"]: (first_bars, first_raw)}
     meta.update(status="running", started_at=stamp(), attempts=meta.get("attempts", 0) + 1)
     save(folder / "index.json", meta)
     STATE.update(total=len(meta["stocks"]))
-    for pos, stock in enumerate(meta["stocks"]):
+    total = len(meta["stocks"])
+
+    def fetch(stock):
         code = stock["code"]
-        STATE.update(done=pos, message=f"{pos + 1}/{len(meta['stocks'])} {stock['name']} 수집")
-        try:
-            bars, raw = prefetched.pop(code) if code in prefetched else api.minute_bars(code, day)
-            record = {"day": day, "kind": kind, "revision": revision, "stock": {k: stock[k] for k in ("code", "name", "rank", "rate", "price")},
-                      "collected_at": stamp(), "price_basis": "비수정 / API 원본 시각 / KRX+NXT 통합",
-                      "bars": bars}
-            save(folder / f"{code}.json", record)
-            atomic(folder / f"{code}.csv", csv_bytes(bars, ["ts", "open", "high", "low", "close", "volume", "ma5", "ma10", "ma20", "ma60"]))
-            atomic(folder / f"{code}.raw.json.gz", gzip.compress(json.dumps(raw, ensure_ascii=False).encode()))
-            stock.update(status="saved", count=len(bars), first=bars[0]["ts"], last=bars[-1]["ts"],
-                         pre=sum(b["ts"][11:16] < "09:00" for b in bars),
-                         regular=sum("09:00" <= b["ts"][11:16] <= "15:30" for b in bars),
-                         after=sum(b["ts"][11:16] > "15:30" for b in bars))
-            stock.pop("error", None)
-        except Exception as exc:
-            stock.update(status="error", error=safe_error(exc))
+        bars, raw = prefetched.pop(code) if code in prefetched else api.minute_bars(code, day)
+        record = {"day": day, "kind": kind, "revision": revision, "stock": {k: stock[k] for k in ("code", "name", "rank", "rate", "price")},
+                  "collected_at": stamp(), "price_basis": "비수정 / API 원본 시각 / KRX+NXT 통합",
+                  "bars": bars}
+        save(folder / f"{code}.json", record)
+        atomic(folder / f"{code}.csv", csv_bytes(bars, ["ts", "open", "high", "low", "close", "volume", "ma5", "ma10", "ma20", "ma60"]))
+        atomic(folder / f"{code}.raw.json.gz", gzip.compress(json.dumps(raw, ensure_ascii=False).encode()))
+        stock.update(status="saved", count=len(bars), first=bars[0]["ts"], last=bars[-1]["ts"],
+                     pre=sum(b["ts"][11:16] < "09:00" for b in bars),
+                     regular=sum("09:00" <= b["ts"][11:16] <= "15:30" for b in bars),
+                     after=sum(b["ts"][11:16] > "15:30" for b in bars))
+        stock.pop("error", None)
+
+    # Pass 0 visits every stock; later passes revisit only the failures. One bad
+    # stock therefore costs one stock, not the whole snapshot.
+    for attempt in range(1 + STOCK_RETRY_ROUNDS):
+        todo = [s for s in meta["stocks"] if s.get("status") != "saved"]
+        if not todo:
+            break
+        if attempt:
+            if len(todo) > RETRY_GIVE_UP_ABOVE:
+                break
+            time.sleep(STOCK_RETRY_PAUSE)
+        for pos, stock in enumerate(todo):
+            if attempt:
+                STATE.update(message=f"실패 종목 재시도 {attempt}차 · {pos + 1}/{len(todo)} {stock['name']}")
+            else:
+                STATE.update(done=pos, message=f"{pos + 1}/{total} {stock['name']} 수집")
+            try:
+                fetch(stock)
+            except Exception as exc:
+                stock.update(status="error", error=safe_error(exc))
+                note_error("rise.stock", exc, code=stock["code"], name=stock["name"], attempt=attempt + 1, kind=kind)
+            save(folder / "index.json", meta)
+    failed = [s for s in meta["stocks"] if s.get("status") != "saved"]
+    fresh = total - len(failed)
+    allowed = max(1, int(total * MISSING_TOLERANCE)) if total >= 10 else 0
+    if len(failed) > allowed:
+        meta.update(status="partial", finished_at=stamp(), saved=fresh, expected=total)
         save(folder / "index.json", meta)
-    count = sum(s.get("status") == "saved" for s in meta["stocks"])
-    meta.update(status="saved" if count == len(meta["stocks"]) else "partial",
-                finished_at=stamp(), saved=count, expected=len(meta["stocks"]))
+        raise DataError(f"{fresh}/{total}종목 수신: 실패가 많아 새 자료 교체 보류, 기존 자료 유지. 실패 종목: {', '.join(s['code'] for s in failed)}")
+    # A few stocks could not be refreshed: keep their last good bars from the snapshot
+    # being replaced (marked as carried) instead of throwing the other stocks away.
+    missing = []
+    if failed:
+        with archive.LOCK:
+            previous = archive.active(DATA, day)
+        for stock in failed:
+            code, carried = stock["code"], False
+            try:
+                old = read(previous / f"{code}.json") if previous != folder else None
+                if old and old.get("bars"):
+                    bars = old["bars"]
+                    save(folder / f"{code}.json", {**old, "kind": kind, "revision": revision,
+                                                   "stock": {k: stock[k] for k in ("code", "name", "rank", "rate", "price")},
+                                                   "carried_from": old.get("collected_at", "")})
+                    atomic(folder / f"{code}.csv", csv_bytes(bars, ["ts", "open", "high", "low", "close", "volume", "ma5", "ma10", "ma20", "ma60"]))
+                    stock.update(status="saved", carried=True, carried_from=old.get("collected_at", ""), count=len(bars),
+                                 first=bars[0]["ts"], last=bars[-1]["ts"],
+                                 pre=sum(b["ts"][11:16] < "09:00" for b in bars),
+                                 regular=sum("09:00" <= b["ts"][11:16] <= "15:30" for b in bars),
+                                 after=sum(b["ts"][11:16] > "15:30" for b in bars))
+                    carried = True
+            except Exception as exc:
+                note_error("rise.carry", exc, code=code)
+            missing.append({"code": code, "name": stock["name"], "error": stock.get("error", ""), "carried": carried})
+    meta.update(status="saved", finished_at=stamp(), saved=fresh, expected=total, missing=missing)
     save(folder / "index.json", meta)
     manifest = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in folder.iterdir()
                 if p.is_file() and p.name != "manifest.json" and not p.name.endswith(".tmp")}
     save(folder / "manifest.json", {"generated_at": stamp(), "sha256": manifest})
-    if count != len(meta["stocks"]):
-        failed = [s["code"] for s in meta["stocks"] if s.get("status") != "saved"]
-        raise DataError(f"{count}/{len(meta['stocks'])}종목 수신: 새 자료 교체 보류, 기존 자료 유지. 실패 종목: {', '.join(failed)}")
+    count = fresh
     pending = archive.publish(DATA, day, folder, save)
     message = f"{count}/{len(meta['stocks'])}종목 최신 자료로 교체 · {ranking_at[11:19]} 기준"
     if count < expected:
         message += f" · 조건 부합 {count}/{expected}종목"
+    if missing:
+        kept = sum(m["carried"] for m in missing)
+        message += f" · 누락 {len(missing)}종목(이전 분봉 유지 {kept})"
     if pending:
         message += " · 일부 이전 파일 삭제 보류"
     STATE.update(done=len(meta["stocks"]), message=message)
@@ -199,37 +270,58 @@ def start(day, kind=None, source="manual"):
             if source in ("manual", "open"):
                 STATE["queued"] = True
             return "queued" if STATE["queued"] else "running"
-        journal = read(DATA / "schedule.json", {})
-        if journal.get("day") != day:
-            journal = {"day": day}
-        journal["last_start_epoch"] = current.timestamp()
-        if current.strftime("%H:%M") >= "20:05" and source == "final":
-            journal["final_attempts"] = journal.get("final_attempts", 0) + 1
-            journal["last_final_epoch"] = current.timestamp()
         try:
+            journal = read(DATA / "schedule.json", {}) or {}
+            if journal.get("day") != day:
+                journal = {"day": day}
+            journal["last_start_epoch"] = current.timestamp()
+            if current.strftime("%H:%M") >= "20:05" and source == "final":
+                journal["final_attempts"] = journal.get("final_attempts", 0) + 1
+                journal["last_final_epoch"] = current.timestamp()
             save(DATA / "schedule.json", journal)
+            STATE.update(busy=True, queued=False, message="최신 순위와 분봉 수집 시작", done=0, total=0)
         except Exception:
+            STATE.update(busy=False, queued=False)
             GUARD.release()
             raise
-        STATE.update(busy=True, queued=False, message="최신 순위와 분봉 수집 시작", done=0, total=0)
     def worker():
         try:
             collect(day)
         except Exception as exc:
             STATE.update(message=safe_error(exc))
-            save(DATA / "last_error.json", {"at": stamp(), "day": day, "kind": kind, "message": safe_error(exc)})
+            note_error("rise.collect", exc, source=source)
+            try:
+                save(DATA / "last_error.json", {"at": stamp(), "day": day, "kind": kind, "message": safe_error(exc)})
+            except Exception as inner:
+                note_error("rise.last_error", inner)
             update_themes(day, verify_session=True)
         else:
-            save(DATA / "last_error.json", None)
+            try:
+                save(DATA / "last_error.json", None)
+            except Exception as inner:
+                note_error("rise.last_error", inner)
             update_themes(day)
         finally:
+            try:
+                finished = read(DATA / "schedule.json", {}) or {}
+                if finished.get("day") == day:
+                    finished["last_finish_epoch"] = now().timestamp()
+                    save(DATA / "schedule.json", finished)
+            except Exception as inner:
+                note_error("rise.schedule", inner)
             with CONTROL:
                 queued = STATE.get("queued", False)
                 STATE.update(busy=False, queued=False)
                 GUARD.release()
                 if queued:
                     start(now().date().isoformat(), source="queued")
-    threading.Thread(target=worker, daemon=True).start()
+    try:
+        threading.Thread(target=worker, daemon=True).start()
+    except Exception:
+        with CONTROL:
+            STATE.update(busy=False, queued=False)
+            GUARD.release()
+        raise
     return "started"
 
 
@@ -249,7 +341,11 @@ def update_themes(day, verify_session=False):
         themes.refresh(DATA, day)
         save(DATA / "themes" / "last_error.json", None)
     except Exception as exc:
-        save(DATA / "themes" / "last_error.json", {"at": stamp(), "day": day, "message": safe_error(exc)})
+        note_error("themes.refresh", exc)
+        try:
+            save(DATA / "themes" / "last_error.json", {"at": stamp(), "day": day, "message": safe_error(exc)})
+        except Exception as inner:
+            note_error("themes.last_error", inner)
 
 
 def refresh_themes_now():
@@ -274,7 +370,13 @@ def refresh_themes_now():
                 GUARD.release()
                 if queued:
                     start(now().date().isoformat(), source="queued")
-    threading.Thread(target=worker, daemon=True).start()
+    try:
+        threading.Thread(target=worker, daemon=True).start()
+    except Exception:
+        with CONTROL:
+            STATE.update(busy=False, queued=False)
+            GUARD.release()
+        raise
     return "started"
 
 
@@ -318,7 +420,7 @@ def scheduler_tick(current=None):
     if current.weekday() >= 5 or current.strftime("%H:%M") < "08:00" or STATE["busy"]:
         return
     day = current.date().isoformat()
-    journal = read(DATA / "schedule.json", {})
+    journal = read(DATA / "schedule.json", {}) or {}
     if journal.get("day") != day:
         journal = {"day": day}
     if current.strftime("%H:%M") >= "20:05":
@@ -326,11 +428,17 @@ def scheduler_tick(current=None):
             meta = archive.metadata(archive.active(DATA, day))
         finalized = meta.get("status") == "saved" and meta.get("ranking_at", "")[:16] >= day + "T20:05"
         attempts = journal.get("final_attempts", 0)
-        retry_interval = 900 if attempts < 3 else 1800
-        if not finalized and attempts < FINAL_MAX_ATTEMPTS and current.timestamp() - journal.get("last_final_epoch", 0) >= retry_interval:
+        if finalized and meta.get("missing") and attempts < FINAL_MISSING_RETRIES:
+            finalized = False   # try again for the few stocks that are still on carried bars
+        retry_interval = 900 if attempts < 3 else 1200
+        # No attempt cap any more: a bad evening (2026-11-10 had no final at all) keeps
+        # retrying at a gentle pace until the scheduler goes idle.
+        if (not finalized and current.strftime("%H:%M") <= FINAL_RETRY_UNTIL
+                and current.timestamp() - journal.get("last_final_epoch", 0) >= retry_interval):
             start(day, source="final")
     elif current.strftime("%H:%M") < "20:00" and monitor_enabled():
-        if current.timestamp() - journal.get("last_start_epoch", 0) >= INTERVAL:
+        if (current.timestamp() - journal.get("last_start_epoch", 0) >= INTERVAL
+                and current.timestamp() - journal.get("last_finish_epoch", 0) >= REST_AFTER_FINISH):
             start(day, source="auto")
 
 
@@ -370,14 +478,17 @@ def collect_summary(day, slot):
     try:
         # Catch up saved trading dates after downtime, independently of today's article.
         dates = [day]
-        start_day = datetime.strptime(day, '%Y-%m-%d').date()
-        dates.extend((start_day - timedelta(days=n)).isoformat() for n in range(1, 8)
-                     if (DATA / (start_day - timedelta(days=n)).isoformat() / 'latest.json').is_file())
+        oldest = (datetime.strptime(day, '%Y-%m-%d').date() - timedelta(days=31)).isoformat()
+        dates.extend(sorted((p.name for p in DATA.glob('????-??-??')
+                             if oldest <= p.name < day and (p / 'latest.json').is_file()), reverse=True)[:9])
         for target in dates:
             try:
                 stored = reasons.read_day(DATA, target)
                 if not reasons.summary_complete(stored):
-                    reasons.fetch_summary(DATA, target, day_names(target))
+                    names = day_names(target)
+                    if not reasons.verify_archived_summary(DATA, target, names):
+                        reasons.fetch_summary(DATA, target, names)
+                pending_features = reasons.fetch_featured(DATA, target, day_names(target))
                 stored = reasons.read_day(DATA, target)
                 info = stored.get('infostock', {})
                 complete = reasons.summary_complete(stored)
@@ -385,13 +496,17 @@ def collect_summary(day, slot):
                           'state': 'saved' if complete else 'partial' if info.get('items') else 'waiting_for_article',
                           'missing_codes': info.get('missing_codes', []),
                           'count': len(info.get('items', {})), 'source': info.get('source', ''),
-                          'summary_complete': complete}
+                          'summary_complete': complete, 'coverage': reasons.summary_coverage(stored),
+                          'pending_featured_articles': pending_features}
             except Exception as exc:
                 status = {'day': target, 'at': stamp(), 'slot': slot, 'state': 'error',
                           'message': str(exc)[:300]}
-            save(DATA / 'reasons' / ('summary_' + target + '.json'), status)
-            if target == day:
-                save(DATA / 'reasons' / 'summary_status.json', status)
+            for status_path in [DATA / 'reasons' / ('summary_' + target + '.json')] + (
+                    [DATA / 'reasons' / 'summary_status.json'] if target == day else []):
+                try:
+                    save(status_path, status)
+                except Exception as exc:
+                    note_error('reasons.summary_status', exc, day=target)
     finally:
         SUMMARY_RUNS['busy'] = False
 
@@ -402,6 +517,19 @@ def day_names(day):
     with archive.LOCK:
         meta = archive.metadata(archive.active(DATA, day))
     names.update({s["code"]: s["name"] for s in meta.get("stocks", [])})
+    return names
+
+
+def known_names(day):
+    """Names the collector already holds; never fails (used as a search fallback)."""
+    try:
+        names = day_names(day)
+    except Exception:
+        names = {}
+    try:
+        names.update({row['code']: row['name'] for row in observations.read(DATA)})
+    except Exception:
+        pass
     return names
 
 
@@ -438,7 +566,10 @@ def collect_news(day, slot):
 def reasons_tick(current=None):
     """Local article every five seconds; public summary and stock news after publication."""
     import reasons
-    reasons.watch_hero4(DATA, day_names)
+    try:
+        reasons.watch_hero4(DATA, day_names)
+    except Exception as exc:
+        save_scheduler_error(DATA / 'reasons' / 'watch_error.json', exc)
     current = current or now()
     day, hhmm = current.date().isoformat(), current.strftime("%H:%M")
     if current.weekday() < 5 and "17:15" <= hhmm <= "22:00" and not SUMMARY_RUNS["busy"]:
@@ -446,7 +577,11 @@ def reasons_tick(current=None):
         if current.timestamp() - SUMMARY_RUNS.get(day, 0) >= interval:
             SUMMARY_RUNS[day] = current.timestamp()
             SUMMARY_RUNS["busy"] = True
-            threading.Thread(target=collect_summary, args=(day, hhmm), daemon=True).start()
+            try:
+                threading.Thread(target=collect_summary, args=(day, hhmm), daemon=True).start()
+            except Exception as exc:
+                SUMMARY_RUNS['busy'] = False
+                note_error('reasons.summary_start', exc, day=day)
     if current.weekday() >= 5 or hhmm < NEWS_SLOTS[0] or NEWS_RUNS.get("busy"):
         return
     with archive.LOCK:
@@ -461,7 +596,11 @@ def reasons_tick(current=None):
         return
     NEWS_RUNS[(day, slot)] = (tries + 1, current.timestamp())
     NEWS_RUNS["busy"] = True
-    threading.Thread(target=collect_news, args=(day, slot), daemon=True).start()
+    try:
+        threading.Thread(target=collect_news, args=(day, slot), daemon=True).start()
+    except Exception as exc:
+        NEWS_RUNS['busy'] = False
+        note_error('reasons.news_start', exc, day=day)
 
 
 IDLE_SLEEP = 60
@@ -486,12 +625,14 @@ def ranking_and_investor_tick(current):
             scheduler_tick(current)
         except Exception as exc:
             STATE["message"] = safe_error(exc)
+            note_error("scheduler.rise", exc)
 
     def investors():
         try:
             investor_flows.tick(DATA, GUARD, current=current)
-        except Exception:
+        except Exception as exc:
             investor_flows.STATE["message"] = "외국인·기관 자동 수집 확인 필요"
+            note_error("scheduler.investors", exc)
 
     # Both jobs acquire GUARD. A due intraday flow lookup needs a turn even
     # when every rise refresh lasts longer than the three-minute interval.
@@ -503,11 +644,22 @@ def ranking_and_investor_tick(current):
         investors()
 
 
+def save_scheduler_error(path, exc):
+    """An unavailable error file must not stop unrelated scheduled workers."""
+    note_error("scheduler.worker", exc, file=path.name)
+    try:
+        save(path, {"at": stamp(), "message": safe_error(exc)})
+    except Exception as inner:
+        STATE["message"] = "오류 기록 저장 실패 · 자동 수집은 계속 시도합니다."
+        note_error("scheduler.error_file", inner, file=path.name)
+
+
 def scheduler():
     while True:
         try:
             recommendations.tick(DATA)
-        except Exception:
+        except Exception as exc:
+            note_error("scheduler.recommendations", exc)
             recommendations.STATE["message"] = "공개 추천 자동수집 확인 필요"
         current = now()
         if idle_now(current):
@@ -516,29 +668,32 @@ def scheduler():
                 import reasons
                 reasons.watch_hero4(DATA, day_names)
             except Exception as exc:
-                save(DATA / 'reasons' / 'watch_error.json', {'at': stamp(), 'message': str(exc)[:300]})
+                save_scheduler_error(DATA / 'reasons' / 'watch_error.json', exc)
             time.sleep(IDLE_SLEEP)
             continue
         ranking_and_investor_tick(current)
         try:
             reasons_tick()
         except Exception as exc:
-            save(DATA / "reasons" / "watch_error.json", {"at": stamp(), "message": str(exc)[:300]})
+            save_scheduler_error(DATA / "reasons" / "watch_error.json", exc)
         try:
             memo_tick()
         except Exception as exc:
-            save(DATA / 'hero4_daily_memo' / 'sync_error.json', {'at': stamp(), 'message': str(exc)[:300]})
+            save_scheduler_error(DATA / 'hero4_daily_memo' / 'sync_error.json', exc)
         try:
             volume_surge.tick(DATA)
-        except Exception:
+        except Exception as exc:
+            note_error("scheduler.volume", exc)
             volume_surge.STATE["message"] = "거래량 자동 수집 확인 필요"
         try:
             stock_sectors.tick(DATA)
-        except Exception:
+        except Exception as exc:
+            note_error("scheduler.sectors", exc)
             stock_sectors.STATE["message"] = "업종 자동 분류 확인 필요"
         try:
             stock_profiles.tick(DATA)
-        except Exception:
+        except Exception as exc:
+            note_error("scheduler.profiles", exc)
             stock_profiles.STATE["message"] = "종목 시가총액 확인 필요"
         time.sleep(ACTIVE_SLEEP)
 
@@ -588,6 +743,17 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         q = parse_qs(parsed.query)
         try:
+            if parsed.path == '/api/stock-search':
+                import stock_search
+                today = now().date().isoformat()
+                found, basis = stock_search.search(DATA, q.get('q', [''])[0][:40])
+                observed = {row['code'] for row in observations.read(DATA)}
+                return self.respond({'stocks': [{**row, 'observed': row['code'] in observed} for row in found],
+                                     'day': today, 'master_day': basis, 'token': TOKEN})
+            if parsed.path == '/api/errors':
+                day = q.get('day', [now().date().isoformat()])[0]
+                datetime.strptime(day, '%Y-%m-%d')
+                return self.respond({'day': day, 'errors': safeio.recent_errors(DATA, 500, day)})
             if parsed.path == '/api/observations':
                 return self.respond({'stocks': observations.read(DATA), 'day': now().date().isoformat(), 'token': TOKEN})
             if parsed.path == '/api/stock-memo':
@@ -745,6 +911,12 @@ class Handler(BaseHTTPRequestHandler):
                     if not stock:
                         return self.respond({'error': '선택 날짜의 추천·언급 목록에 없는 종목입니다.'}, 404)
                     name, source = stock['name'], 'watchlist'
+                elif source == 'search':
+                    import stock_search
+                    stock = stock_search.lookup(DATA, code)
+                    if not stock:
+                        return self.respond({'error': '전체 시장 종목 목록에서 확인되지 않은 종목입니다.'}, 404)
+                    name, source = stock['name'], 'watchlist'
                 elif source == 'observations':
                     stock = next((s for s in observations.read(DATA) if s['code'] == code and s['source_day'] == day), None)
                     if not stock:
@@ -815,6 +987,8 @@ class Handler(BaseHTTPRequestHandler):
                               "/observations": ("observations.html", "text/html"),
                               "/observations.js": ("observations.js", "text/javascript"),
                               "/observations.css": ("observations.css", "text/css"),
+                              "/stock-search-add.js": ("stock-search-add.js", "text/javascript"),
+                              "/stock-search-add.css": ("stock-search-add.css", "text/css"),
                               "/stock-tools.js": ("stock-tools.js", "text/javascript"),
                               "/stock-tools.css": ("stock-tools.css", "text/css"),
                               "/recommendations": ("recommendations.html", "text/html"),
@@ -867,7 +1041,8 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError()
                 try:
                     if body.get('action') == 'add' and isinstance(body.get('day'), str):
-                        stock, created = observations.add(DATA, body['code'], body['day'], body.get('source', 'ranking'), body)
+                        context = body
+                        stock, created = observations.add(DATA, body['code'], body['day'], body.get('source', 'ranking'), context)
                         return self.respond({'stock': stock, 'created': created}, 201 if created else 200)
                     if body.get('action') == 'remove':
                         return self.respond({'stocks': observations.remove(DATA, body['code'])})

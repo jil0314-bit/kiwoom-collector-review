@@ -78,7 +78,7 @@ class ParseTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             data=Path(tmp)
             reasons.save_infostock(data,'2026-09-23',reasons.html_text(ARTICLE),{},source='hero4')
-            with patch.object(app,'DATA',data),patch.object(reasons,'fetch_summary') as fetch:
+            with patch.object(app,'DATA',data),patch.object(app,'day_names',return_value={}),patch.object(reasons,'fetch_featured',return_value=[]),patch.object(reasons,'fetch_summary') as fetch:
                 app.collect_summary('2026-09-23','test')
                 fetch.assert_not_called()
             import json
@@ -199,7 +199,7 @@ class SummaryRecoveryTest(unittest.TestCase):
             (data / '2026-09-22').mkdir()
             (data / '2026-09-22' / 'latest.json').write_text('{}')
             reasons.save_infostock(data, '2026-09-23', reasons.html_text(ARTICLE), {}, source='hero4')
-            with patch.object(app, 'DATA', data), patch.object(app, 'day_names', return_value={}), patch.object(reasons, 'fetch_summary', return_value={}) as fetch:
+            with patch.object(app, 'DATA', data), patch.object(app, 'day_names', return_value={}), patch.object(reasons, 'fetch_featured', return_value=[]), patch.object(reasons, 'fetch_summary', return_value={}) as fetch:
                 app.collect_summary('2026-09-23', '17:15')
                 fetch.assert_called_once_with(data, '2026-09-22', {})
 
@@ -231,6 +231,116 @@ class PartialArticleTest(unittest.TestCase):
             os.utime(a,ns=(100,100));os.utime(b,ns=(200,200))
             self.assertEqual(reasons.hero4_news_path(root),b)
         self.assertEqual(reasons.parse('엘리스 (0158S0) 70,000원 (+10%) | | 신규 계약 소식에 급등',{})['0158S0']['name'],'엘리스')
+
+
+class DailyReliabilityTest(unittest.TestCase):
+    def test_featured_reason_does_not_hide_unparsed_main_summary_row(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            partial = reasons.html_text(ARTICLE.replace('9,820원', '가격 미제공'))
+            reasons.save_infostock(data, '2026-09-23', partial, {}, source='hero4')
+            featured = reasons.html_text(ARTICLE).replace('증시요약(6) - 특징 상한가 및 급등종목', '증시요약(5) - 특징 종목(코스닥)')
+            reasons.save_infostock(data, '2026-09-23', featured, {}, source='hero4')
+            result = reasons.read_day(data, '2026-09-23')
+            self.assertEqual(len(result['infostock']['items']), 3)
+            self.assertFalse(reasons.summary_complete(result))
+            reasons.save_infostock(data, '2026-09-23', reasons.html_text(ARTICLE), {}, source='hero4')
+            self.assertTrue(reasons.summary_complete(reasons.read_day(data, '2026-09-23')))
+
+    def test_public_featured_adds_only_risers_and_preserves_main_article(self):
+        title = '증시요약(5) - 특징 종목(코스닥)'
+        raw = ARTICLE.replace('증시요약(6) - 특징 상한가 및 급등종목', title).replace('(131100)', '(000001)').replace('+9.36%', '-9.36%')
+        listing = '<a onclick="goView(\'20260923\',\'170713\',\'123\',\'05\',\'13\',\'02\');">' + title + '</a>'
+        def fetch(url):
+            if 'ListPopup.do?' in url: return listing
+            if 'ListPopupView2' in url: return '<p>2026-09-23 인포스탁 ' + title + '</p>'
+            return raw
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            original = reasons.save_infostock(data, '2026-09-23', reasons.html_text(ARTICLE), {}, source='hero4')
+            added = reasons.fetch_distributor_summary(data, '2026-09-23', {}, fetch, title_key=reasons.FEATURED[1])
+            self.assertEqual(set(added), {'000001', '0010S0'})
+            stored = reasons.read_day(data, '2026-09-23')
+            self.assertEqual(len(stored['infostock']['items']), 4)
+            for code, item in original.items():
+                self.assertEqual(stored['infostock']['items'][code], item)
+            self.assertTrue(reasons.summary_complete(stored))
+
+    def test_local_missing_row_is_not_complete_even_when_some_rows_saved(self):
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp, patch.object(reasons, 'SEEN', {'stamp': None}):
+            data, news = Path(tmp) / 'data', Path(tmp) / 'News.html'
+            news.write_bytes(ARTICLE.replace('9,820원', '가격 미제공').encode('cp949'))
+            reasons.watch_hero4(data, lambda day: {}, news)
+            record = reasons.read_day(data, '2026-09-23')
+            self.assertEqual(reasons.summary_coverage(record), {
+                'expected': 3, 'saved': 2, 'missing_codes': ['117730'], 'complete': False})
+            self.assertEqual(reasons.source_status(data, '2026-09-23')['local_state'], 'partial')
+            news.write_bytes(ARTICLE.encode('cp949'))
+            reasons.watch_hero4(data, lambda day: {}, news)
+            record = reasons.read_day(data, '2026-09-23')
+            self.assertTrue(reasons.summary_complete(record))
+            del record['infostock']['items']['0010S0']
+            self.assertFalse(reasons.summary_complete(record))
+
+    def test_legacy_archive_is_rechecked_without_losing_personal_or_pasted_text(self):
+        from unittest.mock import patch
+        import json
+        with tempfile.TemporaryDirectory() as tmp, patch.object(reasons, 'SEEN', {'stamp': None}):
+            data, news = Path(tmp) / 'data', Path(tmp) / 'News.html'
+            news.write_bytes(ARTICLE.encode('cp949'))
+            reasons.watch_hero4(data, lambda day: {}, news)
+            record = reasons.read_day(data, '2026-09-23')
+            for article in record['infostock']['articles']:
+                for key in ('expected_codes', 'parsed_codes', 'missing_codes', 'parse_state'):
+                    article.pop(key, None)
+            record['infostock']['items']['131100'].update(reason='사용자 확인 사유', source='paste')
+            record['personal'] = '유지'
+            reasons.write_day(data, '2026-09-23', record)
+            self.assertFalse(reasons.summary_complete(record))
+            self.assertTrue(reasons.verify_archived_summary(data, '2026-09-23', {}))
+            result = reasons.read_day(data, '2026-09-23')
+            self.assertEqual(result['personal'], '유지')
+            self.assertEqual(result['infostock']['items']['131100']['reason'], '사용자 확인 사유')
+
+    def test_local_failure_does_not_block_public_lookup(self):
+        import app
+        from datetime import datetime
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp, patch.object(app, 'DATA', Path(tmp)), \
+                patch.object(reasons, 'watch_hero4', side_effect=PermissionError('fixture')), \
+                patch.object(app, 'save_scheduler_error'), patch.object(app, 'SUMMARY_RUNS', {'busy': False}), \
+                patch.object(app.threading, 'Thread') as thread:
+            app.reasons_tick(datetime(2026, 11, 17, 17, 15, tzinfo=reasons.KST))
+            thread.return_value.start.assert_called_once()
+
+    def test_failed_thread_start_can_retry(self):
+        import app
+        from datetime import datetime
+        from unittest.mock import patch
+        runs = {'busy': False}
+        with tempfile.TemporaryDirectory() as tmp, patch.object(app, 'DATA', Path(tmp)), \
+                patch.object(reasons, 'watch_hero4'), patch.object(app, 'note_error'), \
+                patch.object(app, 'SUMMARY_RUNS', runs), patch.object(app.threading, 'Thread') as thread:
+            thread.return_value.start.side_effect = RuntimeError('fixture')
+            app.reasons_tick(datetime(2026, 11, 17, 17, 15, tzinfo=reasons.KST))
+            self.assertFalse(runs['busy'])
+            thread.return_value.start.side_effect = None
+            app.reasons_tick(datetime(2026, 11, 17, 17, 20, tzinfo=reasons.KST))
+            self.assertEqual(thread.return_value.start.call_count, 2)
+
+    def test_status_file_failure_does_not_skip_older_trading_day(self):
+        import app
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            (data / '2026-11-09').mkdir()
+            (data / '2026-11-09' / 'latest.json').write_text('{}')
+            with patch.object(app, 'DATA', data), patch.object(app, 'day_names', return_value={}), \
+                    patch.object(app, 'save', side_effect=PermissionError('fixture')), patch.object(app, 'note_error'), \
+                    patch.object(reasons, 'fetch_featured', return_value=[]), patch.object(reasons, 'fetch_summary', return_value={}) as fetch:
+                app.collect_summary('2026-11-17', '17:15')
+                self.assertEqual([c.args[1] for c in fetch.call_args_list], ['2026-11-17', '2026-11-09'])
 
 
 class NewsTest(unittest.TestCase):

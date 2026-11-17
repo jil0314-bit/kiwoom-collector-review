@@ -113,3 +113,5 @@ observationEl('observation-day').addEventListener('change', renderObservations);
 observationEl('observation-search').addEventListener('input', renderObservations);
 
 window.addEventListener('pageshow', loadObservations);
+
+window.addEventListener('collector-observations-changed', loadObservations);

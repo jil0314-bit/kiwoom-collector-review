@@ -4,6 +4,7 @@ Ranking comes from Kiwoom themes; each theme's stocks come from the user's own
 Hero4 0130 watchlist group matched to it, falling back to Kiwoom members.
 The user's own edits (data/themes/edits.json) are applied on top at every refresh.
 """
+import safeio
 import json
 import os
 import re
@@ -171,7 +172,7 @@ def save_edits(data, raw, revision):
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_name(path.name + ".tmp")
         tmp.write_text(json.dumps(doc, ensure_ascii=False, indent=1), encoding="utf-8")
-        os.replace(tmp, path)
+        safeio.replace(tmp, path)
     return doc
 
 
@@ -348,7 +349,7 @@ def write(data, day, snapshot):
     record = {**snapshot, "day": day, "history": history[-HISTORY_LIMIT:]}
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
-    os.replace(tmp, path)
+    safeio.replace(tmp, path)
     prune(data)
     return record
 

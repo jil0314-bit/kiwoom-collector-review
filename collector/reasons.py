@@ -10,6 +10,7 @@ import threading
 import time
 import uuid
 import urllib.request
+import safeio
 from urllib.parse import urlencode
 from datetime import datetime
 from html.parser import HTMLParser
@@ -44,7 +45,7 @@ def path(data, day):
 
 def read_day(data, day):
     p = path(data, day)
-    return json.loads(p.read_text(encoding="utf-8")) if p.is_file() else {}
+    return safeio.load_json(p, {}, root=data)
 
 
 def write_day(data, day, record):
@@ -52,7 +53,7 @@ def write_day(data, day, record):
     p.parent.mkdir(parents=True, exist_ok=True)
     tmp = p.with_name(p.name + ".tmp")
     tmp.write_text(json.dumps(record, ensure_ascii=False, indent=1), encoding="utf-8")
-    os.replace(tmp, p)
+    safeio.replace(tmp, p)
 
 
 def clean(text):
@@ -119,7 +120,13 @@ def parse_feature_groups(text, names):
     return items
 
 
-def save_infostock(data, day, text, names, source="paste", published="", archive=""):
+def summary_codes(text, raw=""):
+    """Count source codes independently of whether a price/reason row parsed."""
+    return set(re.findall(r'\(\s*([0-9A-Z]{6})\s*\)', text)) | set(
+        re.findall(r'stockitem\?code=([0-9A-Z]{6})', raw.replace('\x00', '')))
+
+
+def save_infostock(data, day, text, names, source="paste", published="", archive="", expected_codes=None, preserve_existing=False):
     if not isinstance(text, str) or not text.strip() or len(text) > MAX_TEXT:
         raise ValueError("붙여넣은 내용이 비어 있거나 너무 깁니다.")
     path(data, day)
@@ -134,6 +141,8 @@ def save_infostock(data, day, text, names, source="paste", published="", archive
             items.setdefault(code, item)
     if not items:
         raise ValueError("종목과 사유를 찾지 못했습니다. 영웅문 기사 본문 전체를 복사(Ctrl+A → Ctrl+C)해서 붙여넣어 주세요.")
+    expected = (summary_codes(text) | set(expected_codes or []) | set(items)) if TITLE in title else set()
+    missing = sorted(expected - set(items))
     for item in items.values():
         item.update(article_title=title, article_day=day, source=source, published=published)
         if archive:
@@ -143,12 +152,15 @@ def save_infostock(data, day, text, names, source="paste", published="", archive
         previous = record.get("infostock", {}).get("items", {})
         articles = record.get("infostock", {}).get("articles", [])
         article = {"day": day, "title": title, "source": source, "published": published}
+        if expected:
+            article.update(expected_codes=sorted(expected), parsed_codes=sorted(items),
+                           missing_codes=missing, parse_state='partial' if missing else 'complete')
         if archive:
             article["archive"] = archive
         if article not in articles:
             articles = [*articles, article]
         merged = {**items, **previous}
-        if TITLE in title:
+        if TITLE in title and not preserve_existing:
             for code, item in items.items():
                 old = previous.get(code, {})
                 if (any(label in old.get('article_title', '') for label in FEATURED)
@@ -158,7 +170,10 @@ def save_infostock(data, day, text, names, source="paste", published="", archive
         record["infostock"] = {"saved_at": datetime.now(KST).isoformat(timespec="seconds"), "source": source,
                                "published": published, "title": title or "증시요약(6) - 특징 상한가 및 급등종목",
                                "articles": articles, "items": merged,
-                               "missing_codes": [code for code in record.get("infostock", {}).get("missing_codes", []) if code not in items]}
+                               "missing_codes": missing if expected else [code for code in record.get("infostock", {}).get("missing_codes", [])
+                                   if any(label in title for label in FEATURED) or code not in items]}
+        if expected:
+            record['infostock']['parse_state'] = 'partial' if missing else 'complete'
         write_day(data, day, record)
     return items
 
@@ -240,7 +255,7 @@ def archive_hero4(data, day, published, source):
         temp = folder / (name + ".tmp-" + uuid.uuid4().hex)
         try:
             temp.write_bytes(raw)
-            os.replace(temp, target)
+            safeio.replace(temp, target)
         finally:
             temp.unlink(missing_ok=True)
     if target.read_bytes() != raw:
@@ -254,14 +269,14 @@ SEEN = {"stamp": None}
 def write_hero_status(data, **record):
     target = Path(data) / 'reasons' / 'hero4_source_status.json'
     with LOCK:
-        old = json.loads(target.read_text(encoding='utf-8')) if target.is_file() else {}
+        old = safeio.load_json(target, {}, root=data)
         if {k:v for k,v in old.items() if k != 'at'} == record:
             return
         target.parent.mkdir(parents=True, exist_ok=True)
         temp = target.with_name(target.name + '.tmp-' + uuid.uuid4().hex)
         try:
             temp.write_text(json.dumps({**record,'at':datetime.now(KST).isoformat(timespec='seconds')},ensure_ascii=False),encoding='utf-8')
-            os.replace(temp,target)
+            safeio.replace(temp,target)
         finally:
             temp.unlink(missing_ok=True)
 
@@ -270,12 +285,13 @@ def source_status(data, day):
     """Explain missing original articles separately from a checked news feed."""
     record = read_day(data, day)
     target = Path(data) / 'reasons' / 'hero4_source_status.json'
-    local = json.loads(target.read_text(encoding='utf-8')) if target.is_file() else {}
+    local = safeio.load_json(target, {}, root=data)
     summary = Path(data) / 'reasons' / ('summary_' + day + '.json')
     if not summary.is_file():
         summary = Path(data) / 'reasons' / 'summary_status.json'
-    public = json.loads(summary.read_text(encoding='utf-8')) if summary.is_file() else {}
+    public = safeio.load_json(summary, {}, root=data)
     return {'day': day, 'missing_codes': record.get('infostock', {}).get('missing_codes', []), 'article_count': len(record.get('infostock',{}).get('items',{})),
+            'summary_coverage': summary_coverage(record),
             'local_article_day': local.get('article_day'), 'local_state': local.get('state','UNKNOWN'),
             'public_state': public.get('state','UNKNOWN') if public.get('day') == day else 'UNKNOWN'}
 
@@ -291,7 +307,7 @@ def watch_hero4(data, names_for, path=None):
     stamp = (str(path), str(data), info.st_mtime_ns, info.st_size)
     if SEEN["stamp"] == stamp:
         status_path = Path(data) / 'reasons' / 'hero4_source_status.json'
-        status = json.loads(status_path.read_text(encoding='utf-8')) if status_path.is_file() else {}
+        status = safeio.load_json(status_path, {}, root=data)
         saved_day = status.get('article_day')
         if not saved_day or set(status.get('codes',[])) <= set(read_day(data,saved_day).get('infostock',{}).get('items',{})):
             return None
@@ -306,7 +322,9 @@ def watch_hero4(data, names_for, path=None):
         return None  # The viewer replaced News.html during our read; retry on the next tick.
     items = save_infostock(data, day, verified[2], names_for(day), source="hero4", published=published,
                            archive=str(archived.relative_to(Path(data) / "reasons")))
-    write_hero_status(data,state='saved',article_day=day,published=published,count=len(items),codes=list(items))
+    missing = read_day(data, day).get('infostock', {}).get('missing_codes', [])
+    write_hero_status(data,state='partial' if missing else 'saved',article_day=day,published=published,
+                      count=len(items),codes=list(items),missing_codes=missing)
     SEEN["stamp"] = stamp
     return day, items
 
@@ -429,35 +447,70 @@ def public_html(url, opener=urllib.request.urlopen):
 SAMSUNG_BASE = 'https://www.samsungpop.com/ux/kor/trading/marketStock/analysis/company/'
 
 
-def summary_complete(record):
+def summary_coverage(record):
     info = record.get('infostock', {})
     articles = info.get('articles') or [info]
-    return bool(info.get('items')) and not info.get('missing_codes') and any(TITLE in a.get('title', '') for a in articles)
+    checked = [article for article in articles if TITLE in article.get('title', '')
+               and article.get('expected_codes')]
+    expected = set(checked[-1]['expected_codes']) if checked else set()
+    saved = {code for code, item in info.get('items', {}).items() if str(item.get('reason', '')).strip()}
+    missing = sorted((expected - saved) | set(info.get('missing_codes', [])))
+    return {'expected': len(expected), 'saved': len(expected & saved), 'missing_codes': missing,
+            'complete': bool(expected) and not missing}
 
 
-def fetch_distributor_summary(data, day, names, fetch=public_html):
+def summary_complete(record):
+    return summary_coverage(record)['complete']
+
+
+def verify_archived_summary(data, day, names):
+    """Recheck retained source rows before trusting an older completion flag."""
+    record = read_day(data, day)
+    base = (Path(data) / 'reasons').resolve()
+    for article in reversed(record.get('infostock', {}).get('articles', [])):
+        if article.get('day') != day or TITLE not in article.get('title', '') or not article.get('archive'):
+            continue
+        try:
+            source = (base / article['archive']).resolve()
+            source.relative_to(base)
+            raw = source.read_bytes().decode('cp949' if article.get('source') == 'hero4' else 'utf-8')
+            text = html_text(raw)
+            own_day, _ = article_day(text)
+            if TITLE not in article_title(text) or (own_day and own_day != day):
+                continue
+            save_infostock(data, day, text, names, source=article['source'],
+                           published=article.get('published', ''), archive=article['archive'],
+                           expected_codes=summary_codes(text, raw), preserve_existing=True)
+            if summary_complete(read_day(data, day)):
+                return True
+        except (OSError, ValueError, UnicodeError) as exc:
+            safeio.log_error('reasons.archive_verify', exc, root=data, day=day)
+    return False
+
+
+def fetch_distributor_summary(data, day, names, fetch=public_html, title_key=TITLE):
     """Public Infostock distributor. Validate list date, detail date and title before saving."""
     path(data, day)
-    query = urlencode({'gubun': 'news', 'P_StartDt': day, 'A_SrchKeyWord': '증시요약(6)',
+    keyword = '증시요약(6)' if title_key == TITLE else '증시요약'
+    query = urlencode({'gubun': 'news', 'P_StartDt': day, 'A_SrchKeyWord': keyword,
                        'P_Sect2': '1', 'P_MidSect': '13', 'P_ItemCd6': '', 'P_ReqstCnt1': '30'})
     listing = fetch(SAMSUNG_BASE + 'analysisOnestopContentsListPopup.do?' + query)
     pattern = r'onclick="goView\(([^)]+)\);">([^<]+)</a>'
     for call, title in re.findall(pattern, listing):
         args = re.findall(r"'([0-9]+)'", call)
-        if len(args) != 6 or args[0] != day.replace('-', '') or TITLE not in clean(title):
+        if len(args) != 6 or args[0] != day.replace('-', '') or title_key not in clean(title):
             continue
         keys = ['P_Dt1', 'P_Time11', 'P_ContinueKey4', 'P_LageSect', 'P_MidSect', 'P_SmllSect']
         params = urlencode(dict(zip(keys, args)))
         url = SAMSUNG_BASE + 'analysisOnestopContentsListPopupView2.do?' + params
         detail = html_text(fetch(url))
-        if day not in detail or TITLE not in detail or '인포스탁' not in detail:
+        if day not in detail or title_key not in detail or '인포스탁' not in detail:
             raise ValueError('인포스탁 기사 상세 날짜·제목·출처 불일치')
         raw = fetch(SAMSUNG_BASE + 'viewContent.do?' + params + '&A_ProcFlag=Y')
         text = html_text(raw)
         parsed = parse(text, names)
         linked_codes = set(re.findall(r'stockitem\?code=([0-9A-Z]{6})', raw.replace('\x00', '')))
-        missing_codes = sorted(linked_codes - set(parsed))
-        if TITLE not in text or not parsed:
+        if title_key not in text or not parsed:
             raise ValueError('인포스탁 기사 본문 누락 또는 형식 변경')
         own_day, _ = article_day(text)
         if own_day and own_day != day:
@@ -470,18 +523,30 @@ def fetch_distributor_summary(data, day, names, fetch=public_html):
         if not target.exists():
             temp = target.with_name(target.name + '.tmp-' + uuid.uuid4().hex)
             temp.write_bytes(raw.encode('utf-8'))
-            os.replace(temp, target)
+            safeio.replace(temp, target)
         if hashlib.sha256(target.read_bytes()).hexdigest() != digest:
             raise OSError('인포스탁 공개 원문 보관 검증 실패')
         items = save_infostock(data, day, text, names, source=url, published=at,
-                              archive=str(target.relative_to(Path(data) / 'reasons')))
-        with LOCK:
-            record = read_day(data, day)
-            record['infostock']['missing_codes'] = missing_codes
-            record['infostock']['parse_state'] = 'partial' if missing_codes else 'complete'
-            write_day(data, day, record)
+                              archive=str(target.relative_to(Path(data) / 'reasons')),
+                              expected_codes=linked_codes)
         return items
     return {}
+
+
+def fetch_featured(data, day, names, fetch=public_html):
+    """Add confirmed rising rows from the two dated feature articles; preserve main reasons."""
+    pending = []
+    for title in FEATURED[:2]:
+        articles = read_day(data, day).get('infostock', {}).get('articles', [])
+        if any(title.replace(' ', '') in a.get('title', '').replace(' ', '') for a in articles):
+            continue
+        try:
+            if not fetch_distributor_summary(data, day, names, fetch, title_key=title):
+                pending.append(title)
+        except Exception as exc:
+            safeio.log_error('reasons.featured', exc, root=data, day=day, title=title)
+            pending.append(title)
+    return pending
 
 
 def fetch_summary(data, day, names, fetch=public_html):

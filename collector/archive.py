@@ -1,4 +1,5 @@
 """Atomic daily snapshot pointer and narrowly scoped old-snapshot removal."""
+import safeio
 import json
 import os
 import re
@@ -24,14 +25,20 @@ def day_root(data, day):
 
 def metadata(folder):
     p = folder / 'index.json'
-    return json.loads(p.read_text(encoding='utf-8')) if p.is_file() else {}
+    return safeio.load_json(p, {}) or {}
 
 
 def active(data, day):
     folder = day_root(data, day)
     pointer = folder / 'latest.json'
     if pointer.is_file():
-        name = json.loads(pointer.read_text(encoding='utf-8')).get('folder', '')
+        name = (safeio.load_json(pointer, None) or {}).get('folder', '')
+        if not name:
+            # Unreadable pointer (set aside as .bad): fall back to the newest complete snapshot.
+            done = [p for p in folder.iterdir() if SNAPSHOT.fullmatch(p.name) and metadata(p).get('status') == 'saved']
+            if done:
+                return max(done, key=lambda p: metadata(p).get('ranking_at', ''))
+            return folder / 'latest-missing'
         if not SNAPSHOT.fullmatch(name):
             raise ValueError('최신 자료 포인터 형식 오류')
         target = folder / name

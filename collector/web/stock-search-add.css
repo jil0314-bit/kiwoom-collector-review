@@ -1,0 +1,13 @@
+/* 2026-11-16: 전체 종목 검색 → 관찰종목 바로 담기 (상승률 상위 · 관찰종목 탭 공통) */
+#stock-search-add{grid-column:1/-1;max-width:640px;flex-basis:100%;width:100%;box-sizing:border-box;margin:6px 0 2px;padding:10px 12px;border:1px solid rgba(128,128,128,.4);border-radius:10px;font-size:.875rem;line-height:1.4}
+#stock-search-add[hidden]{display:none}
+#stock-search-add .ssa-title{display:block;margin-bottom:6px;opacity:.8;font-size:.8125rem}
+#stock-search-add ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow:auto}
+#stock-search-add li{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#stock-search-add .ssa-name{font-weight:650}
+#stock-search-add .ssa-code{opacity:.75;margin-left:6px;font-size:.8125rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+#stock-search-add button{padding:4px 10px;white-space:nowrap;font-size:.8125rem;flex:none}
+#stock-search-add .ssa-note{display:block;opacity:.8}
+
+#stock-search-add .ssa-chart{flex:1;min-width:0;text-align:left;white-space:normal}
+#stock-search-add .ssa-chart:focus-visible{outline:2px solid #2563eb;outline-offset:2px}

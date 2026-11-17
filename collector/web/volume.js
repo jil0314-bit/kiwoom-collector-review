@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id), fmt=n=>n==null?'—':Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2});
 let status={}, meta={stocks:[]}, record=null, choice='', code='', selected=-1, requestVersion=0, refreshing=false, openedFlag=false;
-let frame='minute', loading=false, liveChart=false;
+let frame='minute', loading=false, liveChart=document.body.dataset.sharedViewer!=='1', quoteList=false; /* 2026-11-17: 차트는 현재 차트로 열림. 목록 현재가 자동조회(quoteList)는 기준을 직접 고를 때만 */
 let liveQuotes={},quoteRequest=0,quotesBusy=false;
 let listMode='ranking', watchlists=[], watchGroup='';
 let stockProfiles={}, profileDay='', profileAt=0, profileVersion=0;
@@ -43,7 +43,7 @@ const changed=choice!==$('archive').value;choice=$('archive').value;await loadDa
 let dayRequest=0, followLatestDate=true;
 async function loadDay(changed=false){const version=++dayRequest,requested=choice;if(changed)liveQuotes={};const oldRevision=meta.revision||meta.ranking_at;const next=await api('/api/volume/day?'+params());if(version!==dayRequest||requested!==choice)return;meta=next;loadNotes(choice.split('|')[0]);loadProfiles(choice.split('|')[0]);$('saved').replaceChildren(document.createTextNode(String(meta.stocks.filter(s=>s.status==='saved').length)+' '),element('small','/ '+meta.stocks.length+'종목'));$('ranktime').textContent=(meta.kind==='preview'?(meta.day<status.now.slice(0,10)?'장중 저장 · 최종 미수집 · ':'장중 최신 · '):'최종 · ')+(meta.ranking_at||'').slice(11,19)+' KST';renderStocks();if(changed||!loading&&(!record||!liveChart&&listMode==='ranking'&&oldRevision!==(meta.revision||meta.ranking_at))){const keepTime=!changed&&record&&selected<record.bars.length-1?record.bars[selected]?.ts:null;const s=currentStocks().find(s=>s.code===code)||currentStocks()[0];if(s){if(changed)selectStock(s.code);else selectStock(s.code,keepTime)}else clearChart()}}
 async function refreshQuotes(){
-  if(quotesBusy||loading||!liveChart||document.hidden)return;
+  if(quotesBusy||loading||!liveChart||!quoteList||document.hidden)return;
   const symbols=currentStocks().map(s=>s.code);if(!symbols.length)return;
   quotesBusy=true;const key=symbols.join(','),version=++quoteRequest;
   const valid=()=>version===quoteRequest&&currentStocks().map(s=>s.code).join(',')===key;
@@ -124,7 +124,7 @@ $('preview').onclick=async()=>{try{const enabled=!status.monitor.enabled;await p
 function updateFrameControls(){$('chart-frame').value=frame;drawChartLegend($('legend'),periods());$('detail-title').textContent=frame==='day'?'선택한 거래일':frame==='week'?'선택한 주':frame==='month'?'선택한 월':'선택한 '+frameLabel();$('time-heading').textContent=frame==='day'?'날짜 (KST)':frame==='week'?'주 시작일 (KST)':frame==='month'?'월 (KST)':'시각 (KST)';$('close-heading').textContent=closeLabel().replace(' · ',' (')+')';$('minute').setAttribute('aria-label',frame==='day'?'거래일 선택':frame==='week'?'주 선택':frame==='month'?'월 선택':'분 선택');$('chart').setAttribute('aria-label',frameLabel()+' 캔들 차트');$('change-help').textContent=frame==='day'?'봉 등락률은 시가→종가, 직전봉 대비는 이전 거래일 종가→현재 종가입니다.':frame==='month'?'봉 등락률은 해당 월 시가→종가, 직전봉 대비는 이전 월 종가→현재 종가입니다.':frame==='week'?'봉 등락률은 해당 주 시가→종가, 직전봉 대비는 이전 주 종가→현재 종가입니다.':'봉 등락률은 시가→종가, 직전봉 대비는 직전 저장봉 종가→현재 종가입니다. 빈 분은 임의로 채우지 않습니다.';}
 async function switchFrame(next){if(next===frame)return;const previous=code;frame=next;requestVersion++;clearChart();updateFrameControls();if(previous)await selectStock(previous)}
 $('chart-frame').onchange=()=>switchFrame($('chart-frame').value);updateFrameControls();
-$('chart-source').onchange=async()=>{liveQuotes={};liveChart=$('chart-source').value==='live';const previous=code;requestVersion++;clearChart();if(previous)await selectStock(previous)};
+$('chart-source').onchange=async()=>{liveQuotes={};liveChart=$('chart-source').value==='live';quoteList=liveChart;const previous=code;requestVersion++;clearChart();if(previous)await selectStock(previous)};
 async function refreshLiveChart(){if(!liveChart||loading||!code||document.hidden||drag)return;const keepTime=record&&selected<record.bars.length-1?record.bars[selected]?.ts:null;await selectStock(code,keepTime,true)}
 window.addEventListener('DOMContentLoaded',()=>{new ResizeObserver(draw).observe($('chart').parentElement);refresh();setInterval(refresh,5000);setInterval(()=>{refreshLiveChart();refreshQuotes()},15000)});
 

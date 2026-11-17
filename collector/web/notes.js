@@ -183,7 +183,7 @@ function keepInlineMemoDraft(){
 }
 function renderInlineMemo(){
   if(!$('inline-memo')||inlineMemoSaving)return;
-  const stock=currentStocks().find(s=>s.code===code),day=choice.split('|')[0];
+  const stock=searchSelection?.code===code?searchSelection:currentStocks().find(s=>s.code===code),day=searchSelection?.day||choice.split('|')[0];
   const ready=!!stock&&notesDay===day&&notesLoadedDay===day;
   if(!stock){
     keepInlineMemoDraft();inlineMemoTarget=null;inlineReasonSignature='';
@@ -212,7 +212,7 @@ function renderInlineMemo(){
     $('inline-memo-title').textContent=stock.name+' · 메모 / 상승 사유';
     $('inline-memo-date').textContent=day+' · '+code;
     $('inline-memo-reasons').replaceChildren();$('inline-memo-text').value='';
-    $('inline-memo-status').textContent='메모 불러오는 중…';
+    $('inline-memo-status').textContent=searchSelection?'검색 종목 메모는 관찰종목에 담은 뒤 관찰종목 탭에서 작성할 수 있습니다.':'메모 불러오는 중…';
   }
   for(const id of ['inline-memo-text','inline-memo-save','inline-memo-reload','inline-memo-refresh'])if($(id))$(id).disabled=!ready;
 }

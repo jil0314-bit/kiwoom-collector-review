@@ -218,13 +218,17 @@ class Tests(unittest.TestCase):
             final=AT.replace(hour=20,minute=5)
             path=Path(d)/'schedule.json'
             app.save(path,{'day':DAY,'final_attempts':3,'last_final_epoch':final.timestamp()})
-            app.scheduler_tick(final+timedelta(minutes=29))
+            app.scheduler_tick(final+timedelta(minutes=19))
             start.assert_not_called()
-            app.scheduler_tick(final+timedelta(minutes=30))
+            app.scheduler_tick(final+timedelta(minutes=20))
             start.assert_called_once_with(DAY,source='final')
             start.reset_mock()
+            # 2026-11-16: no attempt cap; keeps retrying at 20-minute spacing until 21:55.
             app.save(path,{'day':DAY,'final_attempts':5,'last_final_epoch':final.timestamp()})
             app.scheduler_tick(final+timedelta(minutes=60))
+            start.assert_called_once_with(DAY,source='final')
+            start.reset_mock()
+            app.scheduler_tick(final.replace(hour=21,minute=56))
             start.assert_not_called()
 
     def test_open_enables_refresh_and_busy_requests_coalesce(self):

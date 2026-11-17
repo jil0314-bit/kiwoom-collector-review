@@ -5,6 +5,7 @@ let rankStocks=[],rankDay='',rankCode='',rankRecord=null,rankVersion=0,rankTimer
 let rankHeroVersion=0,rankHeroTimer,rankHeroQueue=Promise.resolve();
 let rankZoom=null, rankRangeBeforeZoom=null;
 let rankLoading=false;
+let rankSearchSelection=null;
 async function rankHeroTargets(){
   try{const r=await fetch('/api/hero-targets');if(!r.ok)return;const data=await r.json(),select=chartEl('rank-hero-target'),previous=select.value||localStorage.getItem('collector-hero-chart')||data.preferred||'';
     select.replaceChildren(new Option('영웅문 0600 · 자동 선택',''),new Option('영웅문 연동 끄기','off'),...data.targets.map(t=>new Option(t.label,t.handle)));
@@ -24,8 +25,8 @@ function rankLinkHero(symbol){
   });},100);
 }
 const rankFormat=value=>value==null?'—':Number(value).toLocaleString('ko-KR',{maximumFractionDigits:2});
-const rankSource = () => document.body.dataset.chartSource || (document.body.dataset.rankApi === '/api/amount-top' ? 'amount-top' : 'volume-top');
-function rankParams(){const day=rankStocks.find(stock=>stock.code===rankCode)?.chart_day||rankDay;const query=new URLSearchParams({day,code:rankCode,source:rankSource(),frame:chartEl('rank-frame').value,live:chartEl('rank-live').value==='live'?'1':'0'});if(Number(rankRangeBeforeZoom??chartEl('rank-range').value)>=360)query.set('history','1');return query;}
+const rankSource = () => rankSearchSelection ? 'search' : document.body.dataset.chartSource || (document.body.dataset.rankApi === '/api/amount-top' ? 'amount-top' : 'volume-top');
+function rankParams(){const day=rankSearchSelection?.chart_day||rankStocks.find(stock=>stock.code===rankCode)?.chart_day||rankDay;const query=new URLSearchParams({day,code:rankCode,source:rankSource(),frame:chartEl('rank-frame').value,live:chartEl('rank-live').value==='live'?'1':'0'});if(Number(rankRangeBeforeZoom??chartEl('rank-range').value)>=360)query.set('history','1');return query;}
 function rankHighlight(){for(const row of document.querySelectorAll('#rows tr')){const selected=row.dataset.code===rankCode;row.classList.toggle('selected',selected);row.querySelector('button')?.setAttribute('aria-pressed',String(selected));}}
 function rankDetails(bar){
   if(!bar){chartEl('rank-details').textContent='';return;}
@@ -55,7 +56,7 @@ function rankDraw(){
   rankDetails(rankInspection.paint(ctx, rankGeometry, rankRecord) || rankRecord?.bars.at(-1));
 }
 function rankChoose(code,scroll=false,sendHero=true){
-  const stock=rankStocks.find(s=>s.code===code);if(!stock)return;
+  const stock=rankSearchSelection?.code===code?rankSearchSelection:rankStocks.find(s=>s.code===code);if(!stock)return;
   rankCode=code;window.collectorStockTools?.({day:stock.chart_day||rankDay,code,name:stock.name,source:rankSource()});rankRecord=null;clearRankZoom();
   chartEl('rank-title').textContent=stock.name+' ('+stock.code+')';chartEl('rank-notice').textContent='차트 조회 중…';
   rankHighlight();rankDraw();if(scroll)document.querySelector('#rows tr[data-code="'+code+'"]')?.scrollIntoView({block:'nearest'});
@@ -87,16 +88,17 @@ window.rankUpdate=(day,stocks)=>{
   const oldChartDay=rankStocks.find(stock=>stock.code===rankCode)?.chart_day||rankDay;
   const newChartDay=stocks.find(stock=>stock.code===rankCode)?.chart_day||day;
   const changed=oldChartDay!==newChartDay;rankDay=day;rankStocks=stocks;
+  if(rankSearchSelection)return;
   if(!stocks.length){rankVersion++;clearTimeout(rankTimer);rankAbort?.abort();rankCode='';window.collectorStockTools?.(null);rankRecord=null;clearRankZoom();chartEl('rank-title').textContent='표시할 종목 없음';chartEl('rank-notice').textContent='';rankDraw();return;}
   if(changed||!stocks.some(s=>s.code===rankCode))rankChoose(stocks[0].code,false,false);else rankHighlight();
 };
-chartEl('rows').addEventListener('click',event=>{const row=event.target.closest('tr[data-code]');if(row)rankChoose(row.dataset.code);});
+chartEl('rows').addEventListener('click',event=>{const row=event.target.closest('tr[data-code]');if(row){rankSearchSelection=null;rankChoose(row.dataset.code);}});
 document.addEventListener('keydown',event=>{
   if(!['ArrowUp','ArrowDown'].includes(event.key)||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
   if(event.target.closest('input,textarea,select,[contenteditable="true"],dialog'))return;
   const index=rankStocks.findIndex(s=>s.code===rankCode);if(index<0)return;
   event.preventDefault();const next=Math.max(0,Math.min(rankStocks.length-1,index+(event.key==='ArrowDown'?1:-1)));
-  if(next!==index)rankChoose(rankStocks[next].code,true);
+  if(next!==index){rankSearchSelection=null;rankChoose(rankStocks[next].code,true);}
 });
 for(const id of ['rank-frame','rank-live'])chartEl(id).addEventListener('change',()=>rankChoose(rankCode,false,false));
 chartEl('rank-hero-target').addEventListener('change',()=>{localStorage.setItem('collector-hero-chart',chartEl('rank-hero-target').value);if(rankCode)rankLinkHero(rankCode);});
@@ -122,3 +124,8 @@ function clearRankZoom() {
 function resetRankZoom() { clearRankZoom(); rankDraw(); }
 chartEl('zoom-reset').onclick = resetRankZoom;
 setInterval(()=>{if(rankCode&&!rankLoading&&!document.hidden&&!rankInspection.dragging()&&chartEl('rank-live').value==='live')rankRefresh();},15000);
+
+window.collectorSearchSelect=(stock,day)=>{
+  rankSearchSelection={...stock,chart_day:day};chartEl('rank-frame').value='day';
+  chartEl('rank-live').value='archive';rankChoose(stock.code);
+};

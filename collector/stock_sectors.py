@@ -1,4 +1,5 @@
 """Background business-sector labels. Never uses the quote/order client."""
+import safeio
 import html
 import json
 import os
@@ -52,7 +53,7 @@ def _save(data, entries):
     path = data / "stock_sectors.json"
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps({"items": entries}, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(tmp, path)
+    safeio.replace(tmp, path)
 
 
 def ensure(data, stocks, fetch=fetch_sector):

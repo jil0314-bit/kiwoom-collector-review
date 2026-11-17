@@ -1,5 +1,6 @@
 """Read-only Hero4 0785 net-buy rankings; isolated daily, atomic archive."""
 from __future__ import annotations
+import safeio
 import csv
 import hashlib
 import io
@@ -38,7 +39,7 @@ def root(data):
 
 
 def load(path, fallback=None):
-    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else fallback
+    return safeio.load_json(path, fallback)
 
 
 def write(path, obj):
@@ -46,7 +47,7 @@ def write(path, obj):
     tmp = path.with_name(path.name + ".tmp-" + uuid.uuid4().hex)
     try:
         tmp.write_text(json.dumps(obj, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
-        os.replace(tmp, path)
+        safeio.replace(tmp, path)
     finally:
         tmp.unlink(missing_ok=True)
 
@@ -444,6 +445,7 @@ def start(data, coordinator, manual=False, current=None):
             STATE["message"] = "외국인·기관 순매수 저장 완료" + (" · 일부 시장·투자자 목록 양수 순매수가 30개 미만" if short else "")
             write(root(data) / "last_error.json", None)
         except Exception as exc:
+            safeio.log_error("investors.refresh", exc, root=data, day=day)
             message = str(exc) if isinstance(exc, DataError) else "외국인·기관 처리·저장 실패: 이전 자료 유지"
             STATE["message"] = message
             write(root(data) / "last_error.json", {"at": datetime.now(KST).isoformat(), "day": day, "message": message})

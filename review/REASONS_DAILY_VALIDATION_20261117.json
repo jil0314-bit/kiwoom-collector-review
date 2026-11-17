@@ -1,0 +1,176 @@
+{
+  "stored": {
+    "rows": [
+      {
+        "day": "2026-11-09",
+        "reason_count": 51,
+        "ranked_total": 100,
+        "ranked_with_confirmed_reason": 39,
+        "main_article": {
+          "expected": 37,
+          "saved": 37,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-10",
+        "reason_count": 77,
+        "ranked_total": 100,
+        "ranked_with_confirmed_reason": 46,
+        "main_article": {
+          "expected": 46,
+          "saved": 46,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-11",
+        "reason_count": 91,
+        "ranked_total": 100,
+        "ranked_with_confirmed_reason": 64,
+        "main_article": {
+          "expected": 65,
+          "saved": 65,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-12",
+        "reason_count": 38,
+        "ranked_total": 100,
+        "ranked_with_confirmed_reason": 34,
+        "main_article": {
+          "expected": 23,
+          "saved": 23,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-13",
+        "reason_count": 58,
+        "ranked_total": 100,
+        "ranked_with_confirmed_reason": 40,
+        "main_article": {
+          "expected": 38,
+          "saved": 38,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-16",
+        "reason_count": 56,
+        "ranked_total": 100,
+        "ranked_with_confirmed_reason": 42,
+        "main_article": {
+          "expected": 40,
+          "saved": 40,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-17",
+        "reason_count": 56,
+        "ranked_total": 100,
+        "ranked_with_confirmed_reason": 44,
+        "main_article": {
+          "expected": 31,
+          "saved": 31,
+          "missing_codes": [],
+          "complete": true
+        }
+      }
+    ],
+    "total": 427,
+    "volume_monitor_enabled": true,
+    "source_news_modified": false
+  },
+  "display": {
+    "results": [
+      {
+        "day": "2026-11-17",
+        "checked": 56,
+        "missing": [],
+        "coverage": {
+          "expected": 31,
+          "saved": 31,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-16",
+        "checked": 56,
+        "missing": [],
+        "coverage": {
+          "expected": 40,
+          "saved": 40,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-13",
+        "checked": 58,
+        "missing": [],
+        "coverage": {
+          "expected": 38,
+          "saved": 38,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-12",
+        "checked": 38,
+        "missing": [],
+        "coverage": {
+          "expected": 23,
+          "saved": 23,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-11",
+        "checked": 91,
+        "missing": [],
+        "coverage": {
+          "expected": 65,
+          "saved": 65,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-10",
+        "checked": 77,
+        "missing": [],
+        "coverage": {
+          "expected": 46,
+          "saved": 46,
+          "missing_codes": [],
+          "complete": true
+        }
+      },
+      {
+        "day": "2026-11-09",
+        "checked": 51,
+        "missing": [],
+        "coverage": {
+          "expected": 37,
+          "saved": 37,
+          "missing_codes": [],
+          "complete": true
+        }
+      }
+    ],
+    "total": 427,
+    "errors": []
+  }
+}

@@ -11,6 +11,8 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
+import safeio
+
 KST = timezone(timedelta(hours=9))
 HOST = "https://api.kiwoom.com"
 ROUTES = {"ka10030": "/api/dostk/rkinfo", "ka10023": "/api/dostk/rkinfo", "ka10027": "/api/dostk/rkinfo", "ka10080": "/api/dostk/chart", "ka10081": "/api/dostk/chart",
@@ -33,6 +35,8 @@ _RATE_LOCK = threading.Lock()
 _RATE_LAST = 0.0
 _TOKEN_LOCK = threading.RLock()
 _SHARED_AUTH = {'token': '', 'expires': datetime.min.replace(tzinfo=KST)}
+TOKEN_REISSUE_WAIT = 2.0
+MAX_BAD_ROWS = 3  # malformed minute rows tolerated per stock before the stock is rejected
 
 
 def _retry_after(headers):
@@ -117,7 +121,9 @@ def number(value, *, price=False):
 
 
 def parse_bar(row):
-    stamp = str(row.get("cntr_tm", ""))
+    stamp = str(row.get("cntr_tm", "")).strip()
+    if stamp.isdigit() and 14 < len(stamp) <= 20:
+        stamp = stamp[:14]  # Kiwoom sometimes appends milliseconds (2026-11-13 observed).
     try:
         dt = datetime.strptime(stamp, "%Y%m%d%H%M%S").replace(tzinfo=KST)
     except ValueError:
@@ -134,6 +140,21 @@ def parse_bar(row):
         raise DataError("분봉 OHLC 범위 또는 거래량 오류")
     return {"ts": dt.strftime("%Y-%m-%d %H:%M:%S"), "open": o,
             "high": h, "low": l, "close": c, "volume": v}
+
+
+def _merge_live_bar(first, second):
+    """The same minute returned on two pages of one lookup.
+
+    While a minute is still trading its bar grows between page requests: the open
+    stays, the high only rises, the low only falls and the volume only increases.
+    That is the same bar seen twice, so the later (larger) state is kept.
+    Anything else is a real contradiction and still fails.
+    """
+    older, newer = (first, second) if first["volume"] <= second["volume"] else (second, first)
+    if (older["open"] == newer["open"] and newer["high"] >= older["high"]
+            and newer["low"] <= older["low"] and newer["volume"] > older["volume"]):
+        return newer
+    raise DataError("연속조회 중 같은 시각의 분봉 값 충돌")
 
 
 class Kiwoom:
@@ -183,6 +204,9 @@ class Kiwoom:
                     raise DataError(f"키움 응답 오류 코드 {rc[:12]}")
                 return data, {k.lower(): v for k, v in response_headers.items()}
             except ConnectionError as exc:
+                if self.shared:
+                    safeio.log_error("kiwoom.retry", exc, api=headers.get("api-id", "token"),
+                                     attempt=attempt + 1, of=self.attempts)
                 if attempt == self.attempts - 1:
                     raise DataError(f"API 통신·호출 제한: {self.attempts}회 조회 실패") from None
                 time.sleep(max(min(20, 2 ** (attempt + 1)),
@@ -226,11 +250,15 @@ class Kiwoom:
             if str(exc) != "키움 응답 오류 코드 3":
                 raise
             if self.shared:
+                safeio.log_error("kiwoom.token_revoked", "다른 프로그램의 새 토큰 발급으로 기존 토큰 무효(코드 3) · 재발급", api=api)
                 with _TOKEN_LOCK:
                     if (_SHARED_AUTH['token'] != self.token and _SHARED_AUTH['token']
                             and datetime.now(KST) < _SHARED_AUTH['expires'] - timedelta(minutes=5)):
                         self.token, self.expires = _SHARED_AUTH['token'], _SHARED_AUTH['expires']
                     else:
+                        # Let the other program finish its own burst before taking the
+                        # token back; immediate re-issue makes the two revoke each other.
+                        time.sleep(TOKEN_REISSUE_WAIT)
                         self.token = ""
                         self._issue_token()
                         _SHARED_AUTH.update(token=self.token, expires=self.expires)
@@ -378,6 +406,7 @@ class Kiwoom:
         earlier = set()
         has_session = False
         previous_day = None
+        dropped = []
         for page in range(40):
             data, hdr = self.request("ka10080", body, cursor)
             if code_of(data.get("stk_cd", code)) != code:
@@ -385,14 +414,23 @@ class Kiwoom:
             raw_rows = data.get("stk_min_pole_chart_qry")
             if not isinstance(raw_rows, list):
                 raise DataError("분봉 목록 누락")
-            parsed = [parse_bar(item) for item in raw_rows]
+            parsed = []
+            for item in raw_rows:
+                try:
+                    parsed.append(parse_bar(item))
+                except DataError as exc:
+                    # One malformed row must not discard the whole stock (and, before
+                    # 2026-11-16, the whole 100-stock snapshot). It is dropped and recorded.
+                    dropped.append({"cntr_tm": str(item.get("cntr_tm", ""))[:20] if isinstance(item, dict) else "", "reason": str(exc)})
+                    if len(dropped) > MAX_BAD_ROWS:
+                        raise DataError(f"분봉 형식 오류 행 {len(dropped)}개 초과: {exc}") from None
             if parsed != sorted(parsed, key=lambda b: b["ts"], reverse=True):
                 raise DataError("분봉 응답 시간 역순 정렬 위반")
             pages.append(data)
             for bar in parsed:
                 previous = rows.get(bar["ts"])
                 if previous and previous != bar:
-                    raise DataError("연속조회 중 같은 시각의 분봉 값 충돌")
+                    bar = _merge_live_bar(previous, bar)
                 rows[bar["ts"]] = bar
                 if allow_previous_session and previous_day is None:
                     ts = bar["ts"]
@@ -436,5 +474,7 @@ class Kiwoom:
         for i, bar in enumerate(ordered):
             for n in (5, 10, 20, 60):
                 bar[f"ma{n}"] = sum(closes[i + 1 - n:i + 1]) / n if i + 1 >= n else None
-        return selected, {"request": body, "pages": pages,
+        if dropped and getattr(self, "shared", False):
+            safeio.log_error("kiwoom.bad_minute_rows", f"{len(dropped)}행 제외: {dropped[0]['reason']}", code=code, sample=dropped[0]["cntr_tm"])
+        return selected, {"request": body, "pages": pages, "dropped_rows": dropped,
                           "earlier_bar_count": sum(b["ts"] < cutoff for b in ordered)}
