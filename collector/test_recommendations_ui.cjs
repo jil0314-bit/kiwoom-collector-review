@@ -28,6 +28,7 @@ let pw;try{pw=require('playwright');}catch{pw=require(path.join(path.dirname(pro
  assert.equal(await page.locator('.rank-list').evaluate(e=>e.scrollWidth>e.clientWidth),false);
  await page.locator('#rec-kind').selectOption('new');assert.equal(await page.locator('#rows tr').count(),0);
  assert.equal(await page.locator('#rec-empty').isVisible(),true);
+ await page.locator('.collector-collection-details').filter({has:page.locator('#rec-overview, .rec-overview')}).locator('summary').click();
  await page.locator('#rec-latest-new').click();await page.waitForFunction(()=>!document.querySelector('#rec-latest-new').disabled);
  assert.equal(await page.locator('#rec-day').inputValue(),'2026-11-06');assert.equal(await page.locator('#rows tr').count(),1);
  await page.setViewportSize({width:720,height:910});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);

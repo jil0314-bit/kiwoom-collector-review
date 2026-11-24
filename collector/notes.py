@@ -33,6 +33,28 @@ def read_day(data, day):
                 if p.is_file() and not p.is_symlink()}
 
 
+def latest(data, codes):
+    """Latest nonempty personal memo per stock, shared by every collection tab."""
+    codes = {code_of(code) for code in codes}
+    if len(codes) > 200:
+        raise DataError('한 번에 200종목까지 조회할 수 있습니다.')
+    result = {}
+    with LOCK:
+        for directory in (data / 'notes').glob('????-??-??'):
+            if not directory.is_dir() or directory.is_symlink():
+                continue
+            for code in codes:
+                path = directory / (code + '.json')
+                if not path.is_file() or path.is_symlink():
+                    continue
+                note = json.loads(path.read_text(encoding='utf-8'))
+                if note.get('text', '').strip() and (code not in result or
+                        (note.get('updated_at', ''), note.get('day', '')) >
+                        (result[code].get('updated_at', ''), result[code].get('day', ''))):
+                    result[code] = note
+    return result
+
+
 def write(data, day, code, text, revision='', name=''):
     code = code_of(code)
     if not isinstance(text, str) or len(text) > MAX_TEXT:

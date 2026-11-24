@@ -758,6 +758,11 @@ class Handler(BaseHTTPRequestHandler):
                 return self.respond({'stocks': observations.read(DATA), 'day': now().date().isoformat(), 'token': TOKEN})
             if parsed.path == '/api/stock-memo':
                 return self.respond(stock_memo(q['day'][0], code_of(q['code'][0])))
+            if parsed.path == '/api/notes/latest':
+                import notes
+                codes = [code for code in q.get('codes', [''])[0].split(',') if code]
+                return self.respond({'notes': notes.latest(DATA, codes),
+                                     'day': now().date().isoformat(), 'token': TOKEN})
             if parsed.path in ('/api/recommendations', '/api/recommendations.csv'):
                 available = recommendations.days(DATA)
                 day = q.get('day', available[:1] or [recommendations.today()])[0]
@@ -804,7 +809,8 @@ class Handler(BaseHTTPRequestHandler):
                     auth = False
                 return self.respond({"now": stamp(), "token": TOKEN, "credentials": auth,
                                      "state": dict(volume_surge.STATE), "catalog": volume_surge.catalog(DATA),
-                                     "monitor": {"enabled": volume_surge.enabled(DATA), "interval_seconds": 60}})
+                                     "monitor": {"enabled": volume_surge.enabled(DATA),
+                                                 "interval_seconds": volume_surge.INTERVAL}})
             if parsed.path == "/api/volume/day":
                 return self.respond(volume_surge.metadata(DATA, q["day"][0]))
             if parsed.path == "/api/status":
@@ -1056,6 +1062,16 @@ class Handler(BaseHTTPRequestHandler):
                     recommendations.set_enabled(DATA, body.get('enabled'))
                     return self.respond({'ok': True, 'enabled': recommendations.enabled(DATA)})
                 return self.respond({'ok': True, 'state': recommendations.start(DATA)}, 202)
+            if self.path == '/api/recommendations/manual':
+                if not isinstance(body, dict) or not isinstance(body.get('code'), str):
+                    raise ValueError()
+                try:
+                    record, created = recommendations.add_manual(DATA, body['code'])
+                except ValueError as exc:
+                    return self.respond({'error': str(exc)}, 400)
+                except OSError:
+                    return self.respond({'error': '추천종목 저장 실패: 저장 공간과 파일 권한을 확인하세요.'}, 503)
+                return self.respond({'record': record, 'created': created}, 201 if created else 200)
             if self.path == '/api/volume-top/collect':
                 return self.respond({'ok': True, 'state': volume_top.start(DATA)}, 202)
             if self.path == '/api/amount-top/collect':

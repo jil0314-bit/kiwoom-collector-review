@@ -4,6 +4,18 @@ const recLabels={pending:'음성전사 검수대기',new:'신규추천',consulta
 const recKindClass={pending:'rec-kind-pending',new:'rec-kind-new',consultation:'rec-kind-consultation',review:'rec-kind-review',sell:'rec-kind-sell',interest:'rec-kind-interest'};
 let recData=null,recProfiles={},recVersion=0,recSelected='',recNoteTarget=null,recRevision='',recNoteSaving=false;
 const recDrafts=new Map();
+
+// Manual picks use the full exchange master and the server's actual KST input date.
+(() => {
+ const form=recNode('form',null,'rec-manual'),label=recNode('label','직접 추천종목 등록 '),input=recNode('input'),results=recNode('div',null,'rec-manual-results'),button=recNode('button','추천종목에 등록'),status=recNode('span');
+ form.id='rec-manual';input.type='search';input.placeholder='전체 시장 종목명 또는 코드';input.setAttribute('aria-label','직접 등록할 종목 검색');button.type='submit';button.disabled=true;status.setAttribute('role','status');label.append(input);form.append(label,button,status,results);recEl('rec-status').before(form);
+ let chosen=null,version=0,timer,busy=false;
+ input.oninput=()=>{chosen=null;button.disabled=true;const current=++version;clearTimeout(timer);results.replaceChildren();if(input.value.trim().length<2)return;timer=setTimeout(async()=>{try{const d=await recApi('/api/stock-search?'+new URLSearchParams({q:input.value.trim()}));if(current!==version)return;results.replaceChildren(...d.stocks.map(stock=>{const b=recNode('button',stock.name+' · '+stock.code);b.type='button';b.onclick=()=>{chosen=stock;input.value=stock.name+' · '+stock.code;results.replaceChildren();button.disabled=false;status.textContent='실제 입력일에 등록합니다.';};return b;}));if(!d.stocks.length)status.textContent='검색된 종목이 없습니다.';}catch(e){if(current===version)status.textContent=e.message;}},250);};
+ form.onsubmit=async e=>{e.preventDefault();if(!chosen||busy)return;busy=true;button.disabled=true;input.disabled=true;const stock=chosen;
+ try{const d=await recApi('/api/recommendations/manual',{code:stock.code});const day=d.record.recommended_date;if(![...recEl('rec-day').options].some(o=>o.value===day))recEl('rec-day').add(new Option(day,day));recEl('rec-day').value=day;recEl('rec-kind').value='focus';recEl('rec-source').value='';recEl('rec-search').value='';await recRefresh();status.textContent=day+' · '+(d.created?'등록했습니다.':'이미 등록된 종목입니다.');window.collectorOpenMemo?.({...stock,day});}
+ catch(e){status.textContent=e.message;}finally{busy=false;button.disabled=false;input.disabled=false;}
+ };
+})();
 const recMoney=p=>p?p.min.toLocaleString('ko-KR')+(p.max!==p.min?'~'+p.max.toLocaleString('ko-KR'):'')+'원':'미확인';
 async function recApi(url,body){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);try{const response=await fetch(url,{signal:controller.signal,...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':recData.token},body:JSON.stringify(body)})});const data=await response.json();if(!response.ok)throw Error(data.error||'요청 실패');return data;}catch(e){if(e.name==='AbortError')throw Error('응답 지연 · 보관 자료를 다시 확인해주세요.');throw e;}finally{clearTimeout(timer);}}
 function recLink(url,label){const a=recNode('a',label,'rec-source-link');if(!/^https:\/\//.test(url||''))return a;a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.onclick=e=>e.stopPropagation();return a;}

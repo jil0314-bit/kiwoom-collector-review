@@ -955,3 +955,79 @@ function drawChartLegend(legend, periods) {
   window.addEventListener('pageshow', loadList);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) loadList(); });
 })();
+
+/* One personal memo surface for every stock list. Uses the existing revisioned store. */
+(() => {
+  const make = (tag, text, cls) => {const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
+  const dialog=make('dialog',null,'collector-common-memo'), heading=make('h2'), day=make('input'),
+    text=make('textarea'), status=make('p'), save=make('button','메모 저장'), close=make('button','닫기'),reload=make('button','저장본 다시 읽기'),
+    evidence=make('details'), evidenceText=make('div');
+  dialog.id='collector-common-memo';day.type='date';day.setAttribute('aria-label','메모 저장 날짜');
+  text.maxLength=20000;text.setAttribute('aria-label','종목 메모');text.rows=8;
+  status.setAttribute('role','status');evidence.append(make('summary','저장된 상승 사유·뉴스'),evidenceText);
+  const actions=make('div',null,'common-memo-actions');actions.append(reload,save,close);
+  dialog.append(heading,day,text,evidence,status,actions);document.body.append(dialog);
+  let latest={},token='',today='',target=null,revision='',busy=false,generation=0,timer,loading=false;
+  const drafts=new Map(), key=()=>target?.code+'/'+day.value;
+  async function api(url,body){const r=await fetch(url,body?{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':token},body:JSON.stringify(body)}:{});const d=await r.json();if(!r.ok)throw Error(d.error||'메모 조회 실패');return d;}
+  function rows(){return [...document.querySelectorAll('.stock-name-text,button.rank-stock')].map(label=>({label,row:label.closest('[data-stock-code],tr[data-code],li[data-code]')})).filter(x=>x.row);}
+  function decorate(){
+    for(const {label,row} of rows()){
+      const code=row.dataset.stockCode||row.dataset.code;
+      let line=label.closest('.collector-name-line');
+      if(!line){line=make('span',null,'collector-name-line');label.before(line);line.append(label);const control=make('span','◢','collector-memo-toggle');control.tabIndex=0;control.setAttribute('role','button');control.dataset.code=code;control.dataset.name=label.textContent;control.setAttribute('aria-label',label.textContent+' 메모 열기');const preview=make('span',null,'collector-latest-memo');line.append(control,preview);}
+      const note=latest[code], preview=line.querySelector('.collector-latest-memo');
+      const firstLine=note?.text?.split(/\r?\n/).map(s=>s.trim()).find(s=>s&&!/^\[[^\]]+\]$/.test(s));
+      const value=firstLine||note?.text?.replace(/\s+/g,' ').trim()||'메모 작성';
+      if(preview.textContent!==value)preview.textContent=value;
+      preview.title=note?note.day+' · '+note.text:'삼각형을 눌러 메모 작성';
+      line.querySelector('.collector-memo-toggle').classList.toggle('has-note',!!note);
+    }
+  }
+  let signature='';
+  async function refresh(force=false){
+    decorate();const codes=[...new Set(rows().map(x=>x.row.dataset.stockCode||x.row.dataset.code))].sort();
+    const next=codes.join(',');if(loading||(!force&&signature===next))return;
+    loading=true;
+    try{const combined={};for(let i=0;i<codes.length||i===0;i+=150){const d=await api('/api/notes/latest?'+new URLSearchParams({codes:codes.slice(i,i+150).join(',')}));Object.assign(combined,d.notes);token=d.token;today=d.day;}latest=combined;signature=next;decorate();}
+    catch(e){signature='';if(dialog.open)status.textContent=e.message;}
+    finally{loading=false;}
+  }
+  async function load(){const version=++generation;save.disabled=true;text.disabled=true;status.textContent='메모 확인 중…';
+    try{const d=await api('/api/stock-memo?'+new URLSearchParams({day:day.value,code:target.code}));if(version!==generation)return;const draft=drafts.get(key());revision=draft?.revision??d.note?.revision??'';text.value=draft?.text??d.note?.text??'';evidenceText.replaceChildren();for(const item of [d.reason?.reason,...(d.history||[]).map(x=>x.day+' · '+x.reason),...(d.news||[]).map(x=>x.title)].filter(Boolean))evidenceText.append(make('p',item));status.textContent=draft?'작성 중인 내용을 복원했습니다.':'표시된 날짜에 저장됩니다.';save.disabled=!token;text.disabled=false;}
+    catch(e){if(version===generation)status.textContent=e.message;}
+  }
+  window.collectorOpenMemo=async stock=>{if(busy)return;if(dialog.open&&target?.code===stock.code)return;target={...stock};if(!today)await refresh(true);day.value=stock.day||latest[stock.code]?.day||today;heading.textContent=stock.name+' · 공통 메모';if(!dialog.open)dialog.showModal();await load();};
+  function activate(event){const control=event.target.closest('.collector-memo-toggle');if(!control)return;if(event.type==='keydown'&&!['Enter',' '].includes(event.key))return;event.preventDefault();event.stopImmediatePropagation();window.collectorOpenMemo({code:control.dataset.code,name:control.dataset.name});}
+  document.addEventListener('click',activate,true);document.addEventListener('keydown',activate,true);
+  text.addEventListener('input',()=>{drafts.set(key(),{text:text.value,revision});status.textContent='작성 중 · 저장 버튼을 눌러주세요.';});
+  day.onchange=()=>{if(day.value)load();};close.onclick=()=>{if(!busy)dialog.close();};
+  reload.onclick=()=>{if(busy)return;if(drafts.has(key())&&!confirm('작성 중인 내용을 버리고 저장된 메모를 다시 읽을까요?'))return;drafts.delete(key());load();};
+  dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});
+  save.onclick=async()=>{if(busy||save.disabled)return;const id=key();busy=true;save.disabled=true;day.disabled=true;text.disabled=true;close.disabled=true;
+    try{const d=await api('/api/notes',{...target,day:day.value,text:text.value,revision});revision=d.note.revision;drafts.delete(id);status.textContent='저장했습니다.';await refresh(true);window.dispatchEvent(new Event('collector-memos-changed'));}
+    catch(e){status.textContent=e.message;}
+    finally{busy=false;save.disabled=false;day.disabled=false;text.disabled=false;close.disabled=false;}
+  };
+  const observer=new MutationObserver(changes=>{if(!changes.some(c=>[...c.addedNodes].some(n=>n.nodeType===1&&!n.closest?.('.collector-name-line,#collector-common-memo'))))return;clearTimeout(timer);timer=setTimeout(()=>refresh(),120);});
+  observer.observe(document.querySelector('main')||document.body,{childList:true,subtree:true});
+  window.addEventListener('collector-memos-changed',()=>refresh(true));
+  window.addEventListener('beforeunload',e=>{if(drafts.size){e.preventDefault();e.returnValue='';}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh(true);});
+  setInterval(()=>{if(!document.hidden)refresh(true);},60000);refresh();
+})();
+
+// Keep the list/chart above explanatory panels; all original controls remain reachable.
+document.addEventListener('DOMContentLoaded', () => {
+  const main=document.querySelector('main');if(!main)return;
+  const extras=[...main.querySelectorAll(':scope > .cards,:scope > .notice,:scope > p.muted,:scope > p:not([id]),:scope > .rec-overview')];
+  if(extras.length){const details=document.createElement('details'),summary=document.createElement('summary');details.className='collector-collection-details';summary.textContent='수집 현황·조건 펼치기';details.append(summary);extras[0].before(details);extras.forEach(e=>details.append(e));}
+  const volume=document.querySelector('#volume-summary');if(volume){const d=document.createElement('details'),s=document.createElement('summary');d.className='collector-collection-details';s.textContent='첫 편입 이후 가격 흐름';volume.before(d);d.append(s,volume);}
+  const notice=document.querySelector('#rank-notice');
+  if(notice){const d=document.createElement('details'),s=document.createElement('summary'),canvas=document.querySelector('#rank-canvas');d.className='collector-collection-details';s.textContent='차트 데이터 기준·상태';(canvas.closest('.chart-drawing-layout')||canvas).after(d);d.append(s,notice);}
+  const canvas=main.querySelector('canvas');if(!canvas)return;
+  let pending=false;
+  const fit=()=>{pending=false;if(innerWidth<=1000)return;const top=canvas.getBoundingClientRect().top+scrollY;const height=Math.max(300,Math.min(620,Math.floor(innerHeight-top-24)));if(main.style.getPropertyValue('--collector-chart-height')!==height+'px'){main.style.setProperty('--collector-chart-height',height+'px');window.dispatchEvent(new Event('resize'));}};
+  const queue=()=>{if(!pending){pending=true;requestAnimationFrame(fit);}};
+  new ResizeObserver(queue).observe(main);window.addEventListener('resize',queue);queue();
+});

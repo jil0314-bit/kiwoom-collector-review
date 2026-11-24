@@ -1,9 +1,9 @@
 {
-  "snapshot_date": "2026-11-17",
+  "snapshot_date": "2026-11-25",
   "timezone": "Asia/Seoul",
-  "review_base_commit": "fa31f50c3e4ecc8b34b71aa9f2e7b6fe0b795a2a",
-  "scope": "Current integrated collector fixes, dependency source, UI, tests, and review documentation",
-  "source_files_byte_identical": 123,
+  "review_base_commit": "5f3edc040ed77d2ddf2595dc3d5eaab85735b611",
+  "scope": "Manual recommendations, shared latest personal memos, compact collector layout; scoped source and regression coverage",
+  "source_files_byte_identical": 115,
   "generated_exception": "Public review release manifest, README, cross-review guide and aggregate validation are publication metadata",
   "excluded": "Runtime data, credentials, private notes, full articles, logs, captures, backups, environments, new ZIPs",
   "files": [
@@ -45,9 +45,9 @@
     },
     {
       "path": "README.md",
-      "bytes": 1818,
-      "sha256": "eedb17e7821fdfe9590734b2c418515b9b4e8fddc48f69a39ca2d0f2c0ca5c04",
-      "git_blob_sha": "9d967bc33e534e96b07b9fe6b40d509746e2870f"
+      "bytes": 2335,
+      "sha256": "9493c611d48adb4fc914153edfb3416a8a4bd9c4170fa33d3f377739f9697379",
+      "git_blob_sha": "19869ddf161f77b18ee9080099ce5a8f263046cc"
     },
     {
       "path": "collector/.gitignore",
@@ -87,9 +87,9 @@
     },
     {
       "path": "collector/app.py",
-      "bytes": 62099,
-      "sha256": "e709c3cd5fa83fef44eb9adefe16257c649aff12c30090825d998a049e5a6c61",
-      "git_blob_sha": "380b3c9b84214d29efe63d9ba41a5b1a9d42fc12"
+      "bytes": 63180,
+      "sha256": "6db1a8f9aa2f4a405fe5f736f0f2fa3bbeae8d90b25349a26dae08c9d2b74f43",
+      "git_blob_sha": "f3043c6909a652da50c003f9d3f0bbe9b2fd0a7b"
     },
     {
       "path": "collector/archive.py",
@@ -188,6 +188,12 @@
       "git_blob_sha": "fddf15e93c24a27036a371d937fd13c74d9baccf"
     },
     {
+      "path": "collector/docs/manual_recommendations_memos_20261125.md",
+      "bytes": 3349,
+      "sha256": "eaa0cca28bd9602dd85814001682602520baa97f3586576a6dc64e1536fd316b",
+      "git_blob_sha": "ae0a7bec7ba807d0f6ea0408c1e4cf4769ed5873"
+    },
+    {
       "path": "collector/docs/reason_live_verification_20261109.json",
       "bytes": 10701,
       "sha256": "cdb1b89506053f65b1f94425c8200432925a76afa5b04bb254e224a9e139bdfe",
@@ -267,9 +273,9 @@
     },
     {
       "path": "collector/notes.py",
-      "bytes": 2164,
-      "sha256": "ae0c907e1f402e9e29b1fb91d337f4283df181b163d3055c5d95ce8f73241357",
-      "git_blob_sha": "0b870fb6c86a1e9316f4c2303dbd6f8840e85ef4"
+      "bytes": 3151,
+      "sha256": "b5afdd566652a645a8bff634f9e123e6a876b085108e93ac0f11f716a719aedd",
+      "git_blob_sha": "8e2784920160f90e6cf165865441d7060964ccbb"
     },
     {
       "path": "collector/observations.py",
@@ -297,15 +303,15 @@
     },
     {
       "path": "collector/recommendations.py",
-      "bytes": 45023,
-      "sha256": "a85d5c28c38ff572370fada4b6e29a9a72980d9b4e42c0539768fb47c5fbd249",
-      "git_blob_sha": "ec2ba56c1072f0f5f82faefb814c07e361c04ce7"
+      "bytes": 46330,
+      "sha256": "51699d7f09142f49c5a622634dcd5fca9ccdac1b02b298d40cc6277883ed06f5",
+      "git_blob_sha": "bc7ff2151a3c1f685de1001e366e0a72ca8eb610"
     },
     {
       "path": "collector/release_manifest.json",
       "bytes": 9875,
-      "sha256": "eaf6c53cbfab623076d4e8a6d26b66ddd37393a1d25695d355ec63c2df644e8a",
-      "git_blob_sha": "bbb3bc8f3032b41c7a3dc8385fd784d5aacda57a"
+      "sha256": "b66fd1541bb678fc17972878330886bfd519c23f730e01bb0d45b3a0c5c4f202",
+      "git_blob_sha": "974f152a9028c9ebc70300d7e9d236abcbb1d5f4"
     },
     {
       "path": "collector/requirements-board-ocr.txt",
@@ -392,6 +398,12 @@
       "git_blob_sha": "c840e66ca3ce426343ff5cc6d2f18651c7a76b53"
     },
     {
+      "path": "collector/test_common_memos_ui.cjs",
+      "bytes": 6266,
+      "sha256": "a34a44c6b17dfc19bfd2a6f2d651e60edaa5055eb226f7caaea165ded4dc07d6",
+      "git_blob_sha": "54aad713898337257b39ba35c3187419b4bfe437"
+    },
+    {
       "path": "collector/test_hero4memo.py",
       "bytes": 2086,
       "sha256": "ff99846d25486a9af32d12b94782055df611dbaaf83470a12d11502a3367bb29",
@@ -426,6 +438,12 @@
       "bytes": 2746,
       "sha256": "b0ab90fa287dd84bf8eddae87c474b883e0a9565dbbe9133e498ae1f8e78648f",
       "git_blob_sha": "fa16b1cf9bb0b0cfb0e8e182ababf15dda01951c"
+    },
+    {
+      "path": "collector/test_manual_memos.py",
+      "bytes": 5736,
+      "sha256": "d64ad7820b1ac5860d9610361b231fa07cafbef0363bdd45ad958e21d6aead9c",
+      "git_blob_sha": "21d82d7375dc856e40c3a6d6905076cea5c92123"
     },
     {
       "path": "collector/test_notes.py",
@@ -465,9 +483,9 @@
     },
     {
       "path": "collector/test_recommendations_ui.cjs",
-      "bytes": 3891,
-      "sha256": "513653a2e6acb76c2e0ec2f7f13b5de79607626bc230a95bf1f07c62a8a41692",
-      "git_blob_sha": "4c2449a5dbefb10c03ecf9fa5e92bf2a843ebc43"
+      "bytes": 4032,
+      "sha256": "b3f24bb48c3a557d83935e0fa7063fa14e0038d3e3e914db061e44b299ae8f06",
+      "git_blob_sha": "d9bb199d920299ae0fef992d280037bed73e9184"
     },
     {
       "path": "collector/test_reliability.py",
@@ -651,9 +669,9 @@
     },
     {
       "path": "collector/web/recommendations.js",
-      "bytes": 14221,
-      "sha256": "ae1e90b92a6296637210d9d86136d46251b7d8a6a6a1e9e4ec113c225cf498b3",
-      "git_blob_sha": "4040db6cfce6d3359da82cc90a7df2f56335a84e"
+      "bytes": 16464,
+      "sha256": "3dcabc707aca46636a8de386855397f2323ca948bc6db61c91b7e2e76c226996",
+      "git_blob_sha": "fed2602a72fdb63bc822d0a8221690dde798d384"
     },
     {
       "path": "collector/web/stock-search-add.css",
@@ -669,15 +687,15 @@
     },
     {
       "path": "collector/web/stock-tools.css",
-      "bytes": 34280,
-      "sha256": "8f3d9de3998a6a4c0f80782e8620cf269095e72ed287bb35f5e593f55306c389",
-      "git_blob_sha": "ba0bc1ee4589851459cb934e3430a65c2885f99d"
+      "bytes": 43993,
+      "sha256": "8bb7b6f93cbb87783468fb211170baba901169fbd20a3c22c0a754c9c65cd46e",
+      "git_blob_sha": "75ddc2baabd738595d77eedf4868c041ca57c13e"
     },
     {
       "path": "collector/web/stock-tools.js",
-      "bytes": 44330,
-      "sha256": "3a0bbb62c95a17eee015d16beaeff9e0e37802606e5986266128c86dfd913e68",
-      "git_blob_sha": "794cd1ef36e924c8ba0a38bb0ca6fd5bf580e358"
+      "bytes": 52950,
+      "sha256": "1d669664aaddb42ad24c668bf0fc7c26303a2767976517e4f08ae3aac10df0c5",
+      "git_blob_sha": "a29815c63d44118dc9641ec8fd530f4136726796"
     },
     {
       "path": "collector/web/style.css",
@@ -780,6 +798,12 @@
       "bytes": 3669,
       "sha256": "c6ef5c5b6543d66ef3b642e4177939ef876c8d823b8073000dd0af10be250068",
       "git_blob_sha": "ae5b7ae71e1a15206a45df88f734773e90fef6c0"
+    },
+    {
+      "path": "review/CROSS_REVIEW_20261125.md",
+      "bytes": 2693,
+      "sha256": "44cc53a5e24d51848f2c26032606fa7919eaecfc5ba098c1eacb790d52895e5a",
+      "git_blob_sha": "9982047c40d06dbe56926bfafbebf872275c5855"
     },
     {
       "path": "review/REASONS_DAILY_VALIDATION_20261117.json",

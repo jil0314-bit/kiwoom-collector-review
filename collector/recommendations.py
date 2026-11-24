@@ -145,6 +145,31 @@ def allowed(url):
     return url
 
 
+def add_manual(data, code):
+    """Register a verified market stock on today's KST date, once per stock/day."""
+    import stock_search
+    stock = stock_search.lookup(data, code)
+    if not stock:
+        raise ValueError('시장 종목 목록에서 종목을 찾을 수 없습니다. 이름으로 다시 검색하세요.')
+    at = stamp()
+    day = at[:10]
+    identity = 'manual:' + day + ':' + stock['code']
+    with LOCK:
+        old = next((r for r in read(data, day)['records'] if r['id'] == identity), None)
+        if old:
+            return old, False
+        record = {**stock, 'id': identity, 'url': identity, 'manual': True,
+                  'classification': 'new', 'broadcaster': '직접 등록',
+                  'program': '사용자 추천', 'expert': '사용자', 'reason': '',
+                  'recommended_date': day, 'recommended_time': at[11:19],
+                  'archive_day': day, 'timezone': 'Asia/Seoul', 'collected_at': at,
+                  'published_at': '', 'date_basis': '직접 입력일 (한국 시각)',
+                  'time_basis': '직접 입력 시각', 'evidence_type': '사용자 입력',
+                  'review_status': '사용자 직접 등록', 'evidence': ''}
+        merge(data, day, [record])
+        return record, True
+
+
 class Redirects(HTTPRedirectHandler):
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         allowed(newurl)
