@@ -27,6 +27,7 @@ function stockNameCell(stock, day){
   const cap=profile.market_cap>0?'시총 '+formatWon(profile.market_cap,1e8)+
     (profile.cap_day && profile.cap_day!==day?' · '+profile.cap_day+' 기준':''):'시총 미확인';
   cell.append(button);
+  collectorSetStockRate(button,stock.code,stock.rate,day+' 순위 저장 기준');
   for(const [text, extraClass] of [[stock.code,'stock-code-under'],['관심그룹 · '+groups,''],[theme,''],[cap,'stock-money']]){
     const detail=document.createElement('small');
     detail.className='rank-profile'+(extraClass?' '+extraClass:'');
@@ -47,7 +48,8 @@ function stockRow(stock, day){
       cell.className='money-value';
       cell.textContent=key==='price'?fmt(stock.price)+'원':formatWon(stock.amount_million,1e6);
     }else if(key!=='name'){
-      cell.textContent=fmt(stock[key]);
+      cell.textContent=key==='rate'?collectorRateText(stock.rate):fmt(stock[key]);
+      if(key==='rate')cell.classList.add('collector-price-rate');
       if(key==='volume' && stock.volume_limit_possible){
         const note=document.createElement('small');
         note.className='rank-volume-note';

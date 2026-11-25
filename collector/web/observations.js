@@ -33,6 +33,7 @@ function observationRow(stock) {
   const button = observationNode('button', stock.name, 'rank-stock');
   button.type = 'button';
   name.append(button, observationNode('small', '• ' + stock.code, 'rank-profile'));
+  collectorSetStockRate(button,stock.code,null,'현재 시세 조회 대기',true);
   const profile = observationProfiles[stock.code] || {};
   const cap = profile.market_cap > 0 ? `시총 ${formatWon(profile.market_cap,1e8)}${profile.cap_day ? ` · ${profile.cap_day} 기준` : ''}` : '시총 미확인';
   name.append(observationNode('small', '• ' + cap, 'rank-profile stock-money'));

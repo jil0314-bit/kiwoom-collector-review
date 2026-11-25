@@ -1,10 +1,10 @@
 {
   "snapshot_date": "2026-11-25",
   "timezone": "Asia/Seoul",
-  "review_base_commit": "5f3edc040ed77d2ddf2595dc3d5eaab85735b611",
-  "scope": "Manual recommendations, shared latest personal memos, compact collector layout; scoped source and regression coverage",
-  "source_files_byte_identical": 115,
-  "generated_exception": "Public review release manifest, README, cross-review guide and aggregate validation are publication metadata",
+  "review_base_commit": "b630276a24e89e6913de21ced3f8336f018ba775",
+  "scope": "Unified signed red stock price changes across all eight lists and chart titles; existing read-only quote API reuse",
+  "source_files_byte_identical": 117,
+  "generated_exception": "Publication metadata; volume.js retains the remote interval presentation outside this scoped change",
   "excluded": "Runtime data, credentials, private notes, full articles, logs, captures, backups, environments, new ZIPs",
   "files": [
     {
@@ -45,9 +45,9 @@
     },
     {
       "path": "README.md",
-      "bytes": 2335,
-      "sha256": "9493c611d48adb4fc914153edfb3416a8a4bd9c4170fa33d3f377739f9697379",
-      "git_blob_sha": "19869ddf161f77b18ee9080099ce5a8f263046cc"
+      "bytes": 2777,
+      "sha256": "a640c1f8480602ba13e9208ce2ee824c2c20da0c467a94a55e437987b6b6c5cb",
+      "git_blob_sha": "30373c3a984977f0128512a05e1617174d0f04e5"
     },
     {
       "path": "collector/.gitignore",
@@ -162,6 +162,12 @@
       "bytes": 4924,
       "sha256": "f24649d13a27c1c715ee698fab062dc06bd65f66202e5b6eadf8cfb38732952e",
       "git_blob_sha": "3eed0703c821674c1d9d9049bd82e69ee4c612c4"
+    },
+    {
+      "path": "collector/docs/common_rate_display_20261125.md",
+      "bytes": 2237,
+      "sha256": "9738c285ee1c0ee4945dc09b2b642d8230786602fd70035041a1216d5b2c568b",
+      "git_blob_sha": "4b21ec6151e3bdcd694537cfeef6aff53cb6a72b"
     },
     {
       "path": "collector/docs/investor_amount_top50_20261108.md",
@@ -310,8 +316,8 @@
     {
       "path": "collector/release_manifest.json",
       "bytes": 9875,
-      "sha256": "b66fd1541bb678fc17972878330886bfd519c23f730e01bb0d45b3a0c5c4f202",
-      "git_blob_sha": "974f152a9028c9ebc70300d7e9d236abcbb1d5f4"
+      "sha256": "a0a304d7051eea7ee4888ff10d4d4bf90cfb5bb6a47210c3de8e420977c810df",
+      "git_blob_sha": "0183b07665288b503ee1197d0fa965c1c4895c01"
     },
     {
       "path": "collector/requirements-board-ocr.txt",
@@ -464,6 +470,12 @@
       "git_blob_sha": "34c6afde410247c5f0366783fb606483130b23c4"
     },
     {
+      "path": "collector/test_rate_display_ui.cjs",
+      "bytes": 4549,
+      "sha256": "95c25fb1b6ba0f5e98ef1d4602c2c37772888f3b569c223f5b83766beb50a547",
+      "git_blob_sha": "07e3585018e1664d715a505ea6592a6722d0aaeb"
+    },
+    {
       "path": "collector/test_reason_memos.py",
       "bytes": 5946,
       "sha256": "1af8317220566290d3e1464c6f67c73ef3aa436b2e7a4f3bcd16a760da635969",
@@ -573,9 +585,9 @@
     },
     {
       "path": "collector/web/app.js",
-      "bytes": 37012,
-      "sha256": "82b44a8e4b0e38ea7799a044305d57cb737a2cf254375f70c16485f323b9a5a2",
-      "git_blob_sha": "f82009b70bae9a884aecd23c771743bb998b4d6c"
+      "bytes": 37163,
+      "sha256": "0a326cec7f37c6f86dc24acd00e67d1f7e79508f6de5533691490d36bd66d002",
+      "git_blob_sha": "12898a54efe2703af317db170afd08218c12c93a"
     },
     {
       "path": "collector/web/chart-fast.js",
@@ -609,9 +621,9 @@
     },
     {
       "path": "collector/web/investors.js",
-      "bytes": 19269,
-      "sha256": "1379a716e0ccd09b1a00419e43b4f3f480427a3f494ccc145997d25b8d2c46de",
-      "git_blob_sha": "59b940220515c02dbcfa9fecf41e3dd50eaf0b01"
+      "bytes": 19451,
+      "sha256": "9cdfaa56e8815a2b74330318d53acb616fd4494d59337907b6ee15dbf7bbbf2f",
+      "git_blob_sha": "6461c47e417ad9408ba8033b1382e702e6c1092a"
     },
     {
       "path": "collector/web/mascot.png",
@@ -639,9 +651,9 @@
     },
     {
       "path": "collector/web/observations.js",
-      "bytes": 5397,
-      "sha256": "07a33c606e26a030f6c07fcc87baf362a7169c6097bea27bc81d5d85d0698875",
-      "git_blob_sha": "f4c8b511dd9cddb936563b1f17f729dbe6810a0f"
+      "bytes": 5481,
+      "sha256": "383ab64a736d336fe52c8efd53a63764b47f80a20b248c80e9853c3d189df5ae",
+      "git_blob_sha": "abab70b8c1cfe778f7e29cde199c030abf589e66"
     },
     {
       "path": "collector/web/rank-chart.css",
@@ -651,9 +663,9 @@
     },
     {
       "path": "collector/web/rank-chart.js",
-      "bytes": 9669,
-      "sha256": "aad6dd8c35e7c56a8557c64547b0d0ad050cf67c01de738da5d5b2c0b86c1237",
-      "git_blob_sha": "4b10ebef43aea6e7bb0387ff6f846584b9682816"
+      "bytes": 9810,
+      "sha256": "a997099e671833c9938e2b6b8cbacf20d56b79f022b9aefe4882217f3337f3cc",
+      "git_blob_sha": "ddb14d43df07d7340afad309a0606e3d5a48e626"
     },
     {
       "path": "collector/web/recommendations.css",
@@ -669,9 +681,9 @@
     },
     {
       "path": "collector/web/recommendations.js",
-      "bytes": 16464,
-      "sha256": "3dcabc707aca46636a8de386855397f2323ca948bc6db61c91b7e2e76c226996",
-      "git_blob_sha": "fed2602a72fdb63bc822d0a8221690dde798d384"
+      "bytes": 16541,
+      "sha256": "629a88cd014c61b586ff5faf7cc25197bb743b9d03ddcdd3ec1bd2f0050f0859",
+      "git_blob_sha": "8edc67fb8777ef95dbd8635db3c4d446cf5b5559"
     },
     {
       "path": "collector/web/stock-search-add.css",
@@ -687,15 +699,15 @@
     },
     {
       "path": "collector/web/stock-tools.css",
-      "bytes": 43993,
-      "sha256": "8bb7b6f93cbb87783468fb211170baba901169fbd20a3c22c0a754c9c65cd46e",
-      "git_blob_sha": "75ddc2baabd738595d77eedf4868c041ca57c13e"
+      "bytes": 45374,
+      "sha256": "ade567349b84f67c5d0e79bcb6e400df4fcaefe22da5eae38efcf4907d3a89e5",
+      "git_blob_sha": "bfbe13060b23b58d9ae9ffd7a18467184a5623a7"
     },
     {
       "path": "collector/web/stock-tools.js",
-      "bytes": 52950,
-      "sha256": "1d669664aaddb42ad24c668bf0fc7c26303a2767976517e4f08ae3aac10df0c5",
-      "git_blob_sha": "a29815c63d44118dc9641ec8fd530f4136726796"
+      "bytes": 57193,
+      "sha256": "b8385e4ae7bf0bab7d0009752f89549c6fefd0cb83b7dadaf9e18d537f4f2879",
+      "git_blob_sha": "015373aa6f56ee17bfcd6018a74b9226caa46e86"
     },
     {
       "path": "collector/web/style.css",
@@ -717,9 +729,9 @@
     },
     {
       "path": "collector/web/themes.js",
-      "bytes": 40476,
-      "sha256": "f76c8d5e33a38eb43c5bd353f6173371786e6632445da9f3bc48cc70fcfd89d4",
-      "git_blob_sha": "209fecab28b34abc84b90d7814c292c614a2adbf"
+      "bytes": 40669,
+      "sha256": "fdfab7b9113ac4ba1515aec1ba08685c776f685eb90421469db3150da7414d3d",
+      "git_blob_sha": "f27f1aa485b75d810eb949b9581a3cdb8278677b"
     },
     {
       "path": "collector/web/volume-notes.js",
@@ -735,9 +747,9 @@
     },
     {
       "path": "collector/web/volume-top.js",
-      "bytes": 5246,
-      "sha256": "e7df8f3f263dc32305a9b0fb7608c3d1523beaa06cf91cbb5af6d9a5a442f1b6",
-      "git_blob_sha": "1be9d81e4e9338eaf516589dd72301cee4fe629a"
+      "bytes": 5438,
+      "sha256": "11378cb1830e0ca3d0fce939903b44985d3ba777bbd4c08c2a5ae11ca30423bd",
+      "git_blob_sha": "5d92d83cdc7f6f8f1ed3a578b74b962b5f95509a"
     },
     {
       "path": "collector/web/volume.css",
@@ -753,9 +765,9 @@
     },
     {
       "path": "collector/web/volume.js",
-      "bytes": 26781,
-      "sha256": "7d24d0bd53bc19abab2f30a1c6cd5cb5ae5d478d1adb3f656e1de3c385fea674",
-      "git_blob_sha": "c9694f332f21cce0037125e4ca6821ec7c17e97c"
+      "bytes": 26855,
+      "sha256": "2cffd7e2dae837364270a82db3744003f01d5c106ccc19c2e5e51b3088af668e",
+      "git_blob_sha": "c2c96e0054243bea3fddfbc02561ba2959fb9548"
     },
     {
       "path": "collector/window.py",

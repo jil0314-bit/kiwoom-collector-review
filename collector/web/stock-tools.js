@@ -1,5 +1,48 @@
 'use strict';
 
+// Shared price-change presentation. Never substitute volume surge or candle-body change.
+(() => {
+  const finite=value=>typeof value==='number'&&Number.isFinite(value);
+  const format=value=>{if(!finite(value))return '등락률 미확인';const absolute=Math.abs(value).toFixed(2);return (value<0&&Number(absolute)>0?'-':'+')+absolute+'%';};
+  const cache=new Map();let timer,pending=false;
+  function paint(badge,value,basis){
+    const next=format(value);if(badge.textContent!==next)badge.textContent=next;
+    badge.classList.toggle('is-unknown',!finite(value));badge.title=basis||'전일 대비 등락률';
+    badge.setAttribute('aria-label','전일 대비 '+next+(basis?' · '+basis:''));
+  }
+  function applyQuote(badge){const item=cache.get(badge.dataset.rateCode);if(item)paint(badge,item.rate,'현재 시세 조회 · '+[item.date,item.time,item.fetched_at].filter(Boolean).join(' · '));}
+  async function refresh(){
+    if(pending||document.hidden||document.body.dataset.sharedViewer==='1')return;
+    const badges=[...document.querySelectorAll('[data-rate-live="1"]')];
+    const codes=[...new Set(badges.map(b=>b.dataset.rateCode))].filter(c=>/^[0-9A-Z]{6}$/.test(c));
+    const due=codes.filter(c=>!cache.has(c)||Date.now()-cache.get(c).checked>30000);if(!due.length)return;
+    pending=true;let succeeded=false;
+    try{for(let i=0;i<due.length;i+=10){if(document.hidden)break;const controller=new AbortController(),deadline=setTimeout(()=>controller.abort(),45000);try{const batch=due.slice(i,i+10),r=await fetch('/api/quotes?'+new URLSearchParams({codes:batch.join(',')}),{signal:controller.signal});const d=await r.json();if(!r.ok)throw Error(d.error||'시세 조회 실패');for(const code of batch){const q=d.quotes?.[code];cache.set(code,{...(q||{}),checked:Date.now()});}document.querySelectorAll('[data-rate-live="1"]').forEach(applyQuote);}finally{clearTimeout(deadline);}}succeeded=true;}
+    catch(error){document.querySelectorAll('[data-rate-live="1"]').forEach(b=>{b.title=(b.title||'')+' · 현재 조회 실패';});}
+    finally{pending=false;if(succeeded&&!document.hidden&&[...document.querySelectorAll('[data-rate-live="1"]')].some(b=>!cache.has(b.dataset.rateCode)))setTimeout(refresh,150);}
+  }
+  window.collectorRateText=format;
+  window.collectorSetStockRate=(label,code,value,basis='',live=false)=>{
+    if(!label)return;
+    let line=label.closest('.collector-name-line');if(!line){line=document.createElement('span');line.className='collector-name-line';label.before(line);line.append(label);}
+    let badge=line.querySelector('.collector-price-rate');if(!badge){badge=document.createElement('span');badge.className='collector-price-rate';label.after(badge);}
+    badge.dataset.rateCode=code;badge.dataset.rateLive=live?'1':'0';paint(badge,value,basis);
+    if(live){badge.dataset.current='현재';applyQuote(badge);clearTimeout(timer);timer=setTimeout(refresh,150);}else delete badge.dataset.current;
+    return badge;
+  };
+  window.collectorSetChartTitle=(heading,stock,chart=null,fallbackDay='')=>{
+    if(!heading||!stock)return;
+    const quote=chart?.live?chart.quote:null;
+    if(quote&&finite(quote.rate)){const old=cache.get(stock.code);if(!old||(quote.fetched_at||'')>=(old.fetched_at||'')){cache.set(stock.code,{...quote,checked:Date.now()});document.querySelectorAll('[data-rate-live="1"]').forEach(applyQuote);}}
+    const value=quote?.rate??(chart&&!chart.live?(finite(chart.stock?.rate)?chart.stock.rate:chart.day===fallbackDay?stock.rate:null):null);
+    const label=document.createElement('span');label.textContent=stock.name;
+    const badge=document.createElement('span');badge.className='collector-price-rate';paint(badge,value,quote?'현재 시세 · '+(quote.fetched_at||chart.fetched_at||''):(chart?.day||fallbackDay)+' 저장 기준');
+    heading.replaceChildren(label,badge);
+    if(quote&&finite(quote.price)){const price=document.createElement('small');price.className='collector-title-price';price.textContent='현재가 '+quote.price.toLocaleString('ko-KR')+'원';heading.append(price);}
+  };
+  setInterval(refresh,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+})();
+
 // Korean public holidays, verified 2026-11-14. UI filtering only, not a trading calendar.
 // KASI: https://astro.kasi.re.kr/kor/life/post/calendarData?search_year=2026 (and 2027)
 // 2026 Labor/Constitution Day update: https://www.mpm.go.kr/mpm/comm/newsPress/newsPressRelease/?cntId=4250&mode=view
@@ -975,7 +1018,8 @@ function drawChartLegend(legend, periods) {
     for(const {label,row} of rows()){
       const code=row.dataset.stockCode||row.dataset.code;
       let line=label.closest('.collector-name-line');
-      if(!line){line=make('span',null,'collector-name-line');label.before(line);line.append(label);const control=make('span','◢','collector-memo-toggle');control.tabIndex=0;control.setAttribute('role','button');control.dataset.code=code;control.dataset.name=label.textContent;control.setAttribute('aria-label',label.textContent+' 메모 열기');const preview=make('span',null,'collector-latest-memo');line.append(control,preview);}
+      if(!line){line=make('span',null,'collector-name-line');label.before(line);line.append(label);}
+      if(!line.querySelector('.collector-memo-toggle')){const control=make('span','◢','collector-memo-toggle');control.tabIndex=0;control.setAttribute('role','button');control.dataset.code=code;control.dataset.name=label.textContent;control.setAttribute('aria-label',label.textContent+' 메모 열기');const preview=make('span',null,'collector-latest-memo');line.append(control,preview);}
       const note=latest[code], preview=line.querySelector('.collector-latest-memo');
       const firstLine=note?.text?.split(/\r?\n/).map(s=>s.trim()).find(s=>s&&!/^\[[^\]]+\]$/.test(s));
       const value=firstLine||note?.text?.replace(/\s+/g,' ').trim()||'메모 작성';

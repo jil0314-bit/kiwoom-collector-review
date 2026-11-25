@@ -58,7 +58,7 @@ function rankDraw(){
 function rankChoose(code,scroll=false,sendHero=true){
   const stock=rankSearchSelection?.code===code?rankSearchSelection:rankStocks.find(s=>s.code===code);if(!stock)return;
   rankCode=code;window.collectorStockTools?.({day:stock.chart_day||rankDay,code,name:stock.name,source:rankSource()});rankRecord=null;clearRankZoom();
-  chartEl('rank-title').textContent=stock.name+' ('+stock.code+')';chartEl('rank-notice').textContent='차트 조회 중…';
+  collectorSetChartTitle(chartEl('rank-title'),stock);chartEl('rank-notice').textContent='차트 조회 중…';
   rankHighlight();rankDraw();if(scroll)document.querySelector('#rows tr[data-code="'+code+'"]')?.scrollIntoView({block:'nearest'});
   rankRefresh();
   if(sendHero)rankLinkHero(code);
@@ -77,7 +77,7 @@ async function rankLoad(version,attempt=0,reload=false){
     if(data.pending){if(attempt>=40)throw Error('차트 조회가 지연됩니다. 차트 다시 조회를 눌러주세요.');rankTimer=setTimeout(()=>rankLoad(version,attempt+1),1000);return;}
     if(!data.bars?.length)throw Error('선택한 종목의 차트 자료가 없습니다.');
     if(data.stock?.code!==rankCode)throw Error('선택 종목과 차트 응답이 다릅니다.');
-    rankRecord=data;chartEl('rank-notice').textContent=data.chart_notice||('기준일 '+data.day);rankDraw();
+    rankRecord=data;collectorSetChartTitle(chartEl('rank-title'),rankSearchSelection?.code===rankCode?rankSearchSelection:rankStocks.find(s=>s.code===rankCode),data,rankDay);chartEl('rank-notice').textContent=data.chart_notice||('기준일 '+data.day);rankDraw();
     if(data.refreshing&&attempt<40)rankTimer=setTimeout(()=>rankLoad(version,attempt+1),1000);
   }catch(error){
     if(version!==rankVersion||error.name==='AbortError')return;

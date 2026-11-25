@@ -52,6 +52,7 @@ function render() {
         if (index === 1) {
           const label = document.createElement('span');
           label.className = 'stock-name-text'; label.textContent = row.name; td.replaceChildren(label);
+          collectorSetStockRate(label,row.code,null,'현재 시세 조회 대기',true);
         } else if (index === 2 && typeof value === 'number') {
           td.textContent = formatWon(value,1e7);
           td.className = value < 0 ? 'negative' : value > 0 ? 'positive' : '';
@@ -154,7 +155,7 @@ poll(); setInterval(poll, 10000);
 
 function chooseFlow(stock, send) {
   flowPick = stock; window.collectorStockTools?.({day:record.period_end||record.day,code:stock.code,name:stock.name,source:'investor',market:$('market').value,start:record.period_start}); resetFlowZoom();
-  $('flow-chart-name').textContent = stock.name; $('flow-chart-code').textContent = stock.code+' · '+$('market').selectedOptions[0].textContent;
+  collectorSetChartTitle($('flow-chart-name'),stock); $('flow-chart-code').textContent = stock.code+' · '+$('market').selectedOptions[0].textContent;
   render(); loadFlowChart();
   if (send) {
     linkFlowHero(stock.code);
@@ -187,7 +188,7 @@ async function loadFlowChart(background=false,reload=false) {
       if (data.pending) {await new Promise(resolve => setTimeout(resolve,500));if (version!==flowVersion)return;continue;}
       if (background && flowInspection.dragging()) {setTimeout(()=>{if(version===flowVersion&&!document.hidden)loadFlowChart(true);},500);return;}
       if(data.stock?.code!==stock.code||data.frame!==q.get('frame')||!data.bars?.length)throw new Error('선택한 종목의 차트 자료를 확인할 수 없습니다.');
-      flowChart=data; paintFlow();
+      flowChart=data; collectorSetChartTitle($('flow-chart-name'),stock,data,record.period_end||record.day); paintFlow();
       $('flow-chart-status').textContent=(data.live?'현재 차트':'선택 날짜·기간 종료일 차트')+' · 마지막 봉 '+(data.bars.at(-1)?.ts || 'UNKNOWN')+' · '+(data.chart_notice || '실제 수신된 봉만 표시합니다.');
       if (data.refreshing) setTimeout(()=>{if(version===flowVersion&&!document.hidden)loadFlowChart(true);},1200);
       return;
