@@ -1,8 +1,8 @@
 {
   "snapshot_date": "2026-11-25",
   "timezone": "Asia/Seoul",
-  "review_base_commit": "b630276a24e89e6913de21ced3f8336f018ba775",
-  "scope": "Unified signed red stock price changes across all eight lists and chart titles; existing read-only quote API reuse",
+  "review_base_commit": "0e7a64fb0c82c142ddaa7fe490ce91c24d3839d9",
+  "scope": "Black clock without size changes; negative stock price changes blue, positive unchanged red across all tabs",
   "source_files_byte_identical": 117,
   "generated_exception": "Publication metadata; volume.js retains the remote interval presentation outside this scoped change",
   "excluded": "Runtime data, credentials, private notes, full articles, logs, captures, backups, environments, new ZIPs",
@@ -45,9 +45,9 @@
     },
     {
       "path": "README.md",
-      "bytes": 2777,
-      "sha256": "a640c1f8480602ba13e9208ce2ee824c2c20da0c467a94a55e437987b6b6c5cb",
-      "git_blob_sha": "30373c3a984977f0128512a05e1617174d0f04e5"
+      "bytes": 2851,
+      "sha256": "097947a3b6f2dcf6679d0d8e615a3d153ba73567e4438232fba1afa439a36bdc",
+      "git_blob_sha": "b659edb6847c25f222e6829fc4ea6cbd21803db6"
     },
     {
       "path": "collector/.gitignore",
@@ -165,9 +165,9 @@
     },
     {
       "path": "collector/docs/common_rate_display_20261125.md",
-      "bytes": 2237,
-      "sha256": "9738c285ee1c0ee4945dc09b2b642d8230786602fd70035041a1216d5b2c568b",
-      "git_blob_sha": "4b21ec6151e3bdcd694537cfeef6aff53cb6a72b"
+      "bytes": 2768,
+      "sha256": "33f26f379efe7b51271bb7cb7f4673523c69dcf52a0bb8ea2bf09309e83e5cd9",
+      "git_blob_sha": "40a6e8cab2c84fb65b7506594d7204462542f108"
     },
     {
       "path": "collector/docs/investor_amount_top50_20261108.md",
@@ -316,8 +316,8 @@
     {
       "path": "collector/release_manifest.json",
       "bytes": 9875,
-      "sha256": "a0a304d7051eea7ee4888ff10d4d4bf90cfb5bb6a47210c3de8e420977c810df",
-      "git_blob_sha": "0183b07665288b503ee1197d0fa965c1c4895c01"
+      "sha256": "e85e069488da731b3d8142f9dd18f27223043fed341d7b1d3583b440a07de5a5",
+      "git_blob_sha": "6dff62308002f24c0d4cebba45c381d7715fe9d6"
     },
     {
       "path": "collector/requirements-board-ocr.txt",
@@ -471,9 +471,9 @@
     },
     {
       "path": "collector/test_rate_display_ui.cjs",
-      "bytes": 4549,
-      "sha256": "95c25fb1b6ba0f5e98ef1d4602c2c37772888f3b569c223f5b83766beb50a547",
-      "git_blob_sha": "07e3585018e1664d715a505ea6592a6722d0aaeb"
+      "bytes": 4991,
+      "sha256": "176e896be515ffc681c90d679e7824857a7c0cb307e53c84480037e895585482",
+      "git_blob_sha": "b7363561e1c326a0860621904e2e742db3cc6fb6"
     },
     {
       "path": "collector/test_reason_memos.py",
@@ -699,15 +699,15 @@
     },
     {
       "path": "collector/web/stock-tools.css",
-      "bytes": 45374,
-      "sha256": "ade567349b84f67c5d0e79bcb6e400df4fcaefe22da5eae38efcf4907d3a89e5",
-      "git_blob_sha": "bfbe13060b23b58d9ae9ffd7a18467184a5623a7"
+      "bytes": 45799,
+      "sha256": "a5313cef7abec40c0674706af4fe03b3a68cc13133dab95e475cb67b666512ed",
+      "git_blob_sha": "5caf40ae6d70ebb86caa17c9f1bb045d1eb71f8f"
     },
     {
       "path": "collector/web/stock-tools.js",
-      "bytes": 57193,
-      "sha256": "b8385e4ae7bf0bab7d0009752f89549c6fefd0cb83b7dadaf9e18d537f4f2879",
-      "git_blob_sha": "015373aa6f56ee17bfcd6018a74b9226caa46e86"
+      "bytes": 57257,
+      "sha256": "0dfa3ef9160dc5cbc3d376407adf29e9de5a85aacf8601a771802ebbdaa8b868",
+      "git_blob_sha": "e3fe1b7ef6f3a1bbc2635031a975429021e414d9"
     },
     {
       "path": "collector/web/style.css",
@@ -747,9 +747,9 @@
     },
     {
       "path": "collector/web/volume-top.js",
-      "bytes": 5438,
-      "sha256": "11378cb1830e0ca3d0fce939903b44985d3ba777bbd4c08c2a5ae11ca30423bd",
-      "git_blob_sha": "5d92d83cdc7f6f8f1ed3a578b74b962b5f95509a"
+      "bytes": 5523,
+      "sha256": "f569879d0fbbaa89284c663e301de612cdd4235dfeebee55ecb2a01f1a0ad6ef",
+      "git_blob_sha": "23c2dcbea23c5df74b2631e8eed0f59f825e9cae"
     },
     {
       "path": "collector/web/volume.css",

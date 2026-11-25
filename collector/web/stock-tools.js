@@ -7,6 +7,7 @@
   const cache=new Map();let timer,pending=false;
   function paint(badge,value,basis){
     const next=format(value);if(badge.textContent!==next)badge.textContent=next;
+    badge.classList.toggle('is-negative',next.startsWith('-'));
     badge.classList.toggle('is-unknown',!finite(value));badge.title=basis||'전일 대비 등락률';
     badge.setAttribute('aria-label','전일 대비 '+next+(basis?' · '+basis:''));
   }

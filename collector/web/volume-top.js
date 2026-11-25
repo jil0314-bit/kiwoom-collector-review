@@ -49,7 +49,7 @@ function stockRow(stock, day){
       cell.textContent=key==='price'?fmt(stock.price)+'원':formatWon(stock.amount_million,1e6);
     }else if(key!=='name'){
       cell.textContent=key==='rate'?collectorRateText(stock.rate):fmt(stock[key]);
-      if(key==='rate')cell.classList.add('collector-price-rate');
+      if(key==='rate'){cell.classList.add('collector-price-rate');cell.classList.toggle('is-negative',collectorRateText(stock.rate).startsWith('-'));}
       if(key==='volume' && stock.volume_limit_possible){
         const note=document.createElement('small');
         note.className='rank-volume-note';

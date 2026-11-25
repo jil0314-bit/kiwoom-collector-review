@@ -12,14 +12,15 @@ try{for(const url of ['/','/volume','/volume-top','/amount-top','/themes','/inve
   return route.fulfill({json:{stocks:[],notes:{},day:'2026-11-25',token:'fixture'}});
  });
  await page.goto('http://collector.test'+url);
+ for(const selector of ['.collector-clock-digits','.collector-clock-date'])assert.equal(await page.locator(selector).evaluate(e=>getComputedStyle(e).color),'rgb(0, 0, 0)');
  await page.evaluate(()=>{const row=document.createElement('div');row.dataset.stockCode='005930';row.id='rate-fixture';const label=document.createElement('span');label.className='stock-name-text';label.textContent='검증종목';row.append(label);document.querySelector('main').prepend(row);window.collectorSetStockRate(label,'005930',-3.14,'2026-11-24 저장 기준');});
- const badge=page.locator('#rate-fixture .collector-price-rate');assert.equal(await badge.textContent(),'-3.14%');assert.equal(await badge.evaluate(e=>getComputedStyle(e).color),'rgb(230, 0, 18)');
+ const badge=page.locator('#rate-fixture .collector-price-rate');assert.equal(await badge.textContent(),'-3.14%');assert.equal(await badge.evaluate(e=>getComputedStyle(e).color),'rgb(0, 87, 231)');
  await page.waitForFunction(()=>document.querySelector('#rate-fixture .collector-memo-toggle'));
  assert.equal(await page.locator('#rate-fixture .collector-memo-toggle').getAttribute('data-name'),'검증종목');
  for(const [value,expected] of [[2.5,'+2.50%'],[0,'+0.00%'],[-0.005,'-0.01%'],[-0.001,'+0.00%'],[null,'등락률 미확인']]){assert.equal(await page.evaluate(v=>collectorRateText(v),value),expected);}
  const title=page.locator('#selected-name,#rank-title,#flow-chart-name').first();
  await title.evaluate(e=>collectorSetChartTitle(e,{name:'차트종목',code:'005930',rate:99},{live:true,quote:{rate:-2.22,price:12345},day:'2026-11-25'},'2026-11-24'));
- assert.equal(await title.locator('.collector-price-rate').textContent(),'-2.22%');assert.equal(await title.locator('.collector-price-rate').evaluate(e=>getComputedStyle(e).color),'rgb(230, 0, 18)');
+ assert.equal(await title.locator('.collector-price-rate').textContent(),'-2.22%');assert.equal(await title.locator('.collector-price-rate').evaluate(e=>getComputedStyle(e).color),'rgb(0, 87, 231)');
  await title.evaluate(e=>collectorSetChartTitle(e,{name:'다른날종목',rate:99},{live:false,day:'2026-11-23',quote:{rate:8}},'2026-11-24'));
  assert.equal(await title.locator('.collector-price-rate').textContent(),'등락률 미확인','must not mix current quote or another archive day');
  await title.evaluate(e=>collectorSetChartTitle(e,{name:'과거종목',rate:-4},{live:false,day:'2026-11-24'},'2026-11-24'));
@@ -28,7 +29,8 @@ try{for(const url of ['/','/volume','/volume-top','/amount-top','/themes','/inve
  await page.waitForTimeout(190);
  await page.evaluate(()=>collectorSetStockRate(document.querySelector('#rate-fixture .stock-name-text'),'0039P0',null,'현재 조회',true));
  await page.waitForFunction(()=>document.querySelector('#rate-fixture .collector-price-rate').textContent==='-1.23%');
- assert.equal(await badge.getAttribute('data-current'),'현재');assert.ok(calls<=2,'no quote request loop');
+ await page.evaluate(()=>collectorSetStockRate(document.querySelector('#rate-fixture .stock-name-text'),'0039P0',2.5,'저장 기준',false));assert.equal(await badge.textContent(),'+2.50%');assert.equal(await badge.evaluate(e=>getComputedStyle(e).color),'rgb(230, 0, 18)');
+ assert.equal(await badge.getAttribute('data-current'),null);assert.ok(calls<=2,'no quote request loop');
  await page.setViewportSize({width:430,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
- assert.deepEqual(errors,[]);console.log('PASS',url,'signed red rates, memo coexistence, date isolation, alphanumeric code, stale quote, mobile');await page.close();
+ assert.deepEqual(errors,[]);console.log('PASS',url,'signed red/blue rates, black clock, memo coexistence, date isolation, stale quote, mobile');await page.close();
 }}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});
