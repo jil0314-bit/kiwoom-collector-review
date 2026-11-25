@@ -551,6 +551,11 @@ body.collector-page > header.collector-header{min-height:0}
 .collector-page .stock .rate.change-down,.collector-page .th-leaders .th-chip.down,.collector-page .stock .name>small.stock-money.change-down{color:#0057e7}
 body.collector-page > header.collector-header #clock{color:#000;background:#fff;border-radius:6px}
 .collector-page .collector-clock-digits,.collector-page .collector-clock-date{color:#000}
+body.collector-page > header.collector-header #clock{--clock-color:#333;justify-items:center;color:var(--clock-color);flex:none}
+body.collector-page > header.collector-header #clock[data-market="up"]{--clock-color:#e60012}
+body.collector-page > header.collector-header #clock[data-market="down"]{--clock-color:#0057e7}
+.collector-page #clock .collector-clock-digits{color:var(--clock-color);width:max-content;transform:scaleX(1.5);transform-origin:center}
+.collector-page #clock .collector-clock-date{color:var(--clock-color);font-size:.72rem;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 @media(min-width:1001px) and (max-height:820px){
  .collector-page .flow-chart-panel .flow-chart-title{padding-block:0}
  .collector-page .flow-chart-title h2{margin-block:0}

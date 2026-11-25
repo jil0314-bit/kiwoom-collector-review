@@ -12,7 +12,7 @@ try{for(const url of ['/','/volume','/volume-top','/amount-top','/themes','/inve
   return route.fulfill({json:{stocks:[],notes:{},day:'2026-11-25',token:'fixture'}});
  });
  await page.goto('http://collector.test'+url);
- for(const selector of ['.collector-clock-digits','.collector-clock-date'])assert.equal(await page.locator(selector).evaluate(e=>getComputedStyle(e).color),'rgb(0, 0, 0)');
+ for(const selector of ['.collector-clock-digits','.collector-clock-date'])assert.equal(await page.locator(selector).evaluate(e=>getComputedStyle(e).color),'rgb(51, 51, 51)');
  await page.evaluate(()=>{const row=document.createElement('div');row.dataset.stockCode='005930';row.id='rate-fixture';const label=document.createElement('span');label.className='stock-name-text';label.textContent='검증종목';row.append(label);document.querySelector('main').prepend(row);window.collectorSetStockRate(label,'005930',-3.14,'2026-11-24 저장 기준');});
  const badge=page.locator('#rate-fixture .collector-price-rate');assert.equal(await badge.textContent(),'-3.14%');assert.equal(await badge.evaluate(e=>getComputedStyle(e).color),'rgb(0, 87, 231)');
  await page.waitForFunction(()=>document.querySelector('#rate-fixture .collector-memo-toggle'));
@@ -32,5 +32,5 @@ try{for(const url of ['/','/volume','/volume-top','/amount-top','/themes','/inve
  await page.evaluate(()=>collectorSetStockRate(document.querySelector('#rate-fixture .stock-name-text'),'0039P0',2.5,'저장 기준',false));assert.equal(await badge.textContent(),'+2.50%');assert.equal(await badge.evaluate(e=>getComputedStyle(e).color),'rgb(230, 0, 18)');
  assert.equal(await badge.getAttribute('data-current'),null);assert.ok(calls<=2,'no quote request loop');
  await page.setViewportSize({width:430,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
- assert.deepEqual(errors,[]);console.log('PASS',url,'signed red/blue rates, black clock, memo coexistence, date isolation, stale quote, mobile');await page.close();
+ assert.deepEqual(errors,[]);console.log('PASS',url,'signed red/blue rates, neutral index clock, memo coexistence, date isolation, stale quote, mobile');await page.close();
 }}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

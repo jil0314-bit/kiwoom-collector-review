@@ -1,9 +1,9 @@
 {
   "snapshot_date": "2026-11-25",
   "timezone": "Asia/Seoul",
-  "review_base_commit": "0e7a64fb0c82c142ddaa7fe490ce91c24d3839d9",
-  "scope": "Black clock without size changes; negative stock price changes blue, positive unchanged red across all tabs",
-  "source_files_byte_identical": 117,
+  "review_base_commit": "07291304c281af4efbaf9b77d978311d9f8679e5",
+  "scope": "KOSPI-driven shared clock colour and 1.5x horizontal width; read-only cached sector summary",
+  "source_files_byte_identical": 121,
   "generated_exception": "Publication metadata; volume.js retains the remote interval presentation outside this scoped change",
   "excluded": "Runtime data, credentials, private notes, full articles, logs, captures, backups, environments, new ZIPs",
   "files": [
@@ -45,9 +45,9 @@
     },
     {
       "path": "README.md",
-      "bytes": 2851,
-      "sha256": "097947a3b6f2dcf6679d0d8e615a3d153ba73567e4438232fba1afa439a36bdc",
-      "git_blob_sha": "b659edb6847c25f222e6829fc4ea6cbd21803db6"
+      "bytes": 3000,
+      "sha256": "dc296be96d8258430c309da29d61fecd09e3e64615b98241b34cdc7dff37b07e",
+      "git_blob_sha": "4cbeea8ac79b8f41e22fd2d3eef1f9293f547e4f"
     },
     {
       "path": "collector/.gitignore",
@@ -87,9 +87,9 @@
     },
     {
       "path": "collector/app.py",
-      "bytes": 63180,
-      "sha256": "6db1a8f9aa2f4a405fe5f736f0f2fa3bbeae8d90b25349a26dae08c9d2b74f43",
-      "git_blob_sha": "f3043c6909a652da50c003f9d3f0bbe9b2fd0a7b"
+      "bytes": 63327,
+      "sha256": "bf41479ed5dcfc816a00a224a994afe69ebb22dd72837a6365400480b925ec56",
+      "git_blob_sha": "bed21a23e8f2feaa8aa14ccdcb536ad598aef2d3"
     },
     {
       "path": "collector/archive.py",
@@ -182,6 +182,12 @@
       "git_blob_sha": "b8e3ad7328f3e213d2643794128a7464178f79eb"
     },
     {
+      "path": "collector/docs/kospi_clock_20261125.md",
+      "bytes": 1846,
+      "sha256": "229c83cb447ae2a2cd813b2e254843900fb80c4ebb2ca66d1c999ba2ca94a11c",
+      "git_blob_sha": "104bfabe6713baf4eace6cde6397e8ca78ca0f1a"
+    },
+    {
       "path": "collector/docs/lg_easy_install_20261108.md",
       "bytes": 1578,
       "sha256": "c011dac4d1a0ed933ddd14f6c99abe487a6d911a4fd0c67004930e14fff0a64e",
@@ -267,15 +273,21 @@
     },
     {
       "path": "collector/kiwoom.py",
-      "bytes": 24335,
-      "sha256": "beb44ecd0e69da6ca94ae42b9da0a81d0aa25ba5b38f87df336ba6f939e05325",
-      "git_blob_sha": "619e7b55fb51553e244a17cc03f4f26dd930e4fb"
+      "bytes": 24365,
+      "sha256": "4b4cb19e55c114a6ba4127304988ef04e8ff9dde096df4bb23c775170e3777ba",
+      "git_blob_sha": "5e9c85d922c013eeaf3f0e4179500782fbb9df79"
     },
     {
       "path": "collector/local_config.py",
       "bytes": 2988,
       "sha256": "51e29a743fbb47bc90846e59d9dfcfa704f6d54d83c028a2d61960276e6c3a63",
       "git_blob_sha": "cec59e95f6fe505bf6fd9dc349d2230736d00f18"
+    },
+    {
+      "path": "collector/market_index.py",
+      "bytes": 2570,
+      "sha256": "4e6cdee3f6d8e8e079f2dfd1689e6e8d3a7f3692b8000dd711a83aa059b37557",
+      "git_blob_sha": "d2b2ddfadb2680f4df14c1213d6ce3a3a769ce06"
     },
     {
       "path": "collector/notes.py",
@@ -315,9 +327,9 @@
     },
     {
       "path": "collector/release_manifest.json",
-      "bytes": 9875,
-      "sha256": "e85e069488da731b3d8142f9dd18f27223043fed341d7b1d3583b440a07de5a5",
-      "git_blob_sha": "6dff62308002f24c0d4cebba45c381d7715fe9d6"
+      "bytes": 9967,
+      "sha256": "4bae60f18d40ddb233eeb189344d59d18de7043c2e001a143bd2ce40cceb56f8",
+      "git_blob_sha": "4cb7785f5db51adadfd0ce5cbf6889055f034740"
     },
     {
       "path": "collector/requirements-board-ocr.txt",
@@ -452,6 +464,18 @@
       "git_blob_sha": "21d82d7375dc856e40c3a6d6905076cea5c92123"
     },
     {
+      "path": "collector/test_market_clock_ui.cjs",
+      "bytes": 2859,
+      "sha256": "a8c43fc4abbc73a373a3ae9549cd4f0dc5e59c54eb1c97ac4caf5653dbe3cf02",
+      "git_blob_sha": "49a44a7c804d1ee5c0d2d87f4ac8ed702bc06500"
+    },
+    {
+      "path": "collector/test_market_index.py",
+      "bytes": 3273,
+      "sha256": "0ffda1f98221fb46bf23ce86d2e2c1d65697446fc1300ea1ab74bda1e547003e",
+      "git_blob_sha": "b38344100755e211e65af0c34878cbb3f6e92032"
+    },
+    {
       "path": "collector/test_notes.py",
       "bytes": 6361,
       "sha256": "a96358de6e2fc69434ce0718e06d0cc8d75b6c0aedf6039a64ae1c1408ff8e74",
@@ -471,9 +495,9 @@
     },
     {
       "path": "collector/test_rate_display_ui.cjs",
-      "bytes": 4991,
-      "sha256": "176e896be515ffc681c90d679e7824857a7c0cb307e53c84480037e895585482",
-      "git_blob_sha": "b7363561e1c326a0860621904e2e742db3cc6fb6"
+      "bytes": 5002,
+      "sha256": "d3ee73e3829d78dbcc5efcc8eca98c72c7c4b15798cf425596123317ad951c6e",
+      "git_blob_sha": "ef360cb98da1ee67fa5611fbc0895e5f9899d259"
     },
     {
       "path": "collector/test_reason_memos.py",
@@ -699,15 +723,15 @@
     },
     {
       "path": "collector/web/stock-tools.css",
-      "bytes": 45799,
-      "sha256": "a5313cef7abec40c0674706af4fe03b3a68cc13133dab95e475cb67b666512ed",
-      "git_blob_sha": "5caf40ae6d70ebb86caa17c9f1bb045d1eb71f8f"
+      "bytes": 46402,
+      "sha256": "e69222f39549c911c177d6da46d3e26cdecc82f8b531effbbdac54ca2f35646c",
+      "git_blob_sha": "da79ab4fd471f2edea27ffc5793e7ff25c087a45"
     },
     {
       "path": "collector/web/stock-tools.js",
-      "bytes": 57257,
-      "sha256": "0dfa3ef9160dc5cbc3d376407adf29e9de5a85aacf8601a771802ebbdaa8b868",
-      "git_blob_sha": "e3fe1b7ef6f3a1bbc2635031a975429021e414d9"
+      "bytes": 59180,
+      "sha256": "4a9b79a7966536147e72ccdcab0e260daeb00aa5aa543050c38929f41d4b67ab",
+      "git_blob_sha": "c3169cf58d70cbf26fff8a5bd5c3cba508822002"
     },
     {
       "path": "collector/web/style.css",

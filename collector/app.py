@@ -863,6 +863,9 @@ class Handler(BaseHTTPRequestHandler):
                 import chart_data
                 codes = [code_of(c) for c in q.get("codes", [""])[0].split(",") if c]
                 return self.respond({"quotes": chart_data.current_quotes(codes)})
+            if parsed.path == '/api/market-index':
+                import market_index
+                return self.respond(market_index.read())
             if parsed.path == "/api/hero-targets":
                 import hero_link
                 return self.respond(hero_link.connection_state())

@@ -8,7 +8,7 @@
     "README.md": "230aa2df68bf2fe93f1001643b5ef8ec54bb2b2e3f2b12583d715cfe1ce12770",
     "admin_restart.ps1": "2e4c84260ee832df9a2237a546fddf7ad61ec78c881b33c008cc995bcc5fca63",
     "amount_top.py": "6efb2a17616c037bdbf90f9c6e614593eb394b190600c5a27397080ea6934662",
-    "app.py": "6db1a8f9aa2f4a405fe5f736f0f2fa3bbeae8d90b25349a26dae08c9d2b74f43",
+    "app.py": "bf41479ed5dcfc816a00a224a994afe69ebb22dd72837a6365400480b925ec56",
     "archive.py": "30a837a6ac02029614a494b6b57d3e3e83ffe225c8534455963c24a8e2cdc021",
     "backfill_reason_news.py": "cd3619445631e9a006a117f1beaddf401b3443d306a77c2f93ccfcf3fd8d0faa",
     "broadcast_audio.py": "707f5e29af2aee9837c3f45195cbd6f14eef0cb6a837a201e0a9c18530701d12",
@@ -28,7 +28,7 @@
     "hero_link.py": "92e78c6984f024ff57399ea62135fe05519027d6fa81ba38f3c380104fbf4ff9",
     "install_schedule.ps1": "41c377f8dd3d376f9ccc77fe5fd7fcec97848967e39de4b2b184de5b51878332",
     "investor_flows.py": "032d6dfd9641c0b4d22b7b08a6a8ab4ffeb25a2f997da4aa03ea75729d5ed6d5",
-    "kiwoom.py": "beb44ecd0e69da6ca94ae42b9da0a81d0aa25ba5b38f87df336ba6f939e05325",
+    "kiwoom.py": "4b4cb19e55c114a6ba4127304988ef04e8ff9dde096df4bb23c775170e3777ba",
     "local_config.py": "51e29a743fbb47bc90846e59d9dfcfa704f6d54d83c028a2d61960276e6c3a63",
     "notes.py": "b5afdd566652a645a8bff634f9e123e6a876b085108e93ac0f11f716a719aedd",
     "observations.py": "de2bfe2e92aee8ebf2f12632d7d3c470bf70284cf2541475c935904fcbd798dd",
@@ -90,8 +90,8 @@
     "web/recommendations.js": "629a88cd014c61b586ff5faf7cc25197bb743b9d03ddcdd3ec1bd2f0050f0859",
     "web/stock-search-add.css": "b97539040b18cd447ecd707869bb758acd514740046ee6ab2f862ff848d130d3",
     "web/stock-search-add.js": "2a6f527d842eada902a23583e66075065c241742466a746255d8494ee168974d",
-    "web/stock-tools.css": "a5313cef7abec40c0674706af4fe03b3a68cc13133dab95e475cb67b666512ed",
-    "web/stock-tools.js": "0dfa3ef9160dc5cbc3d376407adf29e9de5a85aacf8601a771802ebbdaa8b868",
+    "web/stock-tools.css": "e69222f39549c911c177d6da46d3e26cdecc82f8b531effbbdac54ca2f35646c",
+    "web/stock-tools.js": "4a9b79a7966536147e72ccdcab0e260daeb00aa5aa543050c38929f41d4b67ab",
     "web/style.css": "e7fe367c3efbff1a26408f04f7ce80587b662242ef35f1d68653228c6da89a5f",
     "web/themes.css": "498befd1bf83d29a1a0479a3198de2b9cad508be7feae9f1b86702f94b8011a9",
     "web/themes.html": "de8cc18f29b793965c0161f713079033bb9c17446b9fefc30decc804ee8946cc",
@@ -104,6 +104,7 @@
     "web/volume.js": "2cffd7e2dae837364270a82db3744003f01d5c106ccc19c2e5e51b3088af668e",
     "window.py": "e17ac58a5138564f7608c03026b9a431e910945da79b482afa9142491f5c77c1",
     "공유사용방법.txt": "7146c53325a91095df514445e5040b6a5eaf91a27b3f317f457c4b8b57f73a90",
-    "공유수집기시작.cmd": "3f0c4c2d6c3914397fbf989af7fe39f5273fed0a3024ad10a8bc792d7795ae25"
+    "공유수집기시작.cmd": "3f0c4c2d6c3914397fbf989af7fe39f5273fed0a3024ad10a8bc792d7795ae25",
+    "market_index.py": "4e6cdee3f6d8e8e079f2dfd1689e6e8d3a7f3692b8000dd711a83aa059b37557"
   }
 }

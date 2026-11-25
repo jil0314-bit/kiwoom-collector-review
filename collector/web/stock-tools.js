@@ -176,17 +176,34 @@ if (collectorClock) {
   digits.className = 'collector-clock-digits';
   const date = document.createElement('span');
   date.className = 'collector-clock-date';
+  let clockMarket = '코스피 확인 중', clockRequest = false, clockTimer, clockReceived = 0;
+  collectorClock.dataset.market = 'unknown';
   collectorClock.replaceChildren(digits, date);
+  new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(width>0)collectorClock.style.width=(width*1.5)+'px';}).observe(digits);
   const updateClock = () => {
     const now = new Date();
     const parts = Object.fromEntries(formatClock.formatToParts(now).map(({type,value}) => [type,value]));
     collectorClock.dateTime = now.toISOString();
     digits.textContent = [parts.hour, parts.minute, parts.second].join(':');
-    date.textContent = `${parts.month}월 ${parts.day}일 KST`;
+    if(clockReceived&&Date.now()-clockReceived>90000){collectorClock.dataset.market='unknown';clockMarket='코스피 확인 필요';}
+    date.textContent = `${clockMarket} · ${parts.month}/${parts.day} KST`;
     collectorClock.setAttribute('aria-label', `한국 시각 ${date.textContent} ${digits.textContent}`);
   };
   updateClock();
   setInterval(updateClock,1000);
+  async function updateMarket(){
+    if(clockRequest||document.hidden||document.body.dataset.sharedViewer==='1')return;
+    clockRequest=true;clearTimeout(clockTimer);const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000);let delay=30000;
+    try{const response=await fetch('/api/market-index',{signal:controller.signal}),data=await response.json();if(!response.ok)throw Error('지수 조회 실패');
+      const ready=data.ready===true&&data.name==='KOSPI'&&['up','down','flat'].includes(data.direction)&&typeof data.rate==='number'&&Number.isFinite(data.rate);
+      collectorClock.dataset.market=ready?data.direction:'unknown';
+      clockMarket=ready?'코스피 '+(data.direction==='flat'?'보합':(data.direction==='down'?'-':'+')+Math.abs(data.rate).toFixed(2)+'%'):data.pending?'코스피 확인 중':'코스피 확인 필요';clockReceived=Date.now();
+      collectorClock.title=ready?'코스피 전일 대비 · 키움 최근 응답 · 조회 '+data.fetched_at:'코스피 지수 조회 대기 또는 실패';
+      if(data.pending)delay=2000;
+    }catch(error){collectorClock.dataset.market='unknown';clockMarket='코스피 확인 필요';clockReceived=0;collectorClock.title='코스피 조회 실패 · 중립색 표시';}
+    finally{clearTimeout(timeout);clockRequest=false;updateClock();clockTimer=setTimeout(updateMarket,delay);}
+  }
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateMarket();});updateMarket();
 }
 
 function formatWon(value, unit = 1) {
