@@ -40,6 +40,26 @@ def dated_lines(day, items):
     return result
 
 
+def missing_saved_lines(day):
+    """Requeue dated source reasons absent from the current Hero4 memo file."""
+    try:
+        memos = hero4memo.parse(hero4memo.HERO4_MEMO.read_bytes())
+    except OSError:
+        return {}
+    missing = {}
+    for path in sorted((DATA / 'reasons').glob('20??-??-??.json')):
+        source_day = path.stem
+        if source_day > day:
+            continue
+        items = reasons.read_day(DATA, source_day).get('infostock', {}).get('items', {})
+        verified = {code: item for code, item in items.items()
+                    if item.get('article_day') == source_day}
+        for code, lines in dated_lines(source_day, verified).items():
+            if source_day + ' ' not in memos.get(code, ''):
+                missing.setdefault(code, []).extend(lines)
+    return missing
+
+
 def candidate(raw, incoming):
     # Existing importer checks encoding, preserves personal notes and deduplicates.
     appended, added, _ = importer.build(raw, incoming)
@@ -121,10 +141,14 @@ def tick(day, prepare_only=False):
             # confirmed reason already stored for this date, not just that article.
             items = reasons.read_day(DATA, day).get('infostock', {}).get('items', {})
     incoming = dated_lines(day, items)
+    if prepare_only:
+        for code, lines in missing_saved_lines(day).items():
+            queue[code] = list(dict.fromkeys(queue.get(code, []) + lines))
     if incoming:
         # Preserve previously queued lines, even if the later article has fewer rows.
         for code, lines in incoming.items():
             queue[code] = list(dict.fromkeys(queue.get(code, []) + lines))
+    if prepare_only or incoming:
         save(queue_path, queue)
     report = {'day': day, 'at': datetime.now(KST).isoformat(timespec='seconds'),
               'today_symbols': len(incoming), 'pending_symbols': len(queue),
