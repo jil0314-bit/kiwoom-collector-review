@@ -239,8 +239,8 @@ if (chartToolbar) {
   chartToolbar.innerHTML = `
     <div class="collector-chart-selects">
       <label>기준 <select id="${id.source}"><option value="archive">선택 날짜</option><option value="live" selected>현재 차트 · 15초 갱신</option></select></label>
-      <label>주기 <select id="${id.frame}"><option value="minute">1분봉</option><option value="minute3">3분봉</option><option value="minute5">5분봉</option><option value="day">일봉</option><option value="week">주봉</option><option value="month">월봉</option></select></label>
-      <label>표시 <select id="${id.range}"><option value="60">최근 60봉</option><option value="120">최근 120봉</option><option value="240">최근 240봉</option><option value="360">최근 360봉</option><option value="480">최근 480봉</option><option value="${isRank ? '0' : 'all'}" selected>전체</option><option value="custom" disabled>선택 구간</option></select></label>
+      <label>주기 <select id="${id.frame}"><option value="minute">1분봉</option><option value="minute3">3분봉</option><option value="minute5">5분봉</option><option value="day" selected>일봉</option><option value="week">주봉</option><option value="month">월봉</option></select></label>
+      <label>표시 <select id="${id.range}"><option value="60" selected>최근 60봉</option><option value="120">최근 120봉</option><option value="240">최근 240봉</option><option value="360">최근 360봉</option><option value="480">최근 480봉</option><option value="${isRank ? '0' : 'all'}">전체</option><option value="custom" disabled>선택 구간</option></select></label>
       <label>영웅문 <select id="${id.hero}"><option value="">0600 자동 선택</option><option value="off">연동 끄기</option></select></label>
     </div>
     <div class="collector-chart-actions">
@@ -253,10 +253,6 @@ if (chartToolbar) {
       </div></details>
       <small id="stock-tool-feedback" class="stock-tool-feedback" role="status"></small>
     </div>`;
-  if (isFlow) {
-    document.getElementById(id.frame).value = 'day';
-    document.getElementById(id.range).value = '240';
-  }
   if (document.body.dataset.sharedViewer === '1') {
     document.getElementById(id.source).querySelector('[value=live]').disabled = true;
     document.getElementById(id.source).value = 'archive';  // 공유 보기는 현재 차트를 쓸 수 없으므로 선택 날짜로 둔다

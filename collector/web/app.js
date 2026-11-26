@@ -1,7 +1,7 @@
 'use strict';
 const $=id=>document.getElementById(id), fmt=n=>n==null?'—':Number(n).toLocaleString('ko-KR',{maximumFractionDigits:2});
 let status={}, meta={stocks:[]}, record=null, choice='', code='', selected=-1, requestVersion=0, refreshing=false, openedFlag=false;
-let frame='minute', loading=false, liveChart=document.body.dataset.sharedViewer!=='1', quoteList=false; /* 2026-11-17: 차트는 현재 차트로 열림. 목록 현재가 자동조회(quoteList)는 기준을 직접 고를 때만 */
+let frame='day', loading=false, liveChart=document.body.dataset.sharedViewer!=='1', quoteList=false; /* 2026-11-17: 차트는 현재 차트로 열림. 목록 현재가 자동조회(quoteList)는 기준을 직접 고를 때만 */
 let searchSelection=null;
 let liveQuotes={},quoteRequest=0,quotesBusy=false;
 let listMode='ranking', watchlists=[], watchGroup='';

@@ -1,9 +1,9 @@
 {
-  "snapshot_date": "2026-11-25",
+  "snapshot_date": "2026-11-26",
   "timezone": "Asia/Seoul",
-  "review_base_commit": "07291304c281af4efbaf9b77d978311d9f8679e5",
-  "scope": "KOSPI-driven shared clock colour and 1.5x horizontal width; read-only cached sector summary",
-  "source_files_byte_identical": 121,
+  "review_base_commit": "138decfa000044922cb04a7c4e25ceb6671a02e6",
+  "scope": "All eight chart tabs initially open daily candles showing the latest 60 bars",
+  "source_files_byte_identical": 127,
   "generated_exception": "Publication metadata; volume.js retains the remote interval presentation outside this scoped change",
   "excluded": "Runtime data, credentials, private notes, full articles, logs, captures, backups, environments, new ZIPs",
   "files": [
@@ -45,9 +45,9 @@
     },
     {
       "path": "README.md",
-      "bytes": 3000,
-      "sha256": "dc296be96d8258430c309da29d61fecd09e3e64615b98241b34cdc7dff37b07e",
-      "git_blob_sha": "4cbeea8ac79b8f41e22fd2d3eef1f9293f547e4f"
+      "bytes": 3425,
+      "sha256": "e1082fbca882085fa6741eab5f6e0b3d2b41ba117a53b502ae3faed0aa5a22b6",
+      "git_blob_sha": "904cb64553ab5bea1e8d3daa05afb3dca73ddece"
     },
     {
       "path": "collector/.gitignore",
@@ -328,8 +328,8 @@
     {
       "path": "collector/release_manifest.json",
       "bytes": 9967,
-      "sha256": "4bae60f18d40ddb233eeb189344d59d18de7043c2e001a143bd2ce40cceb56f8",
-      "git_blob_sha": "4cb7785f5db51adadfd0ce5cbf6889055f034740"
+      "sha256": "dd4fedb397c888bb1755ba32cbd42251cd418a63feaa3c3aff3060e911159105",
+      "git_blob_sha": "9a7a703a6a0b3c34704ef54720c7e2e0c64a8019"
     },
     {
       "path": "collector/requirements-board-ocr.txt",
@@ -609,9 +609,9 @@
     },
     {
       "path": "collector/web/app.js",
-      "bytes": 37163,
-      "sha256": "0a326cec7f37c6f86dc24acd00e67d1f7e79508f6de5533691490d36bd66d002",
-      "git_blob_sha": "12898a54efe2703af317db170afd08218c12c93a"
+      "bytes": 37160,
+      "sha256": "a64750bd4d01eeb02713ff536cd5ccbc0d279e808abcb2d0ae11ed672ac39a2d",
+      "git_blob_sha": "a1717572c46f80e27c8f69bc69cb00fafbe832cb"
     },
     {
       "path": "collector/web/chart-fast.js",
@@ -729,9 +729,9 @@
     },
     {
       "path": "collector/web/stock-tools.js",
-      "bytes": 59180,
-      "sha256": "4a9b79a7966536147e72ccdcab0e260daeb00aa5aa543050c38929f41d4b67ab",
-      "git_blob_sha": "c3169cf58d70cbf26fff8a5bd5c3cba508822002"
+      "bytes": 59063,
+      "sha256": "f872f72524bb33712a258641dbc72b63a24da306043bbe17896de09efcbc2a3c",
+      "git_blob_sha": "40f8bf77aea4acd0cc7e1a70b8b601293caba302"
     },
     {
       "path": "collector/web/style.css",
@@ -753,9 +753,9 @@
     },
     {
       "path": "collector/web/themes.js",
-      "bytes": 40669,
-      "sha256": "fdfab7b9113ac4ba1515aec1ba08685c776f685eb90421469db3150da7414d3d",
-      "git_blob_sha": "f27f1aa485b75d810eb949b9581a3cdb8278677b"
+      "bytes": 40666,
+      "sha256": "d71031cc6794809d51f5020cd6f6ff6be5faf139edae8ffd1b9e5bb9d31301ec",
+      "git_blob_sha": "beaff85c4733275031199cab28239fe52fb93b92"
     },
     {
       "path": "collector/web/volume-notes.js",
@@ -789,9 +789,9 @@
     },
     {
       "path": "collector/web/volume.js",
-      "bytes": 26855,
-      "sha256": "2cffd7e2dae837364270a82db3744003f01d5c106ccc19c2e5e51b3088af668e",
-      "git_blob_sha": "c2c96e0054243bea3fddfbc02561ba2959fb9548"
+      "bytes": 26852,
+      "sha256": "ba6931e250a79efa99b918c8611bf18301d647d39b7776170a23874cec9be8eb",
+      "git_blob_sha": "be11ad1f8435f34d64aa1cde28a0255438e39946"
     },
     {
       "path": "collector/window.py",

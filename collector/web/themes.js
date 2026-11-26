@@ -29,7 +29,7 @@ function linkHero(symbol){
 }
 
 /* ---------- Chart: same drawing and interaction as the collector's main chart (app.js) ---------- */
-let record=null, code='', selected=-1, requestVersion=0, frame='minute', chartLoading=false;
+let record=null, code='', selected=-1, requestVersion=0, frame='day', chartLoading=false;
 const periods=()=>chartPeriods(frame);
 const barLabel=ts=>frame==='month'?ts.slice(0,7):frame==='day'?ts:frame==='week'?ts+' 주':Number(rangeBeforeZoom??$('range').value)>=360 ? ts.slice(5,16) : ts.slice(11,16);
 const maUnit=()=>frame==='month'?'월':frame==='day'?'일':frame==='week'?'주':frame==='minute'?'분':'봉';
