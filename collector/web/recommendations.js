@@ -1,6 +1,6 @@
 'use strict';
 const recEl=id=>document.getElementById(id),recNode=(tag,text,cls)=>{const e=document.createElement(tag);if(text!=null)e.textContent=text;if(cls)e.className=cls;return e;};
-const recLabels={pending:'음성전사 검수대기',new:'신규추천',consultation:'보유종목 상담',review:'과거추천 복기',sell:'매도·축소',interest:'관심종목'};
+const recLabels={pending:'음성전사 검수대기',new:'신규추천',consultation:'보유종목 상담',review:'기존추천·복기',sell:'매도·축소',interest:'관심종목'};
 const recKindClass={pending:'rec-kind-pending',new:'rec-kind-new',consultation:'rec-kind-consultation',review:'rec-kind-review',sell:'rec-kind-sell',interest:'rec-kind-interest'};
 let recData=null,recProfiles={},recVersion=0,recSelected='',recNoteTarget=null,recRevision='',recNoteSaving=false;
 const recDrafts=new Map();
@@ -19,14 +19,14 @@ const recDrafts=new Map();
 const recMoney=p=>p?p.min.toLocaleString('ko-KR')+(p.max!==p.min?'~'+p.max.toLocaleString('ko-KR'):'')+'원':'미확인';
 async function recApi(url,body){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);try{const response=await fetch(url,{signal:controller.signal,...(body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Collector-Token':recData.token},body:JSON.stringify(body)})});const data=await response.json();if(!response.ok)throw Error(data.error||'요청 실패');return data;}catch(e){if(e.name==='AbortError')throw Error('응답 지연 · 보관 자료를 다시 확인해주세요.');throw e;}finally{clearTimeout(timer);}}
 function recLink(url,label){const a=recNode('a',label,'rec-source-link');if(!/^https:\/\//.test(url||''))return a;a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.onclick=e=>e.stopPropagation();return a;}
-function recRows(){const kind=recEl('rec-kind').value,source=recEl('rec-source').value,term=recEl('rec-search').value.trim().toLowerCase();return(recData?.records||[]).filter(r=>(!kind||(kind==='focus'?['new','interest'].includes(r.classification):r.classification===kind))&&r.classification!=='mention'&&(!source||r.broadcaster===source)&&(!term||[r.name,r.code,r.expert,r.program,r.reason].join(' ').toLowerCase().includes(term)));}
+function recRows(){const kind=recEl('rec-kind').value,source=recEl('rec-source').value,term=recEl('rec-search').value.trim().toLowerCase();return(recData?.records||[]).filter(r=>(!kind||(kind==='focus'?['new','interest','review'].includes(r.classification):r.classification===kind))&&r.classification!=='mention'&&(!source||r.broadcaster===source)&&(!term||[r.name,r.code,r.expert,r.program,r.reason].join(' ').toLowerCase().includes(term)));}
 function recRender(){
  const focusCode=document.activeElement?.closest('#rows tr[data-code]')?.dataset.code;
  const rows=recRows(),stocks=[...new Map(rows.map(r=>[r.code,{code:r.code,name:r.name}])).values()];
  recEl('rec-count').textContent=rows.length+'건 · '+stocks.length+'종목';recEl('rec-empty').hidden=!!rows.length;
  recEl('rec-empty').textContent=recData.records.length?'선택한 조건에 맞는 자료가 없습니다. 분류·채널·검색 조건을 바꾸거나 최근 신규추천을 확인하세요.':'이 날짜의 보관 자료가 없습니다. 다른 날짜 또는 수집 현황을 확인하세요.';
  const counts=recData.records.reduce((a,r)=>(a[r.classification]=(a[r.classification]||0)+1,a),{});
- recEl('rec-summary').textContent='보관 '+recData.day+' · 표시 '+rows.length+'건 / 신규추천 '+(counts.new||0)+' / 관심종목 '+(counts.interest||0)+' / 상담 '+(counts.consultation||0)+' · 단순 언급 제외';
+ recEl('rec-summary').textContent='보관 '+recData.day+' · 표시 '+rows.length+'건 / 신규추천 '+(counts.new||0)+' / 관심종목 '+(counts.interest||0)+' / 기존추천 '+(counts.review||0)+' / 상담 '+(counts.consultation||0)+' · 단순 언급 제외';
  recEl('rows').replaceChildren(...rows.map(r=>{const tr=recNode('tr');tr.dataset.code=r.code;tr.dataset.record=r.id;const importantProgram=r.program==='AI황금분석';if(importantProgram)tr.classList.add('rec-important-program');
   const left=recNode('td'),button=recNode('button',r.name,'rank-stock');button.type='button';left.append(button,recNode('small','• '+r.code));collectorSetStockRate(button,r.code,null,'현재 시세 조회 대기',true);const p=recProfiles[r.code]||{};
   left.append(recNode('small',p.market_cap>0?'• 시총 '+formatWon(p.market_cap,1e8)+(p.cap_day!==recData.day?' · '+p.cap_day+' 기준':''):'• 시총 미확인','rec-sector rec-cap stock-money'));

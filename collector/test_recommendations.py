@@ -258,7 +258,7 @@ class RecommendationsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             data=Path(tmp)
             config={'programs':[{'kind':'mtn','url':'https://www.mtn.co.kr/program/588','name':'표본'}],'channels':[]}
-            with patch.object(r,'sources',return_value=config),patch.object(r,'discover_mtn',return_value=[]),patch.dict(r.STATE,last_run=r.stamp()):
+            with patch.object(r,'sources',return_value=config),patch.object(r,'discover_mtn',return_value=[]),patch.object(r.broadcasts,'discover_articles',return_value=[]),patch.dict(r.STATE,last_run=r.stamp()):
                 self.assertTrue(r.RUN.acquire(blocking=False));r.worker(data)
             source=next(iter(r.ledger(data)['sources'].values()))
             self.assertEqual(source['status'],'확인 필요')
@@ -275,6 +275,90 @@ class RecommendationsTest(unittest.TestCase):
             book=r.ledger(data)
             self.assertIn(extra['url'],book['documents'])
             self.assertEqual(book['sources'][source['url']]['status'],'범위 제한')
+
+
+class BroadcastCornersTest(unittest.TestCase):
+    names = {'005930': '삼성전자', '000660': 'SK하이닉스', '005935': '삼성전자우'}
+    meta = dict(url='https://news.mtn.co.kr/article/2026112712345678901',
+                broadcaster='MTN', program='이달해의 달달한 10분', title='[이달해 달달한10분] 표본',
+                broadcast_date='2026-11-27', published_at='2026-11-27T13:00:00+09:00', evidence_type='공개 기사')
+
+    def test_daldal_new_interest_review_separate_prices_and_speaker(self):
+        text = ('이달해 주식명가 MTN W 어드바이저\n▶실시간 종목 검색 상위 TOP10\n- 삼성전자우\n'
+                '▶달달한 공략주 : 삼성전자\n- 실적 성장\n매수가 현재가 / 목표가 90000원 / 손절가 60000원\n'
+                '* 11/20 SK하이닉스 +15% (최고가 기준) 목표가 달성\n'
+                '▶관심종목: 삼성전자우\n- 신규 수주')
+        rows = r.extract(text, self.meta, self.names)
+        self.assertEqual([(x['name'], x['classification'], x['expert']) for x in rows],
+                         [('삼성전자', 'new', '이달해'), ('SK하이닉스', 'review', '이달해'), ('삼성전자우', 'interest', '이달해')])
+        self.assertEqual(rows[0]['target_price']['min'], 90000)
+        self.assertIsNone(rows[1]['target_price'])
+        self.assertEqual(rows[1]['recommended_date'], '2026-11-20')
+        self.assertEqual(rows[1]['archive_day'], '2026-11-27')
+
+    def test_review_unknown_date_is_not_today(self):
+        row = r.extract('▶▶ 기존 추천\n삼성전자\n- 실적 성장', self.meta, self.names)[0]
+        self.assertEqual(row['classification'], 'review')
+        self.assertIsNone(row['recommended_date'])
+
+    def test_review_year_boundary_and_invalid_date(self):
+        self.assertEqual(r.review_date('* 12/27 삼성전자', '2026-01-05'), '2025-12-27')
+        self.assertEqual(r.review_date('* 25/12/27 삼성전자', '2026-01-05'), '2025-12-27')
+        self.assertIsNone(r.review_date('* 2/30 삼성전자', '2026-11-27'))
+
+    def test_golden_cross_captions_do_not_promote_title_mentions(self):
+        meta = {**self.meta, 'broadcaster':'매일경제TV', 'title':'[조기준의 골든크로스] 삼성전자_MBN골드 조기준 매니저', 'evidence_type':'공개 한국어 자막'}
+        rows = r.extract('SK하이닉스 실적 이야기입니다.\n삼성전자 관심종목입니다.\n삼성전자우 기존 추천 종목입니다.', meta, self.names)
+        self.assertEqual([(x['name'],x['classification'],x['expert']) for x in rows],
+                         [('삼성전자','interest','조기준'),('삼성전자우','review','조기준')])
+
+    def test_program_matching_and_verified_sources(self):
+        config=r.sources()
+        self.assertEqual(r.broadcast_program_match('[이달해 달달한10분] 표본','','MTN',config),'이달해의 달달한 10분')
+        self.assertEqual(r.broadcast_program_match('[조기준의 골든크로스] 표본','','매일경제TV',config),'조기준의 골든크로스')
+        self.assertIsNone(r.broadcast_program_match('[조기준의 골든크로스] 표본','','다른 채널',config))
+        self.assertEqual(len([x for x in config['programs'] if x['kind']=='broadcast-clips']),2)
+
+    def test_official_article_search_rejects_old_and_unrelated_results(self):
+        p={'name':'표본코너','broadcaster':'MTN'}
+        def item(ident,title,date): return {'article':{'articleId':ident,'title':title},'outDatetime':date,'sourceSystem':'ZEUS'}
+        payload={'status':'SUCCESS','result':{'items':[item('2026112712345678901','[표본코너] 추천',r.today()+'T13:00:00'),item('2020112712345678901','[표본코너] 과거','2020-11-27T13:00:00'),item('2026112712345678902','다른 뉴스',r.today()+'T13:00:00')]}}
+        with patch.object(r,'fetch',return_value=json.dumps(payload)):
+            rows=r.broadcasts.discover_articles(p)
+        self.assertEqual(len(rows),1)
+        self.assertEqual(rows[0]['kind'],'mtn-article')
+        self.assertIsNone(rows[0]['broadcast_date'])
+
+    def test_public_api_allowlist_is_path_limited(self):
+        r.allowed('https://apis.mtn.co.kr/open/v1/public/articles/search?searchText=test')
+        for url in ['https://apis.mtn.co.kr/account','https://apis.mtn.co.kr/open/v1/private','https://user@apis.mtn.co.kr/open/v1/public/articles/search']:
+            with self.assertRaises(ValueError):r.allowed(url)
+
+    def test_clip_search_accepts_only_verified_owner(self):
+        source=next(x for x in r.sources()['programs'] if x['name']=='조기준의 골든크로스')
+        def video(vid,owner):return {'videoRenderer':{'videoId':vid,'title':{'runs':[{'text':'[조기준의 골든크로스] 표본'}]},'ownerText':{'runs':[{'navigationEndpoint':{'browseEndpoint':{'browseId':owner}}}]}}}
+        html='var ytInitialData = '+json.dumps({'contents':[video('abcdefghijk',source['channel_id']),video('abcdefghijl','UC-other')]})+';'
+        with patch.object(r,'fetch',return_value=html):rows=r.broadcasts.discover_clips(source)
+        self.assertEqual([x['url'] for x in rows],['https://www.youtube.com/watch?v=abcdefghijk'])
+
+    def test_mtn_article_keeps_original_publication_and_classification(self):
+        html='<meta property="og:title" content="[이달해 달달한10분] 표본"><meta property="article:published_time" content="2026-11-27T13:00:00+09:00"><article><p>이달해 어드바이저</p><p>▶달달한 공략주 : 삼성전자</p><p>- 실적 성장</p></article>'
+        item={**self.meta,'kind':'mtn-article','broadcast_date':None}
+        with patch.object(r,'fetch',return_value=html),patch.object(r.watchlists,'names',return_value=self.names):rows=r.document(item)
+        self.assertEqual((rows[0]['classification'],rows[0]['expert']),('new','이달해'))
+        self.assertIsNone(rows[0]['recommended_date'])
+        self.assertEqual(rows[0]['published_at'][:10],'2026-11-27')
+
+    def test_worker_keeps_reviews_in_broadcast_archive_and_is_idempotent(self):
+        source=next(x for x in r.sources()['programs'] if x['name']=='조기준의 골든크로스')
+        item=r.broadcasts.tag({'url':'https://www.youtube.com/watch?v=abcdefghijk','kind':'youtube','title':'[조기준의 골든크로스] 표본','published_at':r.stamp()},source)
+        row=r.extract('* 11/20 삼성전자 +10% (최고가 기준)',{**self.meta,'broadcast_date':r.today()},self.names)[0]
+        with tempfile.TemporaryDirectory() as tmp,patch.object(r,'sources',return_value={'programs':[source],'channels':[]}),patch.object(r.broadcasts,'discover_clips',return_value=[item]),patch.object(r.broadcasts,'discover_articles',return_value=[]),patch.object(r,'document',return_value=[row]),patch.dict(r.STATE,last_run=r.stamp()):
+            data=Path(tmp)
+            for _ in range(2):
+                self.assertTrue(r.RUN.acquire(blocking=False));r.worker(data)
+            self.assertEqual(len(r.read(data,r.today())['records']),1)
+            self.assertEqual(r.read(data,r.today())['records'][0]['classification'],'review')
 
 
 if __name__ == '__main__':

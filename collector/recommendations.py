@@ -30,7 +30,7 @@ LOCK = threading.RLock()
 RUN = threading.Lock()
 STATE = {"busy": False, "message": "공개 자료 수집 대기", "last_run": None}
 INTERVAL = 1200
-PARSER_VERSION = 4
+PARSER_VERSION = 5
 HOSTS = {"www.mtn.co.kr", "news.mtn.co.kr", "www.youtube.com", "youtube.com", "www.youtube-nocookie.com", "mbnmoney.mbn.co.kr", "vodmm.mbn.co.kr"}
 LABELS = {"new": "신규추천", "consultation": "보유종목 상담", "review": "과거추천 복기", "sell": "매도·축소", "interest": "관심종목", "mention": "단순 언급", "pending": "음성전사 검수대기"}
 
@@ -88,12 +88,28 @@ def broadcast_program_match(title, description, broadcaster, config):
     return None
 
 
+def reconcile_corner(item, config):
+    """A broadcaster's other clips must never inherit a named corner's tag."""
+    corners = {p['name']: p for p in config.get('programs', []) if p.get('kind') == 'broadcast-clips'}
+    corner = corners.get(item.get('program'))
+    if corner:
+        matched = broadcast_program_match(item.get('title'), '', item.get('broadcaster'), config)
+        if matched != corner['name']:
+            item['program'] = matched
+            for field in ('post_broadcast', 'broadcast_program_id'):
+                item.pop(field, None)
+    return item
+
+
 def read(data, day):
     valid_day(day)
     with LOCK:
         doc = load(data / "recommendations" / day / "index.json", {"day": day, "records": [], "stocks": []})
         doc['records'] = sorted((r for r in doc.get('records', []) if r.get('classification') != 'mention'),
                                 key=newest_record, reverse=True)
+        config = sources()
+        for row in doc['records']:
+            reconcile_corner(row, config)
         doc["stocks"] = list({r["code"]: {"code": r["code"], "name": r["name"]}
                               for r in doc["records"] if r.get("code")}.values())
         return doc
@@ -139,6 +155,11 @@ def merge(data, day, records):
 
 
 def allowed(url):
+    parsed = urlparse(url)
+    if (parsed.scheme == 'https' and parsed.hostname == 'apis.mtn.co.kr'
+            and parsed.path == '/open/v1/public/articles/search'
+            and not parsed.username and not parsed.password and parsed.port in (None, 443)):
+        return url
     p = urlparse(url)
     if p.scheme != "https" or p.hostname not in HOSTS or p.username or p.password or p.port not in (None, 443):
         raise ValueError("허용한 공개 원문 주소가 아닙니다")
@@ -361,6 +382,27 @@ def captions(url):
 
 
 EXPERT = re.compile(r"(?:^|[▶>\[/|· ])([가-힣A-Za-z][가-힣A-Za-z ]{1,18}?)\s*(?:어드바이저|전문가|대표|소장|매니저|팀장|연구원|이사)(?:\s|$|[\]/|])")
+REVIEW = re.compile(r'지난\s*추천|기존\s*추천|과거\s*추천|이미\s*추천|추천(?:해\s*드렸|드렸|했던)|추천\s*(?:이후|당시)|추천일\s*대비|수익률\s*(?:달성|점검)|복기|종목\s*A/S', re.I)
+REVIEW_DATE = re.compile(r'^\s*[*•·]\s*(?:(\d{2}|20\d{2})/)?(\d{1,2})/(\d{1,2})\s+')
+
+
+def expert_name(value):
+    return re.split(r'\s+(?:주식명가|MTN|MBN|골드)', value, maxsplit=1)[0].strip()
+
+
+def review_date(line, basis):
+    match = REVIEW_DATE.match(line)
+    if not match or not basis:
+        return None
+    y, m, d = match.groups()
+    year = int(y) + (2000 if len(y) == 2 else 0) if y else int(basis[:4])
+    try:
+        value = valid_day(f'{year:04d}-{int(m):02d}-{int(d):02d}')
+        if not y and value > basis[:10]:
+            value = valid_day(f'{year-1:04d}-{int(m):02d}-{int(d):02d}')
+        return value if value <= basis[:10] else None
+    except ValueError:
+        return None
 NEW = re.compile(r"최종\s*(?:PICK|픽)|신규\s*(?:추천|매수|편입)|오늘의\s*추천|추천\s*종목|추천주|공략\s*(?:종목|주)|고래사냥법|탑픽레이더|내일장\s*(?:고래|추천)|매수\s*추천|추천드립니다|추천드리는", re.I)
 NUMBER = r"[0-9][0-9,]*(?:\.[0-9]+)?"
 PRICE = rf"({NUMBER}(?:\s*만(?:\s*{NUMBER})?(?:\s*천(?:\s*{NUMBER})?)?|\s*천(?:\s*{NUMBER})?)?\s*원?)"
@@ -398,16 +440,17 @@ def category(text, section, title):
     context = text + " " + section
     if re.search(r"매도\s*(?:추천|의견|종목)|비중\s*축소|전량\s*매도", context):
         return "sell"
-    if re.search(r"지난\s*추천|기존\s*추천|과거\s*추천|추천\s*(?:이후|당시)|추천일\s*대비|수익률\s*(?:달성|점검)|복기", context):
+    if REVIEW.search(context) or (REVIEW_DATE.match(text) and re.search(r'최고가|목표가\s*달성|[+]\s*\d.*%', text)):
         return "review"
     if re.search(r"보유\s*종목|보유자|보유\s*수량|매수\s*단가|평균\s*단가|종목\s*상담|시청자\s*상담", context):
         return "consultation"
     if re.search(r"추천하지|매수하지|추천\s*아님|매수\s*금지|추천은\s*아니", context):
         return "mention"
+    if re.search(r"관심\s*종목|관심주|후보|PICK|픽", context, re.I):
+        if not NEW.search(text) and not NEW.search(section):
+            return "interest"
     if NEW.search(context):
         return "new"
-    if re.search(r"관심\s*종목|관심주|후보|PICK|픽", context, re.I):
-        return "interest"
     if "상담" in title:
         return "consultation"
     return "mention"
@@ -437,27 +480,36 @@ def extract(text, meta, names=None):
     expert, section, results = None, "", []
     section_index = -100
     spoken = meta.get('evidence_type') in ('공개 한국어 자막', '공개 브라우저 스크립트')
-    title_experts = list(dict.fromkeys(m.group(1).strip() for m in EXPERT.finditer(meta.get("title", ""))))
+    title_experts = list(dict.fromkeys(expert_name(m.group(1)) for m in EXPERT.finditer(meta.get("title", ""))))
     if len(title_experts) == 1:
         expert = title_experts[0]
+    elif not title_experts:
+        config = sources()
+        matched = broadcast_program_match(meta.get('title'), '', meta.get('broadcaster'), config)
+        corner = next((p for p in config.get('broadcast_programs', []) if p['name'] == matched), {})
+        speakers = corner.get('experts', [])
+        if len(speakers) == 1 and speakers[0] in meta.get('title', ''):
+            expert = speakers[0]
     def primary_name(line, name):
         clean = re.sub(r"^[▶>\s'\"‘’“”\[<]+", '', line)
         clean = re.sub(r"^[가-힣A-Za-z]{2,12}\s*(?:관심주|추천주)\s*[-:：]?\s*", '', clean)
         clean = re.sub(r"^오늘의\s*고래사냥법\s*[-:：]?\s*", '', clean)
+        clean = re.sub(r'^(?:(?:달달한|오늘의)\s*)?(?:공략주|추천주|추천\s*종목|관심\s*종목|관심주)\s*[:：-]\s*', '', clean)
+        clean = REVIEW_DATE.sub('', clean)
         return bool(re.match(re.escape(name) + r"(?:\s|\(|$|[,'\"‘’“”>])", clean))
     for i, line in enumerate(lines):
         if line.startswith("시청 방법") or "무단전재" in line:
             break
         em = EXPERT.search(line)
         if em and not (pattern and pattern.search(line)):
-            expert = re.sub(r'\s*MTNW?\s*$', '', em.group(1)).strip()
+            expert = expert_name(em.group(1))
         speaker = re.match(r"^[▶>\s]*([가-힣A-Za-z]{2,12})(?:의\s*[<〈]|\s+(?:관심주|추천주|PICK))", line, re.I)
         if speaker and speaker.group(1) not in ('최종', '오늘', '내일', '신규', '이번', '추천', '관심'):
             expert = speaker.group(1)
         if line.startswith('▶▶'):
             section = line
             section_index = i
-        if (NEW.search(line) or re.search(r"종목\s*상담|보유\s*종목|복기|관심\s*(?:종목|주)|후보|PICK", line, re.I)) and not (pattern and pattern.search(line)):
+        if (NEW.search(line) or REVIEW.search(line) or re.search(r"종목\s*상담|보유\s*종목|관심\s*(?:종목|주)|후보|PICK", line, re.I)) and not (pattern and pattern.search(line)):
             section = line
             section_index = i
         hits = list(dict.fromkeys(pattern.findall(line))) if pattern else []
@@ -476,12 +528,15 @@ def extract(text, meta, names=None):
                     break
                 next_names = pattern.findall(follow) if pattern else []
                 next_stock = bool(next_names) and (meta.get('evidence_type') != '공개 기사' or any(primary_name(follow, n) for n in next_names))
-                if next_stock or EXPERT.search(follow) or (NEW.search(follow) and follow.startswith('▶')) or follow.startswith("▶▶") or re.match(r'^[가-힣A-Za-z]{2,12}\s+관심주', follow):
+                if next_stock or REVIEW_DATE.match(follow) or EXPERT.search(follow) or (NEW.search(follow) and follow.startswith('▶')) or follow.startswith("▶▶") or re.match(r'^[가-힣A-Za-z]{2,12}\s+관심주', follow):
                     break
                 block.append(follow)
             evidence = "\n".join(block)
             primary = primary_name(line, name)
             context = section if not spoken or (primary and i - section_index <= 2) else ''
+            # Explicit local intent wins over an older section's recommendation label.
+            if NEW.search(line) or REVIEW.search(line) or REVIEW_DATE.match(line) or re.search(r'관심\s*(?:종목|주)', line):
+                context = ''
             kind = category(evidence, context, meta.get("title", ""))
             if meta.get('evidence_type') == '공개 기사' and not primary:
                 kind = 'mention'
@@ -499,6 +554,8 @@ def extract(text, meta, names=None):
                 following = re.match(r'\s+([012]?\d):([0-5]\d)', evidence[explicit_date.end():])
                 if following and int(following.group(1)) < 24:
                     rec_time = f'{int(following.group(1)):02d}:{following.group(2)}'
+            if kind == 'review' and not explicit_date:
+                day = review_date(line, meta.get('broadcast_date') or meta.get('published_at'))
             record = {**meta, "code": code, "name": name, "expert": expert, "classification": kind,
                       "recommended_date": day, "recommended_time": rec_time, "timezone": "Asia/Seoul",
                       "date_basis": "방송 회차일" if day and not explicit_date else "원문 명시" if explicit_date else "미확인",
@@ -509,6 +566,9 @@ def extract(text, meta, names=None):
                       "reason": " / ".join(reasons[:3])[:240] or None,
                       "evidence": evidence[:600], "collected_at": stamp(), "review_status": "규칙 추출·원문 확인 가능"}
             record['parser_version'] = PARSER_VERSION
+            if kind == 'review':
+                record['date_basis'] = '원문 과거추천 날짜' if day else '과거추천 날짜 미확인'
+                record['archive_day'] = meta.get('broadcast_date') or (meta.get('published_at') or '')[:10]
             identity = [meta["url"], code, expert, kind, day]
             record["id"] = hashlib.sha256(json.dumps(identity, ensure_ascii=False).encode()).hexdigest()[:24]
             results.append(record)
@@ -534,6 +594,8 @@ def document(item, browser_fallback=None):
     meta = {k: item.get(k) for k in ("url", "title", "program", "broadcaster", "broadcast_date", "published_at", "broadcast_program_id", "post_broadcast")}
     if item['kind'] == 'mktv-article':
         return broadcasts.article(item)
+    if item['kind'] == 'mtn-article':
+        return broadcasts.mtn_article(item)
     if item['kind'] == 'mktv':
         page = Page(fetch(item['url']))
         if not re.search(r'방영일\s*' + item['broadcast_date'].replace('-', r'\.'), page.text()):
@@ -546,6 +608,7 @@ def document(item, browser_fallback=None):
             raise ValueError("공개 추천 기사 없음·영상 발언 확인 필요")
         page = Page(fetch(article))
         meta.update(url=article.replace("/news-detail/", "/article/"), video_url=item["url"], title=page.meta.get("og:title", item["title"]), published_at=published(page.meta.get("article:published_time", "")), evidence_type="공개 기사")
+        meta['program'] = broadcast_program_match(meta['title'], '', 'MTN', sources()) or meta.get('program')
         return extract(page.text(), meta)
     # Only an explicit date in the video title establishes a broadcast date.
     title = item["title"]
@@ -569,6 +632,10 @@ def document(item, browser_fallback=None):
             meta['published_at'] = published(value)
         if not meta.get('published_at') and not meta.get('broadcast_date'):
             raise ValueError('영상 게시일·방송일 확인 불가; 날짜 추정 저장하지 않음')
+    # Retain verified dates in the ledger even when public captions are unavailable.
+    for field in ('published_at', 'broadcast_date'):
+        if meta.get(field):
+            item[field] = meta[field]
     if item.get('post_broadcast') and meta.get('published_at') and not broadcasts.ready(item, meta['published_at'][:10]):
         return [], '방송 종료 후 수집 대기'
     browser_warning = None
@@ -665,6 +732,8 @@ def worker(data):
         STATE.update(busy=True, message="공개 방송·채널 최신 목록 확인 중")
         book = ledger(data)
         config = sources()
+        for item in book['documents'].values():
+            reconcile_corner(item, config)
         current_day = datetime.now(KST).date()
         cutoff = (current_day - timedelta(days=2)).isoformat()
         for source in config["programs"] + config["channels"]:
@@ -677,6 +746,12 @@ def worker(data):
                 source_cutoff = (current_day - timedelta(days=lookback_days - 1)).isoformat()
                 if source.get("kind") == "mtn":
                     items = discover_mtn(source, source_cutoff)
+                    try:
+                        items.extend(broadcasts.discover_articles(source))
+                    except Exception:
+                        coverage_warning += ' · 공식 기사 목록 보완 실패·재시도 예정'
+                elif source.get('kind') == 'broadcast-clips':
+                    items = broadcasts.discover_clips(source)
                 elif source.get('kind') == 'mktv-segment':
                     items = [{**item, 'ai_segment': True} for item in broadcasts.discover_mktv(source, source_cutoff)]
                 elif source.get('kind') == 'mktv':
@@ -694,15 +769,20 @@ def worker(data):
                 if source.get('post_broadcast') and not source.get('ai_segment'):
                     items = [broadcasts.tag(item, source) for item in items if not item.get('broadcast_date') or broadcasts.ready(source, item['broadcast_date'])]
                     for discover in (broadcasts.discover_clips, broadcasts.discover_articles):
+                        if (source.get('kind') == 'broadcast-clips' and discover == broadcasts.discover_clips) or (source.get('kind') == 'mtn' and discover == broadcasts.discover_articles):
+                            continue
                         try:
                             items.extend(discover(source))
                         except Exception:
                             coverage_warning += ' · 공식 클립/기사 목록 보완 실패·재시도 예정'
                 for item in items:
+                    item['program'] = broadcast_program_match(item.get('title'), '', item.get('broadcaster'), config) or item.get('program')
                     if excluded_program(item, config):
                         continue
                     old = book["documents"].get(item["url"], {})
                     saved = {**item, **old, 'last_seen_day': current_day.isoformat()}
+                    if item.get('program'):
+                        saved['program'] = item['program']
                     if not saved.get('published_at') and item.get('published_at'):
                         saved['published_at'] = item['published_at']
                     book['documents'][item['url']] = saved
@@ -716,6 +796,8 @@ def worker(data):
                 book["sources"][key] = {"name": source["name"], "status": "목록 확인", "checked_at": stamp(), "found": len(items), "coverage": f"최신 공개 목록·최근 {lookback_days}일; 전체 회차 보장 아님"}
                 if source.get("kind") == "mtn" and not items:
                     book['sources'][key].update(status='확인 필요', message=f'최근 {lookback_days}일 공개 회차 0건·휴방 또는 페이지 구조 변경 확인 필요')
+                if source.get('kind') == 'broadcast-clips' and not items:
+                    book['sources'][key].update(status='확인 필요', message='공식 코너 클립 0건·다음 수집에서 재확인')
                 if source.get("kind") == 'youtube':
                     book["sources"][key]["channel_id"] = cid
                 if source.get('post_broadcast'):
@@ -787,7 +869,7 @@ def worker(data):
                 # visibly distinct from the recommendation-date field.
                 day = item.get("broadcast_date") or (item.get("published_at") or "")[:10]
                 for r in records:
-                    r["archive_day"] = r.get("recommended_date") or (r.get('published_at') or '')[:10] or day
+                    r["archive_day"] = r.get('archive_day') or r.get("recommended_date") or (r.get('published_at') or '')[:10] or day
                     if not r['archive_day']:
                         raise ValueError('원문 날짜 확인 불가; 저장 보류')
                 records = [r for r in records if not r.get('published_at') or r['published_at'][:10] >= item_cutoff]

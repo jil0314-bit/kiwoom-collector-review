@@ -240,6 +240,8 @@ async def scan_media(item, result=None, windows=None):
                     continue
                 last_sample = offset
                 scanned += 1
+                if scanned % 10 == 1:
+                    audio.guard()  # stop at 08:00 or under memory pressure
                 picks = await inspect_image(ocr, frame.to_image(), names)
                 if picks:
                     observations[offset] = picks

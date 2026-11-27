@@ -1,6 +1,51 @@
 {
-  "checked_date": "2026-11-09",
+  "checked_date": "2026-11-27",
   "programs": [
+    {
+      "name": "조기준의 골든크로스",
+      "aliases": [
+        "조기준 골든크로스"
+      ],
+      "broadcaster": "매일경제TV",
+      "channel_id": "UCnfwIKyFYRuqZzzKBDt6JOA",
+      "program_id": "mktv-golden-cross",
+      "experts": [
+        "조기준"
+      ],
+      "parent_program": "증시10",
+      "kind": "broadcast-clips",
+      "enabled": true,
+      "url": "https://www.youtube.com/results?search_query=%EC%A1%B0%EA%B8%B0%EC%A4%80%EC%9D%98+%EA%B3%A8%EB%93%A0%ED%81%AC%EB%A1%9C%EC%8A%A4+%EB%A7%A4%EC%9D%BC%EA%B2%BD%EC%A0%9CTV",
+      "post_broadcast": {
+        "timezone": "Asia/Seoul"
+      },
+      "verified_date": "2026-11-27"
+    },
+    {
+      "name": "이달해의 달달한 10분",
+      "aliases": [
+        "이달해 달달한10분",
+        "이달해의 달달한10분",
+        "달달한 10분"
+      ],
+      "broadcaster": "MTN",
+      "channel_id": "UClErHbdZKUnD1NyIUeQWvuQ",
+      "program_id": "mtn-daldal-10",
+      "experts": [
+        "이달해"
+      ],
+      "parent_program": "오후장 작전타임",
+      "kind": "broadcast-clips",
+      "enabled": true,
+      "url": "https://www.youtube.com/results?search_query=%EC%9D%B4%EB%8B%AC%ED%95%B4%EC%9D%98+%EB%8B%AC%EB%8B%AC%ED%95%9C+10%EB%B6%84+MTN",
+      "post_broadcast": {
+        "timezone": "Asia/Seoul",
+        "end": "12:52",
+        "delay_minutes": 10
+      },
+      "verified_date": "2026-11-27",
+      "article_query": "달달한"
+    },
     {
       "name": "AI황금분석",
       "url": "https://mbnmoney.mbn.co.kr/program/?program_no=1000151",
@@ -8,10 +53,17 @@
       "broadcaster": "매일경제TV",
       "program_id": "1000151",
       "channel_id": "UCnfwIKyFYRuqZzzKBDt6JOA",
-      "aliases": ["AI 황금 분석", "매니저 5인의 시각차"],
+      "aliases": [
+        "AI 황금 분석",
+        "매니저 5인의 시각차"
+      ],
       "ai_segment": true,
       "enabled": true,
-      "post_broadcast": {"end": "16:00", "delay_minutes": 10, "timezone": "Asia/Seoul"}
+      "post_broadcast": {
+        "end": "16:00",
+        "delay_minutes": 10,
+        "timezone": "Asia/Seoul"
+      }
     },
     {
       "name": "여의도 투자본부 1부",
@@ -119,7 +171,15 @@
       "name": "오후장 작전타임",
       "url": "https://www.mtn.co.kr/program/559",
       "kind": "mtn",
-      "broadcaster": "MTN"
+      "broadcaster": "MTN",
+      "program_id": "559",
+      "channel_id": "UClErHbdZKUnD1NyIUeQWvuQ",
+      "enabled": true,
+      "post_broadcast": {
+        "end": "12:52",
+        "delay_minutes": 10,
+        "timezone": "Asia/Seoul"
+      }
     },
     {
       "name": "출발! 성공투자",
@@ -398,12 +458,47 @@
   ],
   "broadcast_programs": [
     {
+      "name": "조기준의 골든크로스",
+      "aliases": [
+        "조기준 골든크로스"
+      ],
+      "broadcaster": "매일경제TV",
+      "experts": [
+        "조기준"
+      ],
+      "url": "https://www.youtube.com/results?search_query=%EC%A1%B0%EA%B8%B0%EC%A4%80%EC%9D%98+%EA%B3%A8%EB%93%A0%ED%81%AC%EB%A1%9C%EC%8A%A4+%EB%A7%A4%EC%9D%BC%EA%B2%BD%EC%A0%9CTV",
+      "parent_program": "증시10"
+    },
+    {
+      "name": "이달해의 달달한 10분",
+      "aliases": [
+        "이달해 달달한10분",
+        "이달해의 달달한10분",
+        "달달한 10분"
+      ],
+      "broadcaster": "MTN",
+      "experts": [
+        "이달해"
+      ],
+      "url": "https://www.youtube.com/results?search_query=%EC%9D%B4%EB%8B%AC%ED%95%B4%EC%9D%98+%EB%8B%AC%EB%8B%AC%ED%95%9C+10%EB%B6%84+MTN",
+      "parent_program": "오후장 작전타임"
+    },
+    {
       "name": "AI황금분석",
       "url": "https://www.youtube.com/channel/UCnfwIKyFYRuqZzzKBDt6JOA",
       "broadcaster": "매일경제TV",
-      "aliases": ["AI 황금 분석", "매니저 5인의 시각차"],
+      "aliases": [
+        "AI 황금 분석",
+        "매니저 5인의 시각차"
+      ],
       "broadcast_time": "14:20",
-      "experts": ["백인엽", "신광섭", "이가람", "조기준", "한균수"],
+      "experts": [
+        "백인엽",
+        "신광섭",
+        "이가람",
+        "조기준",
+        "한균수"
+      ],
       "highlight": "important",
       "collection_note": "공식 공개 영상의 제목·설명에서 프로그램명이 확인된 경우에만 연결. 공개 자막에서 발언이 확인되지 않으면 추천 종목으로 추정하지 않음."
     },

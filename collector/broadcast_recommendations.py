@@ -1,4 +1,4 @@
-"""Post-broadcast discovery/evidence for the five approved TV programmes."""
+"""Official public TV articles and channel-owned clips; bounded discovery."""
 import json
 import os
 import re
@@ -50,7 +50,7 @@ def discover_mktv(program, cutoff):
 def discover_clips(program):
     """Search results must identify the verified broadcaster as the owner."""
     import recommendations as r
-    url = 'https://www.youtube.com/results?' + urlencode({'search_query': program['name'] + ' ' + program['broadcaster']})
+    url = 'https://www.youtube.com/results?' + urlencode({'search_query': program['name'] + ' ' + program['broadcaster'], 'sp': 'CAI='})
     initial = r.json_after(r.fetch(url), r'(?:var\s+)?ytInitialData\s*=\s*')
     found = {}
     labels = [compact(x) for x in [program['name'], *program.get('aliases', [])] if compact(x)]
@@ -75,6 +75,29 @@ def discover_clips(program):
 
 def discover_articles(program):
     import recommendations as r
+    if program['broadcaster'] == 'MTN':
+        cutoff = (datetime.now(KST).date() - timedelta(days=6)).isoformat()
+        query = program.get('article_query', program['name'])
+        endpoint = 'https://apis.mtn.co.kr/open/v1/public/articles/search?'
+        payload = json.loads(r.fetch(endpoint + urlencode({'searchText': query, 'currentPageNo': '1'})))
+        if payload.get('status') != 'SUCCESS':
+            raise ValueError('MTN 공식 기사 검색 실패')
+        labels = [compact(x) for x in [program['name'], *program.get('aliases', [])]]
+        items = []
+        for row in payload.get('result', {}).get('items', [])[:30]:
+            article = row.get('article', {})
+            title, ident = article.get('title', ''), str(article.get('articleId', ''))
+            published_at = r.published(row.get('outDatetime') or '')
+            if not re.fullmatch(r'\d{10,25}', ident) or not published_at or published_at[:10] < cutoff:
+                continue
+            if not any(label and label in compact(title) for label in labels):
+                continue
+            route = 'article' if row.get('sourceSystem') == 'ZEUS' else 'news-detail'
+            item = {'url': f'https://news.mtn.co.kr/{route}/{ident}', 'title': title,
+                    'kind': 'mtn-article', 'program': program['name'], 'broadcaster': 'MTN',
+                    'published_at': published_at, 'broadcast_date': None}
+            items.append(tag(item, program) if program.get('post_broadcast') else item)
+        return items[:12]
     if program['broadcaster'] != '매일경제TV':
         return []
     page = r.Page(r.fetch('https://mbnmoney.mbn.co.kr/search?' + urlencode({'query': program['name']})))
@@ -134,6 +157,22 @@ def article(item):
     if re.search(r'수익률|선두|순위|집계|수성', title):
         body = '▶▶ 과거추천 복기\n' + body
     return r.extract(body, meta)
+
+
+def mtn_article(item):
+    import recommendations as r
+    page = r.Page(r.fetch(item['url']))
+    title = page.meta.get('og:title', '')
+    # The URL is an official article, but it must still match the discovered title.
+    if not title or compact(item.get('title', '')).split('mtn')[0] not in compact(title):
+        raise ValueError('MTN 기사 제목 일치 확인 필요')
+    date = r.published(page.meta.get('article:published_time', '')) or item.get('published_at')
+    if not date:
+        raise ValueError('MTN 공식 기사 게시일 확인 필요')
+    config = r.sources()
+    program = r.broadcast_program_match(title, '', 'MTN', config) or item.get('program')
+    meta = {**item, 'title': title, 'program': program, 'published_at': date, 'evidence_type': '공개 기사'}
+    return r.extract(page.text(), meta)
 
 
 def browser_lines(url):

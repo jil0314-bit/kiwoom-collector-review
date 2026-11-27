@@ -1,9 +1,9 @@
 {
-  "snapshot_date": "2026-11-26",
+  "snapshot_date": "2026-11-27",
   "timezone": "Asia/Seoul",
-  "review_base_commit": "138decfa000044922cb04a7c4e25ceb6671a02e6",
-  "scope": "All eight chart tabs initially open daily candles showing the latest 60 bars",
-  "source_files_byte_identical": 127,
+  "review_base_commit": "62ea7582cd9aec735fbe49b0e8c1776d55b3b6cc",
+  "scope": "Official MTN/MKTV corner discovery and new/interest/review classification, preserving deployed memory safeguards",
+  "source_files_byte_identical": 129,
   "generated_exception": "Publication metadata; volume.js retains the remote interval presentation outside this scoped change",
   "excluded": "Runtime data, credentials, private notes, full articles, logs, captures, backups, environments, new ZIPs",
   "files": [
@@ -45,9 +45,9 @@
     },
     {
       "path": "README.md",
-      "bytes": 3425,
-      "sha256": "e1082fbca882085fa6741eab5f6e0b3d2b41ba117a53b502ae3faed0aa5a22b6",
-      "git_blob_sha": "904cb64553ab5bea1e8d3daa05afb3dca73ddece"
+      "bytes": 3796,
+      "sha256": "d4c45b31e648e72584677ba4c2c5c4f6d78d83acd0ebb62c35514d7316eb0aee",
+      "git_blob_sha": "b8209d8f4f2e597c3d9ca0a0d36a973d31b9bb41"
     },
     {
       "path": "collector/.gitignore",
@@ -57,9 +57,9 @@
     },
     {
       "path": "collector/AGENTS.md",
-      "bytes": 2923,
-      "sha256": "65291f503a4eaed5016f2f463e0be5cb3874a998ce4b5d4d3c66aa492c8b1126",
-      "git_blob_sha": "2a61c47b3feb04c1184c7af3fa69ed569fff1787"
+      "bytes": 3661,
+      "sha256": "2540a8cba639587dfd3b62dae2adf8e034f1a853a5265c30328be1afcb9712f3",
+      "git_blob_sha": "8302ab4b51f2449f0f5414aa5c3e97440be7b183"
     },
     {
       "path": "collector/INVESTOR_FLOWS_SPEC.md",
@@ -105,21 +105,21 @@
     },
     {
       "path": "collector/broadcast_audio.py",
-      "bytes": 9198,
-      "sha256": "707f5e29af2aee9837c3f45195cbd6f14eef0cb6a837a201e0a9c18530701d12",
-      "git_blob_sha": "e55f3a4602a63655ff1bd62dd12b04b4ae88906e"
+      "bytes": 12460,
+      "sha256": "61217a9cded63dedf1fc942472f51c7a370695b61b02b497f32552e191854236",
+      "git_blob_sha": "c56f9360018d6e04691dd3035392bca89aa3986e"
     },
     {
       "path": "collector/broadcast_board.py",
-      "bytes": 12124,
-      "sha256": "e9ecc3d718e8ad5cd0a0d9eec5e3388f69e5cbbcd7d72e375755b3aafe798fbd",
-      "git_blob_sha": "28b0ed2b349fcbd39b1c2fb5ed22916fc5b0f81d"
+      "bytes": 12238,
+      "sha256": "a4f6b3a6029add1088fa19159e55e0d730b6193719c03b1b4b5e26c42b150300",
+      "git_blob_sha": "6947874a25d6a97507b6202edacca51517145e76"
     },
     {
       "path": "collector/broadcast_recommendations.py",
-      "bytes": 6679,
-      "sha256": "d116797da6f1f970ac0f82cb20d0499ae7d3323f22d19714c527ace25f41c502",
-      "git_blob_sha": "c418f19414c45213698c04e29db4985022084e82"
+      "bytes": 9053,
+      "sha256": "530b936e19506b1604860baed715f0e566c73c5e3803c0c7fc56ef428fed18a5",
+      "git_blob_sha": "bdd6456987aadac0e847de1d97c107b9bff3bd81"
     },
     {
       "path": "collector/broadcast_transcript.cjs",
@@ -162,6 +162,12 @@
       "bytes": 4924,
       "sha256": "f24649d13a27c1c715ee698fab062dc06bd65f66202e5b6eadf8cfb38732952e",
       "git_blob_sha": "3eed0703c821674c1d9d9049bd82e69ee4c612c4"
+    },
+    {
+      "path": "collector/docs/broadcast_corners_20261127.md",
+      "bytes": 2474,
+      "sha256": "e58246d47d819de58dfd4101247111e87089ed720ec744fb3f1fbf1dd791d729",
+      "git_blob_sha": "8753fa12dd9282f7268620cb85f0fd070924554f"
     },
     {
       "path": "collector/docs/common_rate_display_20261125.md",
@@ -315,21 +321,21 @@
     },
     {
       "path": "collector/recommendation_sources.json",
-      "bytes": 19113,
-      "sha256": "df2fb76f74061e73a6f930988b26e1029b7293a15f1957190965502c956ffaa4",
-      "git_blob_sha": "834a18a7eb4ba1e4f81c7b070e6dd99cc5a5d1f2"
+      "bytes": 21906,
+      "sha256": "2a8904409cf8c16a4b62b9195462d5f5e85914f7a5f4437985fb13d27228e371",
+      "git_blob_sha": "d8e0c1ebecdfae11f93f734d11860fcf5c9e225f"
     },
     {
       "path": "collector/recommendations.py",
-      "bytes": 46330,
-      "sha256": "51699d7f09142f49c5a622634dcd5fca9ccdac1b02b298d40cc6277883ed06f5",
-      "git_blob_sha": "bc7ff2151a3c1f685de1001e366e0a72ca8eb610"
+      "bytes": 51171,
+      "sha256": "d2bb5c7a5169bab3ddd91918c3a97d780d5780047f56a6eabf80339dde7622ca",
+      "git_blob_sha": "31bae8b969bf6fe61f38dc667afcbf272b77c095"
     },
     {
       "path": "collector/release_manifest.json",
       "bytes": 9967,
-      "sha256": "dd4fedb397c888bb1755ba32cbd42251cd418a63feaa3c3aff3060e911159105",
-      "git_blob_sha": "9a7a703a6a0b3c34704ef54720c7e2e0c64a8019"
+      "sha256": "2c615cf0c19646b0baccd6d62924a24bfd9a4f422e7fd9d4e659cb52f196c7e7",
+      "git_blob_sha": "11f51b59fa29d38d69786928fbe00c4222f1e0e9"
     },
     {
       "path": "collector/requirements-board-ocr.txt",
@@ -390,6 +396,12 @@
       "bytes": 4867,
       "sha256": "bf90d2449ef037298f88affc434e6bcc7af4de2d902f6ce5c1daa37c148aff25",
       "git_blob_sha": "dd645dc92ab198968faca2b688cfb64c20b18804"
+    },
+    {
+      "path": "collector/test_broadcast_guard.py",
+      "bytes": 1488,
+      "sha256": "5338542dad8b6689363e81e7a31760c019b4470cf1d00958dc2ccfb72b632ee9",
+      "git_blob_sha": "fc392b0da4ef736cb9c81a6fc18c2bcf365b4de2"
     },
     {
       "path": "collector/test_chart_data.py",
@@ -513,15 +525,15 @@
     },
     {
       "path": "collector/test_recommendations.py",
-      "bytes": 18660,
-      "sha256": "692502ba1f379a90479daef9cab4b3f217ea62640d539f4049d941954feafee8",
-      "git_blob_sha": "e1ed26895de18a83f8fdb72044fa57b0e5e2625e"
+      "bytes": 25907,
+      "sha256": "5794eaf87686402b2cbac780895f57fed5470163ee05eb61e3fceee31ff0bb97",
+      "git_blob_sha": "8c617480a20b86df15074688c61eaf347bb4fc6c"
     },
     {
       "path": "collector/test_recommendations_ui.cjs",
-      "bytes": 4032,
-      "sha256": "b3f24bb48c3a557d83935e0fa7063fa14e0038d3e3e914db061e44b299ae8f06",
-      "git_blob_sha": "d9bb199d920299ae0fef992d280037bed73e9184"
+      "bytes": 4387,
+      "sha256": "5871a519ab8499ea166aea2fd2282ac452c5bb8b096d27515083789bcd52446b",
+      "git_blob_sha": "17dccadab18f0e06cc2a3efa84682a0ee309be77"
     },
     {
       "path": "collector/test_reliability.py",
@@ -699,15 +711,15 @@
     },
     {
       "path": "collector/web/recommendations.html",
-      "bytes": 6246,
-      "sha256": "ea478637532a56f8c42739cc803ff71d6cf549b57674efa7615d3e179ad56fb5",
-      "git_blob_sha": "5d56fb5280f8f5901892ec58a3916456fe2a7bf9"
+      "bytes": 6242,
+      "sha256": "dc456e1356fe7331b190c9f48fcf075bffc03fd8b1ed7ba1bc25dd848f44a9f2",
+      "git_blob_sha": "d9ea685232bd3aef4286a615451966ad8ee25a5e"
     },
     {
       "path": "collector/web/recommendations.js",
-      "bytes": 16541,
-      "sha256": "629a88cd014c61b586ff5faf7cc25197bb743b9d03ddcdd3ec1bd2f0050f0859",
-      "git_blob_sha": "8edc67fb8777ef95dbd8635db3c4d446cf5b5559"
+      "bytes": 16589,
+      "sha256": "57604da70c9a3728e28b1c2700e6cfcfe89fc5f31b74a054f6fea6994211c8c2",
+      "git_blob_sha": "1353ed98590a010cfa2d293200b6baa464870f0b"
     },
     {
       "path": "collector/web/stock-search-add.css",
@@ -813,9 +825,9 @@
     },
     {
       "path": "hero4_daily_memo.py",
-      "bytes": 7789,
-      "sha256": "cab83907b07fca9412501a21e171dd1da96196d1ea39ae320e934c6900ea6604",
-      "git_blob_sha": "1dc2a251ee2d2304820a46e469f702d7583ed616"
+      "bytes": 8793,
+      "sha256": "4c090662834d3b57638669f141621f2f7ac7c236f0b9738d8bff2da2f8387c82",
+      "git_blob_sha": "cd9525654cbe1066b6599791a825c7f6a983c8c9"
     },
     {
       "path": "hero4_memo_import.py",

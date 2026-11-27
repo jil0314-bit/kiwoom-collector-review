@@ -16,6 +16,67 @@ from urllib.request import Request, build_opener
 ROOT = Path(__file__).resolve().parent
 PROCESS = None
 
+# 2026-11-27 memory incident: the PC ran out of committed memory (44.5/44.6GB)
+# while a broadcast worker held ~2.5GB, and Hero4, Edge and the V76 dashboard
+# crashed. Heavy speech/board work now runs only after the extended session
+# (21:00-08:00, as speech already did) and only with memory to spare.
+QUIET_START, QUIET_END = 8, 21   # no heavy work from 08:00 to 21:00
+START_COMMIT_PCT = 75            # do not start above this system commit %
+MIN_FREE_GB = 3.0                # nor with less free physical memory
+ABORT_COMMIT_PCT = 90            # a running worker stops above this
+
+
+class Deferred(Exception):
+    """Work postponed to protect the PC; not a failure of the source."""
+
+
+def memory_status():
+    """(system commit %, free physical GB) on Windows; None elsewhere or on error."""
+    try:
+        import ctypes
+
+        class Status(ctypes.Structure):
+            _fields_ = [('dwLength', ctypes.c_ulong), ('dwMemoryLoad', ctypes.c_ulong),
+                        ('ullTotalPhys', ctypes.c_ulonglong), ('ullAvailPhys', ctypes.c_ulonglong),
+                        ('ullTotalPageFile', ctypes.c_ulonglong), ('ullAvailPageFile', ctypes.c_ulonglong),
+                        ('ullTotalVirtual', ctypes.c_ulonglong), ('ullAvailVirtual', ctypes.c_ulonglong),
+                        ('ullAvailExtendedVirtual', ctypes.c_ulonglong)]
+        status = Status()
+        status.dwLength = ctypes.sizeof(Status)
+        if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)) or not status.ullTotalPageFile:
+            return None
+        commit = 100.0 - status.ullAvailPageFile * 100.0 / status.ullTotalPageFile
+        return round(commit, 1), status.ullAvailPhys / 2 ** 30
+    except Exception:
+        return None
+
+
+def market_hours(now=None):
+    from datetime import datetime
+    from kiwoom import KST
+    now = now or datetime.now(KST)
+    return QUIET_START <= now.hour < QUIET_END
+
+
+def start_blocked(board=False, now=None, memory=None):
+    """Why a heavy worker must not start now, or None."""
+    if market_hours(now):
+        return ('21시 이후 추천표 검사 대기·장중 PC 보호' if board
+                else '21시 이후 로컬 음성전사 대기·클립/기사는 계속 수집')
+    memory = memory_status() if memory is None else memory
+    if memory and (memory[0] >= START_COMMIT_PCT or memory[1] < MIN_FREE_GB):
+        return 'PC 메모리 여유 부족(사용 ' + str(round(memory[0])) + '%)·여유 생기면 자동 재시도'
+    return None
+
+
+def guard(now=None, memory=None):
+    """Called inside a running worker: stop at market open or under memory pressure."""
+    if market_hours(now):
+        raise Deferred('08시 장 준비로 작업 중단·21시 이후 다시 실행')
+    memory = memory_status() if memory is None else memory
+    if memory and memory[0] >= ABORT_COMMIT_PCT:
+        raise Deferred('PC 메모리 ' + str(round(memory[0])) + '%·PC 보호를 위해 작업 중단·나중에 재시도')
+
 
 def paths(item):
     namespace = 'manager-board:' if item.get('ai_segment') else ''
@@ -43,11 +104,11 @@ def read_or_start(item):
     records = saved.get('records', [])
     if PROCESS is not None and PROCESS.poll() is None:
         return records, message
-    # Heavy work starts only outside domestic regular/extended market hours.
-    from datetime import datetime
-    from kiwoom import KST
-    if not board and 8 <= datetime.now(KST).hour < 21:
-        return records, '21시 이후 로컬 음성전사 대기·클립/기사는 계속 수집'
+    # Heavy work (speech AND board OCR) starts only outside 08:00-21:00
+    # and only when the PC has memory to spare.
+    blocked = start_blocked(board)
+    if blocked:
+        return records, blocked
     if board and not (ROOT / '.broadcast-ocr-runtime/winrt').is_dir():
         return records, '한국어 추천표 OCR 실행 환경 확인 필요'
     if not (ROOT / '.speech-runtime' / ('av' if board else 'faster_whisper')).is_dir():
@@ -128,6 +189,7 @@ def transcribe(item, result, max_seconds=None):
         nonlocal pool, samples, elapsed
         if not samples:
             return
+        guard()
         audio = np.concatenate(pool).astype(np.float32) / 32768.0
         segments, _ = model.transcribe(audio, language='ko', beam_size=3, vad_filter=True)
         lines = [{'offset': round(elapsed + x.start), 'text': x.text.strip()} for x in segments]
@@ -173,6 +235,13 @@ def main():
             scan(item, result)
         else:
             transcribe(item, result)
+    except Deferred as exc:
+        saved = r.load(result, {})
+        if item.get('ai_segment'):
+            from broadcast_board import BOARD_VERSION
+            saved['board_version'] = BOARD_VERSION
+        r.save(result, {**saved, 'complete': False, 'message': str(exc)[:180],
+                        'retry_after': __import__('time').time() + 600})
     except Exception as exc:
         saved = r.load(result, {})
         prefix = '추천표 검사 확인 필요: ' if item.get('ai_segment') else '음성전사 확인 필요: '
